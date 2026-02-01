@@ -59,11 +59,11 @@ so something simple.
 
 ### Protocol layer (Python)
 
-- [ ] Implement frame encode/decode per `docs/protocol.md`
-- [ ] Implement CRC-16/MODBUS
-- [ ] Validate length/fields; reject malformed frames cleanly
-- [ ] Unit tests: round-trip encode/decode, CRC pass/fail, fuzz-ish malformed inputs
-- [ ] Public API: minimal and stable (e.g., `encode_request(...)`, `decode_frame(...)`)
+- [x] Implement frame encode/decode per `docs/protocol.md`
+- [x] Implement CRC-16/MODBUS
+- [x] Validate length/fields; reject malformed frames cleanly
+- [x] Unit tests: round-trip encode/decode, CRC pass/fail, fuzz-ish malformed inputs
+- [x] Public API: minimal and stable (e.g., `encode_request(...)`, `decode_frame(...)`)
 
 ### Protocol layer (ESP32)
 

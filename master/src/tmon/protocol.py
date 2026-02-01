@@ -4,32 +4,223 @@ Handles the binary framing format described in docs/protocol.md:
 START, ADDR, CMD, LEN, PAYLOAD, CRC_LO, CRC_HI.
 
 Example:
-    >>> from tmon.protocol import encode_request, decode_frame
-    >>> raw = encode_request(addr=1, cmd=0x10)
+    >>> from tmon.protocol import encode_poll, decode_frame, parse_reply_payload
+    >>> raw = encode_poll(addr=3)
+    >>> raw.hex(' ')
+    '01 03 01 00 80 50'
     >>> frame = decode_frame(raw)
+    >>> frame['addr']
+    3
+    >>> frame['cmd']
+    1
 """
 
+import struct
 
-def encode_request(addr, cmd):
-    """Encode a poll request frame.
+# -- Protocol constants ------------------------------------------------------
+
+PROTO_START = 0x01
+CMD_POLL = 0x01
+CMD_REPLY = 0x02
+REPLY_PAYLOAD_LEN = 9
+TEMP_INVALID = 0x7FFF
+
+# -- CRC-16/MODBUS -----------------------------------------------------------
+
+
+def crc16_modbus(data):
+    """Compute CRC-16/MODBUS over a byte sequence.
+
+    Uses polynomial 0x8005 with initial value 0xFFFF and reflected
+    input/output (standard MODBUS CRC).  Bitwise implementation --
+    simple and sufficient for our short frames.
 
     Args:
-        addr: Slave address (1-247).
-        cmd: Command byte.
+        data: Bytes-like object to compute the CRC over.
 
     Returns:
-        bytes: The encoded frame.
+        int: 16-bit CRC value.
+
+    Example:
+        >>> crc16_modbus(bytes([0x03, 0x01, 0x00]))
+        0x5080
     """
-    raise NotImplementedError
+    crc = 0xFFFF
+    for byte in data:
+        crc ^= byte
+        for _ in range(8):
+            if crc & 0x0001:
+                crc = (crc >> 1) ^ 0xA001
+            else:
+                crc >>= 1
+    return crc
+
+
+# -- Encoding ----------------------------------------------------------------
+
+
+def encode_request(addr, cmd, payload):
+    """Build a complete protocol frame.
+
+    Constructs the frame: START + ADDR + CMD + LEN + PAYLOAD + CRC_LO + CRC_HI.
+    The CRC is computed over ADDR + CMD + LEN + PAYLOAD.
+
+    Args:
+        addr: Slave address (int, 1-247).
+        cmd: Command byte (int).
+        payload: Payload bytes (bytes, may be empty).
+
+    Returns:
+        bytes: The complete encoded frame.
+
+    Raises:
+        ValueError: If addr is outside the valid range 1-247.
+
+    Example:
+        >>> encode_request(3, CMD_REPLY, bytes([
+        ...     0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F
+        ... ])).hex(' ')
+        '01 03 02 09 03 eb 00 c6 00 ff 7f ff 7f f0 20'
+    """
+    if not (1 <= addr <= 247):
+        raise ValueError(
+            "addr must be in range 1-247, got {}".format(addr)
+        )
+    body = bytes([addr, cmd, len(payload)]) + payload
+    crc = crc16_modbus(body)
+    return bytes([PROTO_START]) + body + struct.pack("<H", crc)
+
+
+def encode_poll(addr):
+    """Build a POLL frame for the given slave address.
+
+    Convenience wrapper around encode_request with CMD_POLL and no payload.
+
+    Args:
+        addr: Slave address (int, 1-247).
+
+    Returns:
+        bytes: The complete encoded POLL frame.
+
+    Example:
+        >>> encode_poll(3).hex(' ')
+        '01 03 01 00 80 50'
+    """
+    return encode_request(addr, CMD_POLL, b"")
+
+
+# -- Decoding ----------------------------------------------------------------
 
 
 def decode_frame(data):
-    """Decode a raw frame from the bus.
+    """Parse raw bytes into a protocol frame dict.
+
+    Validates the frame structure, length field, address range, and CRC.
 
     Args:
-        data: Raw bytes received from the bus.
+        data: Raw bytes received from the bus (bytes).
 
     Returns:
-        dict: Parsed frame fields (addr, cmd, payload, etc.).
+        dict: Parsed frame with keys:
+            - ``addr`` (int): Slave address.
+            - ``cmd`` (int): Command byte.
+            - ``payload`` (bytes): Payload bytes (may be empty).
+
+    Raises:
+        ValueError: On any validation failure (short frame, bad START byte,
+            length mismatch, CRC mismatch, or address out of range).
+
+    Example:
+        >>> frame = decode_frame(bytes.fromhex('01 03 01 00 80 50'))
+        >>> frame['addr'], frame['cmd'], frame['payload']
+        (3, 1, b'')
     """
-    raise NotImplementedError
+    if len(data) < 6:
+        raise ValueError(
+            "frame too short: {} bytes, minimum is 6".format(len(data))
+        )
+
+    if data[0] != PROTO_START:
+        raise ValueError(
+            "bad START byte: expected 0x{:02X}, got 0x{:02X}".format(
+                PROTO_START, data[0]
+            )
+        )
+
+    addr = data[1]
+    cmd = data[2]
+    payload_len = data[3]
+
+    if len(data) != 4 + payload_len + 2:
+        raise ValueError(
+            "length mismatch: LEN field says {} payload bytes, "
+            "but frame is {} bytes (expected {})".format(
+                payload_len, len(data), 4 + payload_len + 2
+            )
+        )
+
+    payload = data[4 : 4 + payload_len]
+    crc_received = struct.unpack_from("<H", data, 4 + payload_len)[0]
+    body = data[1 : 4 + payload_len]
+    crc_computed = crc16_modbus(body)
+
+    if crc_received != crc_computed:
+        raise ValueError(
+            "CRC mismatch: received 0x{:04X}, computed 0x{:04X}".format(
+                crc_received, crc_computed
+            )
+        )
+
+    if not (1 <= addr <= 247):
+        raise ValueError(
+            "addr out of range: {} (must be 1-247)".format(addr)
+        )
+
+    return {"addr": addr, "cmd": cmd, "payload": payload}
+
+
+def parse_reply_payload(payload):
+    """Parse the 9-byte REPLY payload into status and temperatures.
+
+    The payload layout is: 1 byte status bitmask, then four int16-LE
+    temperature values in tenths of a degree Celsius.  Invalid channels
+    (status bit cleared) are returned as None.
+
+    Args:
+        payload: Exactly 9 bytes of REPLY payload (bytes).
+
+    Returns:
+        dict: Parsed reply with keys:
+            - ``status`` (int): Status bitmask (bit N = channel N valid).
+            - ``temperatures`` (list): Four floats (degrees Celsius) or
+              None for invalid channels.
+
+    Raises:
+        ValueError: If payload is not exactly 9 bytes.
+
+    Example:
+        >>> result = parse_reply_payload(
+        ...     bytes([0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
+        ... )
+        >>> result['status']
+        3
+        >>> result['temperatures']
+        [23.5, 19.8, None, None]
+    """
+    if len(payload) != REPLY_PAYLOAD_LEN:
+        raise ValueError(
+            "REPLY payload must be {} bytes, got {}".format(
+                REPLY_PAYLOAD_LEN, len(payload)
+            )
+        )
+
+    status = payload[0]
+    temperatures = []
+    for i in range(4):
+        raw = struct.unpack_from("<h", payload, 1 + i * 2)[0]
+        if status & (1 << i):
+            temperatures.append(raw / 10.0)
+        else:
+            temperatures.append(None)
+
+    return {"status": status, "temperatures": temperatures}
