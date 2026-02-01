@@ -49,29 +49,12 @@ class Bus:
         self._ser = serial.Serial(port, baudrate, timeout=0)
 
     def send(self, data):
-        """Transmit *data* on the bus.
-
-        Clears the input buffer first (half-duplex echo avoidance),
-        writes *data*, then flushes the output buffer.
-
-        Args:
-            data: Bytes to transmit.
-        """
         self._ser.reset_input_buffer()
         self._ser.write(data)
         self._ser.flush()
 
     def receive(self):
         """Receive a complete protocol frame from the bus.
-
-        Uses ``BUS_TIMEOUT_MS`` from ``tmon.config`` as the serial
-        read timeout.  Reads the 4-byte header to learn LEN, then
-        reads the remaining payload + CRC bytes.  Returns the
-        complete frame or ``b""`` on timeout.
-
-        Returns:
-            bytes: Complete frame bytes, or ``b""`` on timeout or
-                incomplete read.
 
         Example:
             >>> frame = bus.receive()
