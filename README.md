@@ -36,3 +36,4 @@ A small, home-use **Raspberry Pi + ESP32** setup for monitoring temperatures ove
 
 - [Protocol Specification](docs/protocol.md)
 - [Wiring Reference](docs/wiring.md)
+- [Storage Specification](docs/storage.md)

@@ -47,8 +47,8 @@ so something simple.
 
 ### Flesh out docs/storage.md
 
-- [ ] document schema and how poll data will be stored in sqlite in docs/storage.md
-- [ ] update README.md to link to docs/storage.md
+- [x] document schema and how poll data will be stored in sqlite in docs/storage.md
+- [x] update README.md to link to docs/storage.md
 
 ### Setup skeleton test
 
