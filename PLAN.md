@@ -106,7 +106,7 @@ so something simple.
 
 - [ ] Read NTC thermistors
 - [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
-- [ ] Respond to requests; populate payload with readings + status
+- [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
 
 ### Integration + polish
