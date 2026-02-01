@@ -79,8 +79,20 @@ def main(master_pty, addr):
         bus.close()
         return 1
 
-    t0 = struct.unpack_from("<h", frame["payload"], 0)[0]
-    print("OK: addr={} temp_0={}".format(addr, t0))
+    temps = []
+    for i in range(4):
+        raw_val = struct.unpack_from("<h", frame["payload"], i * 2)[0]
+        temps.append(raw_val)
+
+    for i, t in enumerate(temps):
+        if t == 0x7FFF:
+            continue
+        if not (50 <= t <= 900):
+            print("FAIL: temp_{} out of range: {}".format(i, t))
+            bus.close()
+            return 1
+
+    print("OK: addr={} temps={}".format(addr, temps))
     bus.close()
     return 0
 

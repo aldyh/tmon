@@ -3,8 +3,8 @@
 
 Listens on a serial port (typically a socat PTY) and responds to
 POLL frames with REPLY frames containing synthetic temperatures.
-Channels 0 and 1 produce valid readings with slight variation
-each cycle; channels 2 and 3 are invalid.
+All four channels produce valid readings by default; each channel
+has a ~10% chance of being marked invalid on any given cycle.
 
 Usage:
     python simulator.py <port> <addr>
@@ -34,32 +34,19 @@ from tmon.protocol import (
 )
 
 
-def make_reply_payload(temps):
-    """Build an 8-byte REPLY payload.
-
-    Args:
-        temps: List of four int16 temperature values.
-
-    Returns:
-        bytes: 8-byte payload.
-    """
-    return struct.pack("<hhhh", temps[0], temps[1],
-                       temps[2], temps[3])
-
-
 def run(port, addr):
     """Run the simulator loop.
 
     Opens *port* via Bus, reads incoming frames, and replies to POLL
     frames addressed to *addr* with synthetic temperature data.
+    Each channel produces a random value between 50 and 900 (5.0 to
+    90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
 
     Args:
         port: Serial port device path.
         addr: Slave address to respond as (int).
     """
     bus = Bus(port, 9600)
-    base_t0 = 235   # 23.5 C
-    base_t1 = 198   # 19.8 C
 
     print("simulator: addr={} listening on {}".format(addr, port),
           flush=True)
@@ -81,12 +68,15 @@ def run(port, addr):
             if frame["cmd"] != PROTO_CMD_POLL:
                 continue
 
-            # Generate synthetic temps with slight variation
-            t0 = base_t0 + random.randint(-5, 5)
-            t1 = base_t1 + random.randint(-5, 5)
-            payload = make_reply_payload(
-                [t0, t1, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID]
-            )
+            temps = []
+            for _ in range(4):
+                if random.random() < 0.1:
+                    temps.append(PROTO_TEMP_INVALID)
+                else:
+                    temps.append(random.randint(50, 900))
+
+            payload = struct.pack("<hhhh", temps[0], temps[1],
+                                  temps[2], temps[3])
             reply = encode_request(addr, PROTO_CMD_REPLY, payload)
             bus.send(reply)
     except KeyboardInterrupt:
