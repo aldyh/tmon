@@ -22,15 +22,31 @@ A small, home-use **Raspberry Pi + ESP32** setup for monitoring temperatures ove
 
 ### Master
 
-[How to build and run master.]
+```bash
+cd master
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -e ".[test]"
+```
 
 ### ESP32 slave
 
-[How to build and run slave.]
+Requires [PlatformIO](https://platformio.org/).
+
+```bash
+cd slave
+pio run
+```
 
 ### Testing without hardware
 
-[How to test]
+All master unit tests run on x86 Linux without any ESP32 hardware:
+
+```bash
+cd master
+. .venv/bin/activate
+pytest
+```
 
 ## Documentation
 
