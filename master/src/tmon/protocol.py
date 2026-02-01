@@ -79,6 +79,10 @@ def encode_request(addr, cmd, payload):
     Example:
         >>> encode_request(3, PROTO_CMD_POLL, b"").hex(' ')
         '01 03 01 00 80 50'
+        >>> import struct
+        >>> payload = struct.pack("<Bhhhh", 0x03, 235, 198, 32767, 32767)
+        >>> encode_request(3, PROTO_CMD_REPLY, payload).hex(' ')
+        '01 03 02 09 03 eb 00 c6 00 ff 7f ff 7f f0 20'
     """
     if not (1 <= addr <= 247):
         raise ValueError(
