@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tmon"
+version = "0.1.0"
+description = "Temperature monitoring master daemon"
+requires-python = ">=3.11"
+dependencies = ["pyserial"]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
