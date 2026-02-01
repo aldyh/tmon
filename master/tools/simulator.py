@@ -35,17 +35,16 @@ from tmon.protocol import (
 )
 
 
-def make_reply_payload(status, temps):
-    """Build a 9-byte REPLY payload.
+def make_reply_payload(temps):
+    """Build an 8-byte REPLY payload.
 
     Args:
-        status: Channel validity bitmask (int).
         temps: List of four int16 temperature values.
 
     Returns:
-        bytes: 9-byte payload.
+        bytes: 8-byte payload.
     """
-    return struct.pack("<Bhhhh", status, temps[0], temps[1],
+    return struct.pack("<hhhh", temps[0], temps[1],
                        temps[2], temps[3])
 
 
@@ -94,9 +93,8 @@ def run(port, addr):
             # Generate synthetic temps with slight variation
             t0 = base_t0 + random.randint(-5, 5)
             t1 = base_t1 + random.randint(-5, 5)
-            status = 0x03  # channels 0 and 1 valid
             payload = make_reply_payload(
-                status, [t0, t1, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID]
+                [t0, t1, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID]
             )
             reply = encode_request(addr, PROTO_CMD_REPLY, payload)
             ser.write(reply)

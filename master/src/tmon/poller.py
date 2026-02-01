@@ -62,14 +62,14 @@ class Poller:
 
         Encodes a POLL frame, sends it, waits for a REPLY, validates
         the response (address, command, payload length), and unpacks
-        the raw int16 temperatures.  Invalid channels (status bit
-        cleared) are stored as None.
+        the raw int16 temperatures.  Channels with value
+        PROTO_TEMP_INVALID are stored as None.
 
         Args:
             addr: Slave address to poll (int, 1-247).
 
         Returns:
-            dict: Reading with keys ``addr``, ``status``,
+            dict: Reading with keys ``addr``,
                 ``temp_0`` .. ``temp_3`` (raw int16 or None), or
                 None on timeout/error.
 
@@ -112,18 +112,16 @@ class Poller:
             )
             return None
 
-        status = payload[0]
         temps = []
         for i in range(4):
-            raw_val = struct.unpack_from("<h", payload, 1 + i * 2)[0]
-            if status & (1 << i) and raw_val != PROTO_TEMP_INVALID:
+            raw_val = struct.unpack_from("<h", payload, i * 2)[0]
+            if raw_val != PROTO_TEMP_INVALID:
                 temps.append(raw_val)
             else:
                 temps.append(None)
 
         return {
             "addr": addr,
-            "status": status,
             "temp_0": temps[0],
             "temp_1": temps[1],
             "temp_2": temps[2],
@@ -139,7 +137,7 @@ class Poller:
 
         Returns:
             list[dict]: Readings collected this cycle.  Each dict has
-                keys ``addr``, ``status``, ``temp_0`` .. ``temp_3``.
+                keys ``addr``, ``temp_0`` .. ``temp_3``.
 
         Example:
             >>> results = poller.poll_all()

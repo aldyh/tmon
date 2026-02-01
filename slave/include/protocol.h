@@ -21,8 +21,8 @@
 /* Maximum payload length */
 #define TMON_MAX_PAYLOAD  255
 
-/* REPLY payload is exactly 9 bytes (1 status + 4 x int16_t) */
-#define TMON_REPLY_PAYLOAD_LEN  9
+/* REPLY payload is exactly 8 bytes (4 x int16_t) */
+#define TMON_REPLY_PAYLOAD_LEN  8
 
 /* Sentinel value for invalid/unconnected temperature channels */
 #define TMON_TEMP_INVALID  0x7FFF
@@ -34,13 +34,12 @@
 #define TMON_NUM_CHANNELS  4
 
 /*
- * Parsed REPLY payload: status bitmask and four temperature readings.
+ * Parsed REPLY payload: four temperature readings.
  * Temperatures are signed, in tenths of a degree Celsius.
  * Invalid channels have the value TMON_TEMP_INVALID (0x7FFF).
  */
 struct tmon_reply_payload
 {
-  uint8_t status;
   int16_t temps[TMON_NUM_CHANNELS];
 };
 
@@ -122,24 +121,24 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
                    uint8_t *payload_len);
 
 /*
- * tmon_parse_reply_payload -- Parse a 9-byte REPLY payload.
+ * tmon_parse_reply_payload -- Parse an 8-byte REPLY payload.
  *
- * Unpacks the status bitmask and four int16-LE temperature values
- * into a tmon_reply_payload struct.
+ * Unpacks four int16-LE temperature values into a tmon_reply_payload
+ * struct.  Invalid channels have the value TMON_TEMP_INVALID.
  *
  * Args:
- *   payload:     Pointer to the 9-byte payload.
- *   payload_len: Must be TMON_REPLY_PAYLOAD_LEN (9).
+ *   payload:     Pointer to the 8-byte payload.
+ *   payload_len: Must be TMON_REPLY_PAYLOAD_LEN (8).
  *   out:         Output struct to fill.
  *
  * Returns:
- *   0 on success, -1 if payload_len != 9.
+ *   0 on success, -1 if payload_len != 8.
  *
  * Example:
- *   uint8_t pl[] = {0x03, 0xEB,0x00, 0xC6,0x00, 0xFF,0x7F, 0xFF,0x7F};
+ *   uint8_t pl[] = {0xEB,0x00, 0xC6,0x00, 0xFF,0x7F, 0xFF,0x7F};
  *   struct tmon_reply_payload rp;
- *   int rc = tmon_parse_reply_payload (pl, 9, &rp);
- *   // rc = 0, rp.status = 3, rp.temps = {235, 198, 32767, 32767}
+ *   int rc = tmon_parse_reply_payload (pl, 8, &rp);
+ *   // rc = 0, rp.temps = {235, 198, 32767, 32767}
  */
 int
 tmon_parse_reply_payload (const uint8_t *payload, uint8_t payload_len,

@@ -37,7 +37,7 @@ Polynomial: 0x8005, initial value: 0xFFFF, reflected input and output.
 | Command  | Value  | Direction       | Payload             |
 |----------|--------|-----------------|---------------------|
 | POLL     | `0x01` | Master -> Slave | None (LEN = 0)     |
-| REPLY    | `0x02` | Slave -> Master | 9 bytes (see below) |
+| REPLY    | `0x02` | Slave -> Master | 8 bytes (see below) |
 
 ### POLL (0x01)
 
@@ -45,21 +45,19 @@ Master requests a reading from the addressed slave.  No payload.
 
 ### REPLY (0x02)
 
-Slave responds with its current temperature readings.  Fixed 9-byte
+Slave responds with its current temperature readings.  Fixed 8-byte
 payload:
 
 | Offset | Size     | Field   | Description                               |
 |--------|----------|---------|-------------------------------------------|
-| 0      | 1 byte   | status  | Bitmask: bit N = 1 means channel N valid  |
-| 1-2    | int16 LE | temp_0  | Channel 0 temperature                     |
-| 3-4    | int16 LE | temp_1  | Channel 1 temperature                     |
-| 5-6    | int16 LE | temp_2  | Channel 2 temperature                     |
-| 7-8    | int16 LE | temp_3  | Channel 3 temperature                     |
+| 0-1    | int16 LE | temp_0  | Channel 0 temperature                     |
+| 2-3    | int16 LE | temp_1  | Channel 1 temperature                     |
+| 4-5    | int16 LE | temp_2  | Channel 2 temperature                     |
+| 6-7    | int16 LE | temp_3  | Channel 3 temperature                     |
 
 - Temperatures are signed, in **tenths of a degree Celsius**
   (e.g., 235 = 23.5 C, -100 = -10.0 C).
-- Invalid or unconnected channels: status bit cleared, temp value
-  `0x7FFF` (sentinel).
+- Invalid or unconnected channels: temp value `0x7FFF` (sentinel).
 - int16 range covers -3276.8 to +3276.7 C -- more than sufficient.
 
 ## Timing
@@ -83,7 +81,7 @@ PROTO_START     = 0x01
 PROTO_CMD_POLL  = 0x01
 PROTO_CMD_REPLY = 0x02
 
-REPLY_PAYLOAD_LEN  = 9
+REPLY_PAYLOAD_LEN  = 8
 TEMP_INVALID       = 0x7FFF
 
 POLL_TIMEOUT_MS    = 200
@@ -110,23 +108,22 @@ Total: 6 bytes.
 ### Example 2: slave 3 replies, channels 0 and 1 valid
 
 Channel 0: 23.5 C (235 = 0x00EB), channel 1: 19.8 C (198 = 0x00C6).
-Channels 2 and 3 invalid (0x7FFF).  Status = 0x03 (bits 0 and 1 set).
+Channels 2 and 3 invalid (0x7FFF).
 
 Frame bytes (hex):
 
 ```
-01  03  02  09  03  EB 00  C6 00  FF 7F  FF 7F  F0 20
-|   |   |   |   |   |      |      |      |      |
-|   |   |   |   |   |      |      |      |      +-- CRC-16/MODBUS, LE
-|   |   |   |   |   |      |      |      +--------- temp_3 = 0x7FFF (invalid)
-|   |   |   |   |   |      |      +---------------- temp_2 = 0x7FFF (invalid)
-|   |   |   |   |   |      +----------------------- temp_1 = 198 (19.8 C)
-|   |   |   |   |   +------------------------------ temp_0 = 235 (23.5 C)
-|   |   |   |   +---------------------------------- status = 0x03
-|   |   |   +-------------------------------------- LEN = 9
-|   |   +------------------------------------------ CMD = 0x02 (REPLY)
-|   +---------------------------------------------- ADDR = 3
-+-------------------------------------------------- START = 0x01
+01  03  02  08  EB 00  C6 00  FF 7F  FF 7F  90 EB
+|   |   |   |   |      |      |      |      |
+|   |   |   |   |      |      |      |      +-- CRC-16/MODBUS, LE
+|   |   |   |   |      |      |      +--------- temp_3 = 0x7FFF (invalid)
+|   |   |   |   |      |      +---------------- temp_2 = 0x7FFF (invalid)
+|   |   |   |   |      +----------------------- temp_1 = 198 (19.8 C)
+|   |   |   |   +------------------------------ temp_0 = 235 (23.5 C)
+|   |   |   +---------------------------------- LEN = 8
+|   |   +-------------------------------------- CMD = 0x02 (REPLY)
+|   +------------------------------------------ ADDR = 3
++---------------------------------------------- START = 0x01
 ```
 
-Total: 15 bytes.
+Total: 14 bytes.

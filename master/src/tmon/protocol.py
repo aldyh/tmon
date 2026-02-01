@@ -22,7 +22,7 @@ import struct
 PROTO_START = 0x01
 PROTO_CMD_POLL = 0x01
 PROTO_CMD_REPLY = 0x02
-PROTO_REPLY_PAYLOAD_LEN = 9
+PROTO_REPLY_PAYLOAD_LEN = 8
 PROTO_TEMP_INVALID = 0x7FFF
 
 # -- CRC-16/MODBUS -----------------------------------------------------------
@@ -80,9 +80,9 @@ def encode_request(addr, cmd, payload):
         >>> encode_request(3, PROTO_CMD_POLL, b"").hex(' ')
         '01 03 01 00 80 50'
         >>> import struct
-        >>> payload = struct.pack("<Bhhhh", 3, 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
+        >>> payload = struct.pack("<hhhh", 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         >>> encode_request(3, PROTO_CMD_REPLY, payload).hex(' ')
-        '01 03 02 09 03 eb 00 c6 00 ff 7f ff 7f f0 20'
+        '01 03 02 08 eb 00 c6 00 ff 7f ff 7f 90 eb'
     """
     if not (1 <= addr <= 247):
         raise ValueError(
@@ -164,30 +164,27 @@ def decode_frame(data):
 
 
 def parse_reply_payload(payload):
-    """Parse the 9-byte REPLY payload into status and temperatures.
+    """Parse the 8-byte REPLY payload into temperatures.
 
-    The payload layout is: 1 byte status bitmask, then four int16-LE
-    temperature values in tenths of a degree Celsius.  Invalid channels
-    (status bit cleared) are returned as None.
+    The payload layout is four int16-LE temperature values in tenths
+    of a degree Celsius.  Channels with value PROTO_TEMP_INVALID are
+    returned as None.
 
     Args:
-        payload: Exactly 9 bytes of REPLY payload (bytes).
+        payload: Exactly 8 bytes of REPLY payload (bytes).
 
     Returns:
         dict: Parsed reply with keys:
-            - ``status`` (int): Status bitmask (bit N = channel N valid).
             - ``temperatures`` (list): Four floats (degrees Celsius) or
               None for invalid channels.
 
     Raises:
-        ValueError: If payload is not exactly 9 bytes.
+        ValueError: If payload is not exactly 8 bytes.
 
     Example:
         >>> result = parse_reply_payload(
-        ...     bytes([0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
+        ...     bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
         ... )
-        >>> result['status']
-        3
         >>> result['temperatures']
         [23.5, 19.8, None, None]
     """
@@ -198,13 +195,12 @@ def parse_reply_payload(payload):
             )
         )
 
-    status = payload[0]
     temperatures = []
     for i in range(4):
-        raw = struct.unpack_from("<h", payload, 1 + i * 2)[0]
-        if status & (1 << i):
+        raw = struct.unpack_from("<h", payload, i * 2)[0]
+        if raw != PROTO_TEMP_INVALID:
             temperatures.append(raw / 10.0)
         else:
             temperatures.append(None)
 
-    return {"status": status, "temperatures": temperatures}
+    return {"temperatures": temperatures}

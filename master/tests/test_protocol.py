@@ -28,12 +28,12 @@ class TestCrc16Modbus:
         assert crc16_modbus(bytes([0x03, 0x01, 0x00])) == 0x5080
 
     def test_example2_reply_slave3(self):
-        """CRC of Example 2 body should be 0x20F0 (spec)."""
+        """CRC of Example 2 body should be 0xEB90 (spec)."""
         body = bytes([
-            0x03, 0x02, 0x09,
-            0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+            0x03, 0x02, 0x08,
+            0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
-        assert crc16_modbus(body) == 0x20F0
+        assert crc16_modbus(body) == 0xEB90
 
     def test_empty_input(self):
         """CRC of empty data should be the initial value 0xFFFF."""
@@ -65,12 +65,12 @@ class TestEncodeRequest:
     def test_example2_reply_frame(self):
         """encode_request should produce the Example 2 frame."""
         payload = bytes([
-            0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+            0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
         expected = bytes([
-            0x01, 0x03, 0x02, 0x09,
-            0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
-            0xF0, 0x20,
+            0x01, 0x03, 0x02, 0x08,
+            0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+            0x90, 0xEB,
         ])
         assert encode_request(3, PROTO_CMD_REPLY, payload) == expected
 
@@ -121,7 +121,7 @@ class TestDecodeFrame:
 
     def test_roundtrip_reply(self):
         """Round-trip with a non-empty payload."""
-        payload = bytes([0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
+        payload = bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
         raw = encode_request(10, PROTO_CMD_REPLY, payload)
         frame = decode_frame(raw)
         assert frame["addr"] == 10
@@ -139,14 +139,14 @@ class TestDecodeFrame:
     def test_example2_from_spec(self):
         """Decode the Example 2 frame from the protocol spec."""
         raw = bytes([
-            0x01, 0x03, 0x02, 0x09,
-            0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
-            0xF0, 0x20,
+            0x01, 0x03, 0x02, 0x08,
+            0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+            0x90, 0xEB,
         ])
         frame = decode_frame(raw)
         assert frame["addr"] == 3
         assert frame["cmd"] == PROTO_CMD_REPLY
-        assert len(frame["payload"]) == 9
+        assert len(frame["payload"]) == 8
 
     def test_error_short_frame(self):
         """Frames shorter than 6 bytes should be rejected."""
@@ -204,29 +204,25 @@ class TestParseReplyPayload:
     def test_example2_payload(self):
         """Parse the Example 2 payload: channels 0,1 valid."""
         payload = bytes([
-            0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+            0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
         result = parse_reply_payload(payload)
-        assert result["status"] == 0x03
         assert result["temperatures"][0] == pytest.approx(23.5)
         assert result["temperatures"][1] == pytest.approx(19.8)
         assert result["temperatures"][2] is None
         assert result["temperatures"][3] is None
 
     def test_all_channels_invalid(self):
-        """All status bits clear means all temperatures are None."""
-        payload = bytes([0x00]) + bytes([0xFF, 0x7F] * 4)
+        """All temps INVALID means all temperatures are None."""
+        payload = bytes([0xFF, 0x7F] * 4)
         result = parse_reply_payload(payload)
-        assert result["status"] == 0
         assert result["temperatures"] == [None, None, None, None]
 
     def test_all_channels_valid(self):
-        """All 4 status bits set, all temperatures returned as floats."""
+        """All 4 temperatures returned as floats."""
         import struct
         temps_raw = struct.pack("<hhhh", 100, -50, 0, 325)
-        payload = bytes([0x0F]) + temps_raw
-        result = parse_reply_payload(payload)
-        assert result["status"] == 0x0F
+        result = parse_reply_payload(temps_raw)
         assert result["temperatures"][0] == pytest.approx(10.0)
         assert result["temperatures"][1] == pytest.approx(-5.0)
         assert result["temperatures"][2] == pytest.approx(0.0)
@@ -236,19 +232,18 @@ class TestParseReplyPayload:
         """Negative temperature values are handled correctly."""
         import struct
         temps_raw = struct.pack("<hhhh", -100, 0, 0, 0)
-        payload = bytes([0x01]) + temps_raw
-        result = parse_reply_payload(payload)
+        result = parse_reply_payload(temps_raw)
         assert result["temperatures"][0] == pytest.approx(-10.0)
 
     def test_bad_length_short(self):
-        """Payload shorter than 9 bytes should be rejected."""
-        with pytest.raises(ValueError, match="9 bytes"):
-            parse_reply_payload(b"\x00" * 8)
+        """Payload shorter than 8 bytes should be rejected."""
+        with pytest.raises(ValueError, match="8 bytes"):
+            parse_reply_payload(b"\x00" * 7)
 
     def test_bad_length_long(self):
-        """Payload longer than 9 bytes should be rejected."""
-        with pytest.raises(ValueError, match="9 bytes"):
-            parse_reply_payload(b"\x00" * 10)
+        """Payload longer than 8 bytes should be rejected."""
+        with pytest.raises(ValueError, match="8 bytes"):
+            parse_reply_payload(b"\x00" * 9)
 
 
 # -- Fuzz-ish ----------------------------------------------------------------

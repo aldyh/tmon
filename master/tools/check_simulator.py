@@ -86,10 +86,8 @@ def main(master_pty, addr):
         ser.close()
         return 1
 
-    status = frame["payload"][0]
-    t0 = struct.unpack_from("<h", frame["payload"], 1)[0]
-    print("OK: addr={} status=0x{:02X} temp_0={}".format(
-        addr, status, t0))
+    t0 = struct.unpack_from("<h", frame["payload"], 0)[0]
+    print("OK: addr={} temp_0={}".format(addr, t0))
     ser.close()
     return 0
 

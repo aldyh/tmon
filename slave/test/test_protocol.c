@@ -23,12 +23,12 @@ test_crc_example1_poll_slave3 (void)
 void
 test_crc_example2_reply_slave3 (void)
 {
-  /* CRC of Example 2 body should be 0x20F0 (spec). */
+  /* CRC of Example 2 body should be 0xEB90 (spec). */
   uint8_t body[] = {
-    0x03, 0x02, 0x09,
-    0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+    0x03, 0x02, 0x08,
+    0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
   };
-  TEST_ASSERT_EQUAL_HEX16 (0x20F0, tmon_crc16 (body, sizeof (body)));
+  TEST_ASSERT_EQUAL_HEX16 (0xEB90, tmon_crc16 (body, sizeof (body)));
 }
 
 void
@@ -67,18 +67,18 @@ test_encode_example2_reply_frame (void)
 {
   /* encode_request should produce the Example 2 frame. */
   uint8_t payload[] = {
-    0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+    0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
   };
   uint8_t expected[] = {
-    0x01, 0x03, 0x02, 0x09,
-    0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
-    0xF0, 0x20,
+    0x01, 0x03, 0x02, 0x08,
+    0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+    0x90, 0xEB,
   };
   uint8_t buf[64];
   size_t n = tmon_encode_request (buf, sizeof (buf), 3, TMON_CMD_REPLY,
                                   payload, sizeof (payload));
-  TEST_ASSERT_EQUAL (15, n);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY (expected, buf, 15);
+  TEST_ASSERT_EQUAL (14, n);
+  TEST_ASSERT_EQUAL_HEX8_ARRAY (expected, buf, 14);
 }
 
 void
@@ -181,7 +181,7 @@ void
 test_decode_roundtrip_reply (void)
 {
   /* Round-trip with a non-empty payload. */
-  uint8_t pl[] = {0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F};
+  uint8_t pl[] = {0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F};
   uint8_t buf[64];
   uint8_t addr, cmd, plen;
   const uint8_t *payload;
@@ -192,8 +192,8 @@ test_decode_roundtrip_reply (void)
   TEST_ASSERT_EQUAL (0, rc);
   TEST_ASSERT_EQUAL (10, addr);
   TEST_ASSERT_EQUAL (TMON_CMD_REPLY, cmd);
-  TEST_ASSERT_EQUAL (9, plen);
-  TEST_ASSERT_EQUAL_HEX8_ARRAY (pl, payload, 9);
+  TEST_ASSERT_EQUAL (8, plen);
+  TEST_ASSERT_EQUAL_HEX8_ARRAY (pl, payload, 8);
 }
 
 void
@@ -217,9 +217,9 @@ test_decode_example2_from_spec (void)
 {
   /* Decode the Example 2 frame from the protocol spec. */
   uint8_t raw[] = {
-    0x01, 0x03, 0x02, 0x09,
-    0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
-    0xF0, 0x20,
+    0x01, 0x03, 0x02, 0x08,
+    0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
+    0x90, 0xEB,
   };
   uint8_t addr, cmd, plen;
   const uint8_t *payload;
@@ -229,7 +229,7 @@ test_decode_example2_from_spec (void)
   TEST_ASSERT_EQUAL (0, rc);
   TEST_ASSERT_EQUAL (3, addr);
   TEST_ASSERT_EQUAL (TMON_CMD_REPLY, cmd);
-  TEST_ASSERT_EQUAL (9, plen);
+  TEST_ASSERT_EQUAL (8, plen);
 }
 
 void
@@ -332,12 +332,11 @@ test_decode_error_addr_zero (void)
 void
 test_parse_example2_payload (void)
 {
-  /* Parse the Example 2 payload: channels 0,1 valid. */
-  uint8_t pl[] = {0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F};
+  /* Parse the Example 2 payload: channels 0,1 valid, 2,3 invalid. */
+  uint8_t pl[] = {0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F};
   struct tmon_reply_payload rp;
 
   TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
-  TEST_ASSERT_EQUAL (0x03, rp.status);
   TEST_ASSERT_EQUAL_INT16 (235, rp.temps[0]);
   TEST_ASSERT_EQUAL_INT16 (198, rp.temps[1]);
   TEST_ASSERT_EQUAL_INT16 ((int16_t)TMON_TEMP_INVALID, rp.temps[2]);
@@ -347,12 +346,11 @@ test_parse_example2_payload (void)
 void
 test_parse_all_channels_invalid (void)
 {
-  /* All status bits clear means all temps are TMON_TEMP_INVALID. */
-  uint8_t pl[] = {0x00, 0xFF, 0x7F, 0xFF, 0x7F, 0xFF, 0x7F, 0xFF, 0x7F};
+  /* All temps are TMON_TEMP_INVALID. */
+  uint8_t pl[] = {0xFF, 0x7F, 0xFF, 0x7F, 0xFF, 0x7F, 0xFF, 0x7F};
   struct tmon_reply_payload rp;
 
   TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
-  TEST_ASSERT_EQUAL (0x00, rp.status);
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)
     TEST_ASSERT_EQUAL_INT16 ((int16_t)TMON_TEMP_INVALID, rp.temps[i]);
@@ -361,10 +359,9 @@ test_parse_all_channels_invalid (void)
 void
 test_parse_all_channels_valid (void)
 {
-  /* All 4 status bits set, all temperatures returned. */
+  /* All 4 temperatures returned. */
   /* temps: 100, -50, 0, 325 (LE) */
   uint8_t pl[] = {
-    0x0F,
     0x64, 0x00,  /* 100 */
     0xCE, 0xFF,  /* -50 */
     0x00, 0x00,  /*   0 */
@@ -373,7 +370,6 @@ test_parse_all_channels_valid (void)
   struct tmon_reply_payload rp;
 
   TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
-  TEST_ASSERT_EQUAL (0x0F, rp.status);
   TEST_ASSERT_EQUAL_INT16 (100, rp.temps[0]);
   TEST_ASSERT_EQUAL_INT16 (-50, rp.temps[1]);
   TEST_ASSERT_EQUAL_INT16 (0, rp.temps[2]);
@@ -386,7 +382,6 @@ test_parse_negative_temperature (void)
   /* Negative temperature values are handled correctly. */
   /* -100 in LE = 0x9C, 0xFF */
   uint8_t pl[] = {
-    0x01,
     0x9C, 0xFF,  /* -100 */
     0x00, 0x00,
     0x00, 0x00,
@@ -401,21 +396,21 @@ test_parse_negative_temperature (void)
 void
 test_parse_wrong_length_short (void)
 {
-  /* Payload shorter than 9 bytes should be rejected. */
-  uint8_t pl[8];
+  /* Payload shorter than 8 bytes should be rejected. */
+  uint8_t pl[7];
   struct tmon_reply_payload rp;
   memset (pl, 0, sizeof (pl));
-  TEST_ASSERT_EQUAL (-1, tmon_parse_reply_payload (pl, 8, &rp));
+  TEST_ASSERT_EQUAL (-1, tmon_parse_reply_payload (pl, 7, &rp));
 }
 
 void
 test_parse_wrong_length_long (void)
 {
-  /* Payload longer than 9 bytes should be rejected. */
-  uint8_t pl[10];
+  /* Payload longer than 8 bytes should be rejected. */
+  uint8_t pl[9];
   struct tmon_reply_payload rp;
   memset (pl, 0, sizeof (pl));
-  TEST_ASSERT_EQUAL (-1, tmon_parse_reply_payload (pl, 10, &rp));
+  TEST_ASSERT_EQUAL (-1, tmon_parse_reply_payload (pl, 9, &rp));
 }
 
 /* -- Unity setup/teardown ------------------------------------------------- */

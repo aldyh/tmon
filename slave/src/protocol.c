@@ -113,10 +113,9 @@ tmon_parse_reply_payload (const uint8_t *payload, uint8_t payload_len,
   if (payload_len != TMON_REPLY_PAYLOAD_LEN)
     return -1;
 
-  out->status = payload[0];
   for (i = 0; i < TMON_NUM_CHANNELS; i++)
     {
-      size_t offset = 1 + i * 2;
+      size_t offset = i * 2;
       out->temps[i] = (int16_t)((uint16_t)payload[offset]
                      | ((uint16_t)payload[offset + 1] << 8));
     }
