@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""Virtual slave simulator for tmon.
+
+Listens on a serial port (typically a socat PTY) and responds to
+POLL frames with REPLY frames containing synthetic temperatures.
+Channels 0 and 1 produce valid readings with slight variation
+each cycle; channels 2 and 3 are invalid.
+
+Usage:
+    python simulator.py <port> <addr>
+
+Args:
+    port: Serial port path (e.g. /tmp/tmon-slave).
+    addr: Slave address to respond as (int, 1-247).
+
+Example:
+    python simulator.py /tmp/tmon-slave 3
+"""
+
+import struct
+import sys
+import random
+
+import serial
+
+# Add parent src to path so we can import tmon.protocol
+sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "src"))
+
+from tmon.protocol import (
+    encode_request,
+    decode_frame,
+    PROTO_CMD_POLL,
+    PROTO_CMD_REPLY,
+    PROTO_TEMP_INVALID,
+)
+
+
+def make_reply_payload(status, temps):
+    """Build a 9-byte REPLY payload.
+
+    Args:
+        status: Channel validity bitmask (int).
+        temps: List of four int16 temperature values.
+
+    Returns:
+        bytes: 9-byte payload.
+    """
+    return struct.pack("<Bhhhh", status, temps[0], temps[1],
+                       temps[2], temps[3])
+
+
+def run(port, addr):
+    """Run the simulator loop.
+
+    Opens *port* as a serial device, reads incoming frames, and
+    replies to POLL frames addressed to *addr* with synthetic
+    temperature data.
+
+    Args:
+        port: Serial port device path.
+        addr: Slave address to respond as (int).
+    """
+    ser = serial.Serial(port, 9600, timeout=1)
+    base_t0 = 235   # 23.5 C
+    base_t1 = 198   # 19.8 C
+
+    print("simulator: addr={} listening on {}".format(addr, port),
+          flush=True)
+
+    try:
+        while True:
+            header = ser.read(4)
+            if len(header) < 4:
+                continue
+
+            payload_len = header[3]
+            tail = ser.read(payload_len + 2)
+            if len(tail) < payload_len + 2:
+                continue
+
+            raw = header + tail
+
+            try:
+                frame = decode_frame(raw)
+            except ValueError:
+                continue
+
+            if frame["addr"] != addr:
+                continue
+
+            if frame["cmd"] != PROTO_CMD_POLL:
+                continue
+
+            # Generate synthetic temps with slight variation
+            t0 = base_t0 + random.randint(-5, 5)
+            t1 = base_t1 + random.randint(-5, 5)
+            status = 0x03  # channels 0 and 1 valid
+            payload = make_reply_payload(
+                status, [t0, t1, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID]
+            )
+            reply = encode_request(addr, PROTO_CMD_REPLY, payload)
+            ser.write(reply)
+            ser.flush()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        ser.close()
+
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("usage: simulator.py <port> <addr>", file=sys.stderr)
+        sys.exit(1)
+    run(sys.argv[1], int(sys.argv[2]))

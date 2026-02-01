@@ -82,8 +82,8 @@ so something simple.
 
 ### Simulator (x86)
 
-- [ ] Implement a simple “virtual slave” that speaks the protocol over a pseudo-serial port
-- [ ] Provide `run_simulator.sh` (socat wiring) and a minimal README comment in `master/tools/`
+- [x] Implement a simple "virtual slave" that speaks the protocol over a pseudo-serial port
+- [x] Provide `run_simulator.sh` (socat wiring) and a minimal README comment in `master/tools/`
 - [ ] Integration test: master talks to simulator and receives stable readings
 - [ ] Master can poll simulator end-to-end without hardware
 
