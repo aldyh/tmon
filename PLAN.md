@@ -7,7 +7,7 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 - 1–4 ESP32 slaves, each with up to 4 NTC thermistors.
 - A USB <-> RS-485 adapter on the Pi.
 - SQLite is sufficient
-- Protocol is custom binary as defined in `docs/protocol.md` and uses **CRC-16/MODBUS**.
+- Protocol is custom binary as defined in `docs/protocol.md`.
 
 ## Conventions
 
@@ -37,13 +37,13 @@ on next line, but on column 0.  Look it up.
 
 ### Flesh out docs/protocol.md
 
-- [ ] Design protocol.  Remember this is not meant to grow in complexity,
+- [x] Design protocol.  Remember this is not meant to grow in complexity,
 so something simple.
-- [ ] Write out docs/protocol.md.
-- [ ] Favor clean, elegant, to the point.
-- [ ] Provide examples.
-- [ ] Explain that it's crc-16/modbus.
-- [ ] Remove modbus reference from plan.md.
+- [x] Write out docs/protocol.md.
+- [x] Favor clean, elegant, to the point.
+- [x] Provide examples.
+- [x] Explain that it's crc-16/modbus.
+- [x] Remove modbus reference from plan.md.
 
 ### Flesh out docs/storage.md
 

@@ -1,0 +1,132 @@
+# Protocol specification
+
+Binary master-slave protocol for RS-485 temperature polling.
+
+- **Bus:** RS-485 half-duplex, 9600 baud, 8N1.
+- **Topology:** Single master (Raspberry Pi), 1-247 slaves (ESP32).
+- **Flow:** Master sends a poll; addressed slave replies.  All other
+  slaves stay silent.
+
+## Frame format
+
+Every frame (both directions) uses the same envelope:
+
+```
+[START] [ADDR] [CMD] [LEN] [PAYLOAD ...] [CRC_LO] [CRC_HI]
+```
+
+| Field   | Size    | Description                                           |
+|---------|---------|-------------------------------------------------------|
+| START   | 1 byte  | `0x01` (SOH) -- frame delimiter                      |
+| ADDR    | 1 byte  | Slave address, 1-247                                  |
+| CMD     | 1 byte  | Command byte (see below)                              |
+| LEN     | 1 byte  | Payload length in bytes (0-255)                       |
+| PAYLOAD | 0-N     | Command-specific data                                 |
+| CRC_LO  | 1 byte  | CRC-16/MODBUS, low byte                               |
+| CRC_HI  | 1 byte  | CRC-16/MODBUS, high byte                              |
+
+### CRC
+
+CRC-16/MODBUS computed over `ADDR + CMD + LEN + PAYLOAD` (everything
+between START and CRC).  Transmitted little-endian (low byte first).
+
+Polynomial: 0x8005, initial value: 0xFFFF, reflected input and output.
+
+## Commands
+
+| Command  | Value  | Direction       | Payload             |
+|----------|--------|-----------------|---------------------|
+| POLL     | `0x01` | Master -> Slave | None (LEN = 0)     |
+| REPLY    | `0x02` | Slave -> Master | 9 bytes (see below) |
+
+### POLL (0x01)
+
+Master requests a reading from the addressed slave.  No payload.
+
+### REPLY (0x02)
+
+Slave responds with its current temperature readings.  Fixed 9-byte
+payload:
+
+| Offset | Size     | Field   | Description                               |
+|--------|----------|---------|-------------------------------------------|
+| 0      | 1 byte   | status  | Bitmask: bit N = 1 means channel N valid  |
+| 1-2    | int16 LE | temp_0  | Channel 0 temperature                     |
+| 3-4    | int16 LE | temp_1  | Channel 1 temperature                     |
+| 5-6    | int16 LE | temp_2  | Channel 2 temperature                     |
+| 7-8    | int16 LE | temp_3  | Channel 3 temperature                     |
+
+- Temperatures are signed, in **tenths of a degree Celsius**
+  (e.g., 235 = 23.5 C, -100 = -10.0 C).
+- Invalid or unconnected channels: status bit cleared, temp value
+  `0x7FFF` (sentinel).
+- int16 range covers -3276.8 to +3276.7 C -- more than sufficient.
+
+## Timing
+
+- After sending POLL, the master waits up to **200 ms** for a REPLY.
+- No response within the timeout means the slave is offline.  The
+  master logs the event and moves to the next slave.
+
+## Error handling
+
+- **CRC mismatch:** frame is silently discarded.
+- **Unknown command:** slave ignores the frame (no reply).
+- **Unexpected length:** frame is discarded.
+
+## Constants
+
+For reference when implementing:
+
+```
+PROTO_START     = 0x01
+PROTO_CMD_POLL  = 0x01
+PROTO_CMD_REPLY = 0x02
+
+REPLY_PAYLOAD_LEN  = 9
+TEMP_INVALID       = 0x7FFF
+
+POLL_TIMEOUT_MS    = 200
+```
+
+## Worked examples
+
+### Example 1: master polls slave 3
+
+Frame bytes (hex):
+
+```
+01  03  01  00  80  50
+|   |   |   |   |   |
+|   |   |   |   +---+-- CRC-16/MODBUS of [03 01 00] = 0x5080, LE
+|   |   |   +---------- LEN = 0 (no payload)
+|   |   +-------------- CMD = 0x01 (POLL)
+|   +------------------ ADDR = 3
++---------------------- START = 0x01
+```
+
+Total: 6 bytes.
+
+### Example 2: slave 3 replies, channels 0 and 1 valid
+
+Channel 0: 23.5 C (235 = 0x00EB), channel 1: 19.8 C (198 = 0x00C6).
+Channels 2 and 3 invalid (0x7FFF).  Status = 0x03 (bits 0 and 1 set).
+
+Frame bytes (hex):
+
+```
+01  03  02  09  03  EB 00  C6 00  FF 7F  FF 7F  F0 20
+|   |   |   |   |   |      |      |      |      |
+|   |   |   |   |   |      |      |      |      +-- CRC-16/MODBUS, LE
+|   |   |   |   |   |      |      |      +--------- temp_3 = 0x7FFF (invalid)
+|   |   |   |   |   |      |      +---------------- temp_2 = 0x7FFF (invalid)
+|   |   |   |   |   |      +----------------------- temp_1 = 198 (19.8 C)
+|   |   |   |   |   +------------------------------ temp_0 = 235 (23.5 C)
+|   |   |   |   +---------------------------------- status = 0x03
+|   |   |   +-------------------------------------- LEN = 9
+|   |   +------------------------------------------ CMD = 0x02 (REPLY)
+|   +---------------------------------------------- ADDR = 3
++-------------------------------------------------- START = 0x01
+```
+
+Total: 15 bytes.
