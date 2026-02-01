@@ -32,7 +32,17 @@ deactivate
 
 ### ESP32 slave
 
-Requires [PlatformIO](https://platformio.org/).
+Requires [PlatformIO](https://platformio.org/).  Install via
+[pipx](https://pipx.pypa.io/) (the `apt` package is outdated and broken
+on recent Ubuntu):
+
+```bash
+sudo apt install pipx
+pipx install platformio
+pipx ensurepath          # if ~/.local/bin is not already on PATH
+```
+
+Build the firmware:
 
 ```bash
 cd slave
@@ -41,13 +51,20 @@ pio run
 
 ### Testing without hardware
 
-All master unit tests run on x86 Linux without any ESP32 hardware:
+Master unit tests:
 
 ```bash
 cd master
 . .venv/bin/activate
 pytest
 deactivate
+```
+
+Slave protocol tests (runs on x86 Linux, no ESP32 needed):
+
+```bash
+cd slave
+pio test -e native
 ```
 
 ## Documentation
