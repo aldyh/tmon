@@ -20,10 +20,10 @@ import struct
 # -- Protocol constants ------------------------------------------------------
 
 PROTO_START = 0x01
-CMD_POLL = 0x01
-CMD_REPLY = 0x02
-REPLY_PAYLOAD_LEN = 9
-TEMP_INVALID = 0x7FFF
+PROTO_CMD_POLL = 0x01
+PROTO_CMD_REPLY = 0x02
+PROTO_REPLY_PAYLOAD_LEN = 9
+PROTO_TEMP_INVALID = 0x7FFF
 
 # -- CRC-16/MODBUS -----------------------------------------------------------
 
@@ -77,7 +77,7 @@ def encode_request(addr, cmd, payload):
         ValueError: If addr is outside the valid range 1-247.
 
     Example:
-        >>> encode_request(3, CMD_REPLY, bytes([
+        >>> encode_request(3, PROTO_CMD_REPLY, bytes([
         ...     0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F
         ... ])).hex(' ')
         '01 03 02 09 03 eb 00 c6 00 ff 7f ff 7f f0 20'
@@ -106,7 +106,7 @@ def encode_poll(addr):
         >>> encode_poll(3).hex(' ')
         '01 03 01 00 80 50'
     """
-    return encode_request(addr, CMD_POLL, b"")
+    return encode_request(addr, PROTO_CMD_POLL, b"")
 
 
 # -- Decoding ----------------------------------------------------------------
@@ -207,10 +207,10 @@ def parse_reply_payload(payload):
         >>> result['temperatures']
         [23.5, 19.8, None, None]
     """
-    if len(payload) != REPLY_PAYLOAD_LEN:
+    if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
         raise ValueError(
             "REPLY payload must be {} bytes, got {}".format(
-                REPLY_PAYLOAD_LEN, len(payload)
+                PROTO_REPLY_PAYLOAD_LEN, len(payload)
             )
         )
 

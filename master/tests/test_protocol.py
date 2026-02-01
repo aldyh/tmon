@@ -5,11 +5,11 @@ import random
 import pytest
 
 from tmon.protocol import (
-    CMD_POLL,
-    CMD_REPLY,
+    PROTO_CMD_POLL,
+    PROTO_CMD_REPLY,
     PROTO_START,
-    REPLY_PAYLOAD_LEN,
-    TEMP_INVALID,
+    PROTO_REPLY_PAYLOAD_LEN,
+    PROTO_TEMP_INVALID,
     crc16_modbus,
     decode_frame,
     encode_poll,
@@ -89,16 +89,16 @@ class TestEncodeRequest:
             0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
             0xF0, 0x20,
         ])
-        assert encode_request(3, CMD_REPLY, payload) == expected
+        assert encode_request(3, PROTO_CMD_REPLY, payload) == expected
 
     def test_start_byte(self):
         """First byte of any frame is PROTO_START."""
-        frame = encode_request(1, CMD_POLL, b"")
+        frame = encode_request(1, PROTO_CMD_POLL, b"")
         assert frame[0] == PROTO_START
 
     def test_addr_in_frame(self):
         """Address appears at offset 1."""
-        frame = encode_request(42, CMD_POLL, b"")
+        frame = encode_request(42, PROTO_CMD_POLL, b"")
         assert frame[1] == 42
 
     def test_cmd_in_frame(self):
@@ -108,18 +108,18 @@ class TestEncodeRequest:
 
     def test_len_field(self):
         """LEN field at offset 3 reflects actual payload length."""
-        frame = encode_request(1, CMD_POLL, b"\x01\x02\x03")
+        frame = encode_request(1, PROTO_CMD_POLL, b"\x01\x02\x03")
         assert frame[3] == 3
 
     def test_addr_boundary_low(self):
         """Address 0 should be rejected."""
         with pytest.raises(ValueError):
-            encode_request(0, CMD_POLL, b"")
+            encode_request(0, PROTO_CMD_POLL, b"")
 
     def test_addr_boundary_high(self):
         """Address 248 should be rejected."""
         with pytest.raises(ValueError):
-            encode_request(248, CMD_POLL, b"")
+            encode_request(248, PROTO_CMD_POLL, b"")
 
 
 # -- decode_frame ------------------------------------------------------------
@@ -133,16 +133,16 @@ class TestDecodeFrame:
         raw = encode_poll(5)
         frame = decode_frame(raw)
         assert frame["addr"] == 5
-        assert frame["cmd"] == CMD_POLL
+        assert frame["cmd"] == PROTO_CMD_POLL
         assert frame["payload"] == b""
 
     def test_roundtrip_reply(self):
         """Round-trip with a non-empty payload."""
         payload = bytes([0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
-        raw = encode_request(10, CMD_REPLY, payload)
+        raw = encode_request(10, PROTO_CMD_REPLY, payload)
         frame = decode_frame(raw)
         assert frame["addr"] == 10
-        assert frame["cmd"] == CMD_REPLY
+        assert frame["cmd"] == PROTO_CMD_REPLY
         assert frame["payload"] == payload
 
     def test_example1_from_spec(self):
@@ -150,7 +150,7 @@ class TestDecodeFrame:
         raw = bytes([0x01, 0x03, 0x01, 0x00, 0x80, 0x50])
         frame = decode_frame(raw)
         assert frame["addr"] == 3
-        assert frame["cmd"] == CMD_POLL
+        assert frame["cmd"] == PROTO_CMD_POLL
         assert frame["payload"] == b""
 
     def test_example2_from_spec(self):
@@ -162,7 +162,7 @@ class TestDecodeFrame:
         ])
         frame = decode_frame(raw)
         assert frame["addr"] == 3
-        assert frame["cmd"] == CMD_REPLY
+        assert frame["cmd"] == PROTO_CMD_REPLY
         assert len(frame["payload"]) == 9
 
     def test_error_short_frame(self):
@@ -192,7 +192,7 @@ class TestDecodeFrame:
 
     def test_error_length_mismatch_too_short(self):
         """Frame truncated relative to LEN should be rejected."""
-        raw = bytearray(encode_request(1, CMD_REPLY, b"\x01\x02\x03"))
+        raw = bytearray(encode_request(1, PROTO_CMD_REPLY, b"\x01\x02\x03"))
         # Truncate one payload byte but keep original LEN
         truncated = bytes(raw[:6])
         with pytest.raises(ValueError):
@@ -205,7 +205,7 @@ class TestDecodeFrame:
         test the addr range check.
         """
         import struct
-        body = bytes([0x00, CMD_POLL, 0x00])
+        body = bytes([0x00, PROTO_CMD_POLL, 0x00])
         crc = crc16_modbus(body)
         raw = bytes([PROTO_START]) + body + struct.pack("<H", crc)
         with pytest.raises(ValueError, match="addr out of range"):
