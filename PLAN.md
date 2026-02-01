@@ -77,6 +77,8 @@ so something simple.
 
 - [x] Add root Makefile with `check`, `check-master`, `check-slave` targets
 - [x] Simplify README.md testing section to point at `make check`
+- [x] Add `all`, `build-master`, `build-slave` targets to Makefile
+- [x] Rewrite README Quick Start to use make targets
 
 ### Simulator (x86)
 

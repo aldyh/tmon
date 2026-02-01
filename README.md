@@ -20,49 +20,34 @@ A small, home-use **Raspberry Pi + ESP32** setup for monitoring temperatures ove
 
 ## Quick start
 
-### Master
+### Prerequisites
 
-```bash
-cd master
-python3 -m venv .venv
-. .venv/bin/activate
-pip install -e ".[test]"
-deactivate
-```
+- Python 3.11+
+- [PlatformIO](https://platformio.org/) -- install via
+  [pipx](https://pipx.pypa.io/) (`apt` package is outdated on recent
+  Ubuntu):
 
-### ESP32 slave
+      sudo apt install pipx
+      pipx install platformio
+      pipx ensurepath          # if ~/.local/bin is not already on PATH
 
-Requires [PlatformIO](https://platformio.org/).  Install via
-[pipx](https://pipx.pypa.io/) (the `apt` package is outdated and broken
-on recent Ubuntu):
+### Build
 
-```bash
-sudo apt install pipx
-pipx install platformio
-pipx ensurepath          # if ~/.local/bin is not already on PATH
-```
+    make                  # create master venv + deps, build slave firmware
 
-Build the firmware:
+Individual targets:
 
-```bash
-cd slave
-pio run
-```
+    make build-master     # Python venv + pip install -e ".[test]"
+    make build-slave      # PlatformIO firmware compile
 
-### Testing without hardware
+### Test
 
-Run all tests (master + slave) from the repo root:
+    make check            # run all tests (no hardware needed)
 
-    make check
+Individual targets:
 
-This runs the master pytest suite and the slave protocol Unity tests
-on x86 Linux -- no ESP32 needed.  Individual targets are also available:
-
-    make check-master   # Python unit tests only
-    make check-slave    # C/Unity protocol tests only
-
-Prerequisites: the master venv must exist (see above) and PlatformIO
-must be installed.
+    make check-master     # Python unit tests only
+    make check-slave      # C/Unity protocol tests only
 
 ## Documentation
 
