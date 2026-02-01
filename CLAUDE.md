@@ -45,8 +45,18 @@ Commit checklist:
 - Braces on their own line, indented 2 spaces from the enclosing block.
 - Code inside braces indented 2 more spaces (4 total from the enclosing block).
 - Function definitions: return type on its own line, function name starts in
-  column 0, opening brace in column 0.
+  column 0, opening brace in column 0, body indented 2 spaces.
+  **Not** indented like inner blocks. Example:
+  ```c
+  void
+  setup (void)
+  {
+    do_something ();
+  }
+  ```
 - `struct`, `union`, `enum`, `typedef` definitions: opening brace in column 0.
+- Inner blocks (`if`, `while`, `for`, etc.): braces indented 2 spaces from the
+  enclosing block, code inside indented 2 more.
 - Space before parentheses in function calls and definitions: `foo (arg)`,
   `if (cond)`.
 - Space after commas.

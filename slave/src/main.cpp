@@ -9,12 +9,12 @@
 
 void
 setup (void)
-  {
-    /* TODO: initialize serial, RS-485 transceiver, ADC pins */
-  }
+{
+  /* TODO: initialize serial, RS-485 transceiver, ADC pins */
+}
 
 void
 loop (void)
-  {
-    /* TODO: listen for poll request, send response */
-  }
+{
+  /* TODO: listen for poll request, send response */
+}
