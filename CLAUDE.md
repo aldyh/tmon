@@ -12,9 +12,9 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
 
 ## Branch workflow
 
-- Do work on a topic branch named: `claude/NNNN-<some-task>`
-  - NNNN are sequential numbers, so use the next available number.
-  - Examples: `claude/0000-protocol-python`, `0001-claude/simulator`, etc.
+- Do work on a topic branch named: `claude/NNN-<some-task>`
+  - NNN are sequential numbers, so use the next available number.
+  - Examples: `claude/000-protocol-python`, `claude/001-simulator`, etc.
 - Each new branch should have master as the upstream: git branch -u master
 - If a task spans multiple commits, keep them reviewable and ordered.
 - When I review your code, use incremental commits on top of current topic branch.
