@@ -6,15 +6,16 @@ POLL frames with REPLY frames containing synthetic temperatures.
 All four channels produce valid readings by default; each channel
 has a ~10% chance of being marked invalid on any given cycle.
 
+The simulator always responds as address ADDR (3).
+
 Usage:
-    python simulator.py <port> <addr>
+    python simulator.py <port>
 
 Args:
     port: Serial port path (e.g. /tmp/tmon-slave).
-    addr: Slave address to respond as (int, 1-247).
 
 Example:
-    python simulator.py /tmp/tmon-slave 3
+    python simulator.py /tmp/tmon-slave
 """
 
 import struct
@@ -33,22 +34,23 @@ from tmon.protocol import (
     PROTO_TEMP_INVALID,
 )
 
+ADDR = 3
 
-def run(port, addr):
+
+def run(port):
     """Run the simulator loop.
 
     Opens *port* via Bus, reads incoming frames, and replies to POLL
-    frames addressed to *addr* with synthetic temperature data.
+    frames addressed to ADDR with synthetic temperature data.
     Each channel produces a random value between 50 and 900 (5.0 to
     90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
 
     Args:
         port: Serial port device path.
-        addr: Slave address to respond as (int).
     """
     bus = Bus(port, 9600)
 
-    print("simulator: addr={} listening on {}".format(addr, port),
+    print("simulator: addr={} listening on {}".format(ADDR, port),
           flush=True)
 
     try:
@@ -62,7 +64,7 @@ def run(port, addr):
             except ValueError:
                 continue
 
-            if frame["addr"] != addr:
+            if frame["addr"] != ADDR:
                 continue
 
             if frame["cmd"] != PROTO_CMD_POLL:
@@ -77,7 +79,7 @@ def run(port, addr):
 
             payload = struct.pack("<hhhh", temps[0], temps[1],
                                   temps[2], temps[3])
-            reply = encode_request(addr, PROTO_CMD_REPLY, payload)
+            reply = encode_request(ADDR, PROTO_CMD_REPLY, payload)
             bus.send(reply)
     except KeyboardInterrupt:
         pass
@@ -86,7 +88,7 @@ def run(port, addr):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("usage: simulator.py <port> <addr>", file=sys.stderr)
+    if len(sys.argv) != 2:
+        print("usage: simulator.py <port>", file=sys.stderr)
         sys.exit(1)
-    run(sys.argv[1], int(sys.argv[2]))
+    run(sys.argv[1])

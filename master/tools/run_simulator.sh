@@ -6,17 +6,13 @@
 #   /tmp/tmon-slave   -- the simulator listens here
 #
 # Usage:
-#   ./run_simulator.sh <addr>
-#
-# Args:
-#   addr: Slave address for the simulator (1-247).
+#   ./run_simulator.sh
 #
 # Example:
-#   ./run_simulator.sh 3
+#   ./run_simulator.sh
 
 set -e
 
-ADDR="${1:?usage: run_simulator.sh <addr>}"
 MASTER_PTY="/tmp/tmon-master"
 SLAVE_PTY="/tmp/tmon-slave"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -50,4 +46,4 @@ echo "PTY pair ready: master=$MASTER_PTY slave=$SLAVE_PTY"
 
 # Run simulator
 . "$VENV_DIR/bin/activate"
-python3 "$SCRIPT_DIR/simulator.py" "$SLAVE_PTY" "$ADDR"
+python3 "$SCRIPT_DIR/simulator.py" "$SLAVE_PTY"
