@@ -52,10 +52,10 @@ so something simple.
 
 ### Setup skeleton test
 
-- [ ] Setup bare stubs for entire project (no API, just stubs)
-- [ ] Add stub tests so that we can "run" tests for slave, master, etc, even if just placeholders.
-- [ ] We can build the entire system and tests pass.
-- [ ] Flesh out "Quick Start" section in README.md.
+- [x] Setup bare stubs for entire project (no API, just stubs)
+- [x] Add stub tests so that we can "run" tests for slave, master, etc, even if just placeholders.
+- [x] We can build the entire system and tests pass.
+- [x] Flesh out "Quick Start" section in README.md.
 
 ### Protocol layer (Python)
 
