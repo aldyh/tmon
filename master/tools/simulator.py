@@ -21,11 +21,10 @@ import struct
 import sys
 import random
 
-import serial
-
-# Add parent src to path so we can import tmon.protocol
+# Add parent src to path so we can import tmon
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "src"))
 
+from tmon.bus import Bus
 from tmon.protocol import (
     encode_request,
     decode_frame,
@@ -51,15 +50,14 @@ def make_reply_payload(temps):
 def run(port, addr):
     """Run the simulator loop.
 
-    Opens *port* as a serial device, reads incoming frames, and
-    replies to POLL frames addressed to *addr* with synthetic
-    temperature data.
+    Opens *port* via Bus, reads incoming frames, and replies to POLL
+    frames addressed to *addr* with synthetic temperature data.
 
     Args:
         port: Serial port device path.
         addr: Slave address to respond as (int).
     """
-    ser = serial.Serial(port, 9600, timeout=1)
+    bus = Bus(port, 9600)
     base_t0 = 235   # 23.5 C
     base_t1 = 198   # 19.8 C
 
@@ -68,16 +66,9 @@ def run(port, addr):
 
     try:
         while True:
-            header = ser.read(4)
-            if len(header) < 4:
+            raw = bus.receive()
+            if not raw:
                 continue
-
-            payload_len = header[3]
-            tail = ser.read(payload_len + 2)
-            if len(tail) < payload_len + 2:
-                continue
-
-            raw = header + tail
 
             try:
                 frame = decode_frame(raw)
@@ -97,12 +88,11 @@ def run(port, addr):
                 [t0, t1, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID]
             )
             reply = encode_request(addr, PROTO_CMD_REPLY, payload)
-            ser.write(reply)
-            ser.flush()
+            bus.send(reply)
     except KeyboardInterrupt:
         pass
     finally:
-        ser.close()
+        bus.close()
 
 
 if __name__ == "__main__":

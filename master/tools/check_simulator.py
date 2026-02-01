@@ -23,7 +23,7 @@ import struct
 
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "src"))
 
-import serial
+from tmon.bus import Bus
 from tmon.protocol import (
     encode_request,
     decode_frame,
@@ -43,52 +43,45 @@ def main(master_pty, addr):
     Returns:
         int: 0 on success, 1 on failure.
     """
-    ser = serial.Serial(master_pty, 9600, timeout=2)
+    bus = Bus(master_pty, 9600)
 
     poll = encode_request(addr, PROTO_CMD_POLL, b"")
-    ser.reset_input_buffer()
-    ser.write(poll)
-    ser.flush()
+    bus.send(poll)
 
-    # Read header
-    header = ser.read(4)
-    if len(header) < 4:
-        print("FAIL: no response (timeout reading header)")
-        ser.close()
+    raw = bus.receive()
+    if not raw:
+        print("FAIL: no response (timeout)")
+        bus.close()
         return 1
-
-    payload_len = header[3]
-    tail = ser.read(payload_len + 2)
-    raw = header + tail
 
     try:
         frame = decode_frame(raw)
     except ValueError as exc:
         print("FAIL: bad frame: {}".format(exc))
-        ser.close()
+        bus.close()
         return 1
 
     if frame["addr"] != addr:
         print("FAIL: wrong addr: expected {}, got {}".format(
             addr, frame["addr"]))
-        ser.close()
+        bus.close()
         return 1
 
     if frame["cmd"] != PROTO_CMD_REPLY:
         print("FAIL: wrong cmd: expected 0x02, got 0x{:02X}".format(
             frame["cmd"]))
-        ser.close()
+        bus.close()
         return 1
 
     if len(frame["payload"]) != PROTO_REPLY_PAYLOAD_LEN:
         print("FAIL: wrong payload length: {}".format(
             len(frame["payload"])))
-        ser.close()
+        bus.close()
         return 1
 
     t0 = struct.unpack_from("<h", frame["payload"], 0)[0]
     print("OK: addr={} temp_0={}".format(addr, t0))
-    ser.close()
+    bus.close()
     return 0
 
 
