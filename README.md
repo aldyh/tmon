@@ -51,21 +51,18 @@ pio run
 
 ### Testing without hardware
 
-Master unit tests:
+Run all tests (master + slave) from the repo root:
 
-```bash
-cd master
-. .venv/bin/activate
-pytest
-deactivate
-```
+    make check
 
-Slave protocol tests (runs on x86 Linux, no ESP32 needed):
+This runs the master pytest suite and the slave protocol Unity tests
+on x86 Linux -- no ESP32 needed.  Individual targets are also available:
 
-```bash
-cd slave
-pio test -e native
-```
+    make check-master   # Python unit tests only
+    make check-slave    # C/Unity protocol tests only
+
+Prerequisites: the master venv must exist (see above) and PlatformIO
+must be installed.
 
 ## Documentation
 

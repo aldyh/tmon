@@ -73,6 +73,11 @@ so something simple.
 - [x] Use unity for testing protocol while hardware becomes available.
 - [x] Unity tests pass on x86 linux box.
 
+### Unified test runner
+
+- [x] Add root Makefile with `check`, `check-master`, `check-slave` targets
+- [x] Simplify README.md testing section to point at `make check`
+
 ### Simulator (x86)
 
 - [ ] Implement a simple “virtual slave” that speaks the protocol over a pseudo-serial port
