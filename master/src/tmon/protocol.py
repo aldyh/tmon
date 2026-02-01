@@ -77,10 +77,8 @@ def encode_request(addr, cmd, payload):
         ValueError: If addr is outside the valid range 1-247.
 
     Example:
-        >>> encode_request(3, PROTO_CMD_REPLY, bytes([
-        ...     0x03, 0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F
-        ... ])).hex(' ')
-        '01 03 02 09 03 eb 00 c6 00 ff 7f ff 7f f0 20'
+        >>> encode_request(3, PROTO_CMD_POLL, b"").hex(' ')
+        '01 03 01 00 80 50'
     """
     if not (1 <= addr <= 247):
         raise ValueError(
