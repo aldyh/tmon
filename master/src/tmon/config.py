@@ -1,21 +1,13 @@
-"""Configuration loading from TOML files.
+"""Project-wide configuration constants.
 
-Reads config.toml using Python 3.11+ stdlib tomllib.
+Central place for tuneable parameters shared across modules.
+Import individual names where needed.
 
 Example:
-    >>> from tmon.config import load_config
-    >>> cfg = load_config(path="config.toml")
-    >>> print(cfg["serial"]["port"])
+    >>> from tmon.config import BUS_TIMEOUT_MS
+    >>> print(BUS_TIMEOUT_MS)
+    200
 """
 
-
-def load_config(path):
-    """Load and return configuration from a TOML file.
-
-    Args:
-        path: Filesystem path to the TOML configuration file.
-
-    Returns:
-        dict: Parsed configuration dictionary.
-    """
-    raise NotImplementedError
+# Serial bus receive timeout in milliseconds.
+BUS_TIMEOUT_MS = 200

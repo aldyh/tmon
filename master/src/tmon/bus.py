@@ -9,10 +9,12 @@ Example:
     >>> from tmon.bus import Bus
     >>> bus = Bus("/dev/ttyUSB0", 9600)
     >>> bus.send(frame_bytes)
-    >>> response = bus.receive(500)
+    >>> response = bus.receive()
 """
 
 import serial
+
+from tmon.config import BUS_TIMEOUT_MS
 
 
 class Bus:
@@ -20,7 +22,7 @@ class Bus:
 
     Wraps ``serial.Serial`` with frame-aware send/receive.
     Duck-typed -- tests can substitute any object with matching
-    ``send(data)`` and ``receive(timeout_ms)`` methods.
+    ``send(data)`` and ``receive()`` methods.
 
     Args:
         port: Serial port device path (e.g. ``"/dev/ttyUSB0"``).
@@ -29,7 +31,7 @@ class Bus:
     Example:
         >>> bus = Bus("/dev/ttyUSB0", 9600)
         >>> bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
-        >>> reply = bus.receive(200)
+        >>> reply = bus.receive()
     """
 
     # Header is START + ADDR + CMD + LEN (4 bytes).
@@ -42,48 +44,41 @@ class Bus:
 
         Args:
             port: Serial port device path (e.g. ``"/dev/ttyUSB0"``).
-            baudrate: Baud rate (e.g. ``9600``).
+            baudrate: Baud rate for the connection (e.g. ``9600``).
         """
         self._ser = serial.Serial(port, baudrate, timeout=0)
 
     def send(self, data):
-        """Send raw bytes on the bus.
+        """Transmit *data* on the bus.
 
-        Flushes any stale input, writes *data*, then flushes the
-        output buffer so the frame is fully transmitted before
-        returning.
+        Clears the input buffer first (half-duplex echo avoidance),
+        writes *data*, then flushes the output buffer.
 
         Args:
             data: Bytes to transmit.
-
-        Example:
-            >>> bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
         """
         self._ser.reset_input_buffer()
         self._ser.write(data)
         self._ser.flush()
 
-    def receive(self, timeout_ms):
+    def receive(self):
         """Receive a complete protocol frame from the bus.
 
-        Sets the serial timeout to *timeout_ms* milliseconds, reads
-        the 4-byte header to learn LEN, then reads the remaining
-        payload + CRC bytes.  Returns the complete frame or ``b""``
-        on timeout.
-
-        Args:
-            timeout_ms: Read timeout in milliseconds (int).
+        Uses ``BUS_TIMEOUT_MS`` from ``tmon.config`` as the serial
+        read timeout.  Reads the 4-byte header to learn LEN, then
+        reads the remaining payload + CRC bytes.  Returns the
+        complete frame or ``b""`` on timeout.
 
         Returns:
             bytes: Complete frame bytes, or ``b""`` on timeout or
                 incomplete read.
 
         Example:
-            >>> frame = bus.receive(200)
+            >>> frame = bus.receive()
             >>> len(frame)  # 0 on timeout, >= 6 on success
             15
         """
-        self._ser.timeout = timeout_ms / 1000.0
+        self._ser.timeout = BUS_TIMEOUT_MS / 1000.0
         header = self._ser.read(self._HEADER_LEN)
         if len(header) < self._HEADER_LEN:
             return b""
@@ -97,9 +92,5 @@ class Bus:
         return header + tail
 
     def close(self):
-        """Close the serial port.
-
-        Example:
-            >>> bus.close()
-        """
+        """Close the underlying serial port."""
         self._ser.close()

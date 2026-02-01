@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 from tmon.bus import Bus
+from tmon.config import BUS_TIMEOUT_MS
 from tmon.protocol import encode_request, PROTO_CMD_POLL, PROTO_CMD_REPLY
 
 import struct
@@ -55,7 +56,7 @@ class TestBusReceive:
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
         bus = Bus("/dev/ttyUSB0", 9600)
-        result = bus.receive(200)
+        result = bus.receive()
         assert result == frame
 
     @patch("tmon.bus.serial.Serial")
@@ -66,7 +67,7 @@ class TestBusReceive:
         mock_ser.read = MagicMock(return_value=b"")
 
         bus = Bus("/dev/ttyUSB0", 9600)
-        result = bus.receive(200)
+        result = bus.receive()
         assert result == b""
 
     @patch("tmon.bus.serial.Serial")
@@ -77,7 +78,7 @@ class TestBusReceive:
         mock_ser.read = MagicMock(return_value=b"\x01\x03")
 
         bus = Bus("/dev/ttyUSB0", 9600)
-        result = bus.receive(200)
+        result = bus.receive()
         assert result == b""
 
     @patch("tmon.bus.serial.Serial")
@@ -90,19 +91,19 @@ class TestBusReceive:
         mock_ser.read = MagicMock(side_effect=[header, b"\x03\xEB\x00"])
 
         bus = Bus("/dev/ttyUSB0", 9600)
-        result = bus.receive(200)
+        result = bus.receive()
         assert result == b""
 
     @patch("tmon.bus.serial.Serial")
-    def test_receive_sets_timeout(self, mock_serial_cls):
-        """receive() sets serial timeout from timeout_ms."""
+    def test_receive_sets_timeout_from_config(self, mock_serial_cls):
+        """receive() sets serial timeout from BUS_TIMEOUT_MS config."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"")
 
         bus = Bus("/dev/ttyUSB0", 9600)
-        bus.receive(500)
-        assert mock_ser.timeout == 0.5
+        bus.receive()
+        assert mock_ser.timeout == BUS_TIMEOUT_MS / 1000.0
 
     @patch("tmon.bus.serial.Serial")
     def test_receive_poll_frame(self, mock_serial_cls):
@@ -114,5 +115,5 @@ class TestBusReceive:
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
         bus = Bus("/dev/ttyUSB0", 9600)
-        result = bus.receive(200)
+        result = bus.receive()
         assert result == frame

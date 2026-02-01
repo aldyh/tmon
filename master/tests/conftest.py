@@ -14,7 +14,7 @@ class FakeBus:
     Example:
         >>> bus = FakeBus([b"\\x01..."])
         >>> bus.send(b"poll frame")
-        >>> bus.receive(200)
+        >>> bus.receive()
         b'\\x01...'
         >>> bus.sent
         [b'poll frame']
@@ -38,11 +38,8 @@ class FakeBus:
         """
         self.sent.append(data)
 
-    def receive(self, timeout_ms):
+    def receive(self):
         """Return the next canned response, or ``b""`` if exhausted.
-
-        Args:
-            timeout_ms: Ignored (present for API compatibility).
 
         Returns:
             bytes: Next canned response or ``b""``.
