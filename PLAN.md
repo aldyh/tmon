@@ -84,23 +84,23 @@ so something simple.
 
 - [x] Implement a simple "virtual slave" that speaks the protocol over a pseudo-serial port
 - [x] Provide `run_simulator.sh` (socat wiring) and a minimal README comment in `master/tools/`
-- [ ] Integration test: master talks to simulator and receives stable readings
-- [ ] Master can poll simulator end-to-end without hardware
+- [x] Integration test: master talks to simulator and receives stable readings
+- [x] Master can poll simulator end-to-end without hardware
 
 ### Master poller loop
 
 - [x] Implement serial bus abstraction
 - [x] Poll loop
 - [x] Unit tests around poll scheduling and timeout behavior using fake bus
-- [ ] Poller can run against simulator
+- [x] Poller can run against simulator
 
 ### Storage (SQLite)
 
 - [x] Define schema
 - [x] Write path: insert readings efficiently
 - [x] Basic query helpers
-- [ ] Integration test: poller -> storage using simulator
-- [ ] SQLite DB gets populated correctly during simulator run
+- [x] Integration test: poller -> storage using simulator
+- [x] SQLite DB gets populated correctly during simulator run
 
 ### ESP32 firmware: sensors + RS-485
 
