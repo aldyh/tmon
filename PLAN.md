@@ -33,7 +33,7 @@ on next line, but on column 0.  Look it up.
 
 ### Flesh out docs/wiring.md
 
-Document the wiring for the esp32.
+- [x] Document the wiring for the esp32.
 
 ### Flesh out docs/protocol.md
 
