@@ -67,11 +67,11 @@ so something simple.
 
 ### Protocol layer (ESP32)
 
-- [ ] Implement the same framing + CRC in firmware
-- [ ] Unit-test-ish coverage where feasible (host-side tests or embedded tests if lightweight)
-- [ ] Ensure consistent endianness/field sizes with Python implementation
-- [ ] Use unity for testing protocol while hardware becomes available.
-- [ ] Unity tests pass on x86 linux box.
+- [x] Implement the same framing + CRC in firmware
+- [x] Unit-test-ish coverage where feasible (host-side tests or embedded tests if lightweight)
+- [x] Ensure consistent endianness/field sizes with Python implementation
+- [x] Use unity for testing protocol while hardware becomes available.
+- [x] Unity tests pass on x86 linux box.
 
 ### Simulator (x86)
 
