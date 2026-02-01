@@ -90,8 +90,8 @@ so something simple.
 ### Master poller loop
 
 - [x] Implement serial bus abstraction
-- [ ] Poll loop
-- [ ] Unit tests around poll scheduling and timeout behavior using fake bus
+- [x] Poll loop
+- [x] Unit tests around poll scheduling and timeout behavior using fake bus
 - [ ] Poller can run against simulator
 
 ### Storage (SQLite)
