@@ -96,9 +96,9 @@ so something simple.
 
 ### Storage (SQLite)
 
-- [ ] Define schema
-- [ ] Write path: insert readings efficiently
-- [ ] Basic query helpers
+- [x] Define schema
+- [x] Write path: insert readings efficiently
+- [x] Basic query helpers
 - [ ] Integration test: poller -> storage using simulator
 - [ ] SQLite DB gets populated correctly during simulator run
 
