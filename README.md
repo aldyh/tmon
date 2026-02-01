@@ -27,6 +27,7 @@ cd master
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -e ".[test]"
+deactivate
 ```
 
 ### ESP32 slave
@@ -46,6 +47,7 @@ All master unit tests run on x86 Linux without any ESP32 hardware:
 cd master
 . .venv/bin/activate
 pytest
+deactivate
 ```
 
 ## Documentation
