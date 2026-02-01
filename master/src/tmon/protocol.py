@@ -4,8 +4,8 @@ Handles the binary framing format described in docs/protocol.md:
 START, ADDR, CMD, LEN, PAYLOAD, CRC_LO, CRC_HI.
 
 Example:
-    >>> from tmon.protocol import encode_poll, decode_frame, parse_reply_payload
-    >>> raw = encode_poll(addr=3)
+    >>> from tmon.protocol import encode_request, decode_frame, PROTO_CMD_POLL
+    >>> raw = encode_request(3, PROTO_CMD_POLL, b"")
     >>> raw.hex(' ')
     '01 03 01 00 80 50'
     >>> frame = decode_frame(raw)
@@ -89,24 +89,6 @@ def encode_request(addr, cmd, payload):
     body = bytes([addr, cmd, len(payload)]) + payload
     crc = crc16_modbus(body)
     return bytes([PROTO_START]) + body + struct.pack("<H", crc)
-
-
-def encode_poll(addr):
-    """Build a POLL frame for the given slave address.
-
-    Convenience wrapper around encode_request with CMD_POLL and no payload.
-
-    Args:
-        addr: Slave address (int, 1-247).
-
-    Returns:
-        bytes: The complete encoded POLL frame.
-
-    Example:
-        >>> encode_poll(3).hex(' ')
-        '01 03 01 00 80 50'
-    """
-    return encode_request(addr, PROTO_CMD_POLL, b"")
 
 
 # -- Decoding ----------------------------------------------------------------
