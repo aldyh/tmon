@@ -30,6 +30,31 @@ Commit checklist:
 - [ ] No default arguments introduced in methods/functions
 - [ ] Docs updated if behavior/interfaces changed (PLAN.md, docs/*).
 
+## Coding guidelines
+
+### For all languages
+
+- Main API methods and top-level externally visible functions, include
+  usage/code examples in the docs (docsstring or comments).
+- Document each arg and return value in methods.
+
+### C/C++ (GNU style)
+
+- 2-space indentation.
+- Braces on their own line, indented 2 spaces from the enclosing block.
+- Code inside braces indented 2 more spaces (4 total from the enclosing block).
+- Function definitions: return type on its own line, function name starts in
+  column 0, opening brace in column 0.
+- `struct`, `union`, `enum`, `typedef` definitions: opening brace in column 0.
+- Space before parentheses in function calls and definitions: `foo (arg)`,
+  `if (cond)`.
+- Space after commas.
+
+### Python
+
+- Every class and every method/function gets a docstring.
+- Use Google-style docstrings (Args/Returns/Example sections).
+
 ## Notes
 
 - The authoritative docs are in docs/ (protocol, wiring, etc).

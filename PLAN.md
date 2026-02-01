@@ -23,13 +23,13 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 Use this as the canonical checklist. Keep it up to date as work is completed.
 
 ### Setup coding guidelines
-- [ ] Coding guidlines are GNU for C/C++.  Look up what that means, especially space after function
+- [x] Coding guidlines are GNU for C/C++.  Look up what that means, especially space after function
 names.  Braces on lone line, but are indented one more level.  typedef/struct have braces
 on next line, but on column 0.  Look it up.
-- [ ] For python document each method/class with docstrings.
-- [ ] Document each argument and retval.
-- [ ] For main API methods, and toplevel externally visible functions include usage/code examples.
-- [ ] Update CLAUDE.md to include coding guidelines accordingly described above.
+- [x] For python document each method/class with docstrings.
+- [x] Document each argument and retval.
+- [x] For main API methods, and toplevel externally visible functions include usage/code examples.
+- [x] Update CLAUDE.md to include coding guidelines accordingly described above.
 
 ### Flesh out docs/wiring.md
 
