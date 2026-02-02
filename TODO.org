@@ -1,0 +1,47 @@
+#+STARTUP: overview
+
+* INSTRUCTIONS
+This is your TODO list for the project, apart from milestones which are in PLAN.org.
+
+You can ignore this file unless asked to work on a TODO item.
+
+When asked to work on an item, work on a new branch as per the guidelines in CLAUDE.md.  First, come up with a plan, run it by me first, and when we agree on the approach, start implementing it.
+
+When working on a TODO item, constrain yourself to the item at hand.  No fly-by refactors, etc.
+
+The TODO item itself will contain the instructions itself.
+
+Usual commit guidelines per this project apply as described in CLAUDE.md.
+
+As part of the commit mark the item as DONE in this file.
+
+Add a small blurb of anything interesting that came up during working on this item, that it might be useful to keep in the archived DONE item.  Add it to the item itself in org mode.
+
+* TODO Convert markdown files to org mode
+Convert all *.md files in the project to .org mode, with the exception of CLAUDE.md
+which is needed for convention.
+* TODO Avoid documenting obvious things
+Change coding guidelines in CLAUDE.md to avoid documenting obvious things.  Say, a 3-4 line method shouldn't have extensive documentation. A sentence is fine.  No need to document each arg, etc.
+
+Instead for small methods, just write a small sentence on what the function does, and
+put some sort of attr as to what arg types are.  For example:
+
+def _require_str(raw: dict[str, object], key: str) -> None:
+    """Validate that *key* exists in *raw* and is a str."""
+
+^^^^ no need to document each and every arg.
+
+Actually, when method is obvious enough, the above format is good enough.
+
+Change all code in project accordingly.
+* TODO Come up with web panel plan.
+Familiarize with entire project, and suggest a few ways to visualize this data.
+I'd like a web panel where we can see current readings, and also an option to view historical data.
+Give me the 2-3 most useful ways of visualizing this data, and document it in docs/panel.org with clear subsections, explaining each option and what the benefits and drawbacks are in terms of style, maintainability, heavy usage of libraries, etc.
+
+Provide a summary at the top (sub section in org mode) where you explain that the reader/system is free to ignore this entire file as it's just random musings, but do give a hint of where we're going with this project (that we'll need a visualization framework).
+* TODO Get rid of "payload" arguments in code base
+Even though payload is the right terminology for method arguments, we're always talking about temperatures.
+Perhaps rename this to something dealing with temperatures.  Choose something clean, short, and obvious.
+
+This is for the method arguments.  I don't care what you do inside the code...for example tests.
