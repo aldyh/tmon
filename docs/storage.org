@@ -1,3 +1,4 @@
+#+STARTUP: showall
 * Storage specification
 
 SQLite database for persisting temperature readings collected by the

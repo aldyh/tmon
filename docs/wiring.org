@@ -1,3 +1,4 @@
+#+STARTUP: showall
 * Wiring Reference
 
 This document describes how to wire each ESP32 slave node

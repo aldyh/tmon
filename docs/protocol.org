@@ -1,3 +1,4 @@
+#+STARTUP: showall
 * Protocol specification
 
 Binary master-slave protocol for RS-485 temperature polling.
