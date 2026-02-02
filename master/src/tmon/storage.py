@@ -1,6 +1,6 @@
 """SQLite storage for temperature readings.
 
-Persists poll data according to the schema in docs/storage.md.
+Persists poll data according to the schema in docs/storage.org.
 One row per successful REPLY frame, storing raw int16 temperatures
 (tenths of a degree Celsius).
 

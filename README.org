@@ -1,0 +1,66 @@
+* tmon: A temperature monitoring system
+
+A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over *RS-485*.
+
+** What it is
+
+- *Master (Raspberry Pi):* Python daemon that polls ESP32 slaves over RS-485 (USB adapter) and stores readings in SQLite.
+- *Slaves (ESP32):* Each reads up to *4 NTC thermistors* and replies when polled.
+- *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
+- *Scale:* 1-4 slaves; designed to stay small and stable.
+
+** Directory layout
+
+- ~master/~ -- Python 3.11+ polling daemon
+  - ~src/tmon/~ -- protocol, bus, poller, storage, config
+  - ~tests/~ -- pytest unit tests (no hardware)
+  - ~tools/~ -- x86 simulator + ~socat~ harness (integration tests)
+- ~slave/~ -- ESP32 firmware (PlatformIO, Arduino framework)
+- ~docs/~ -- documentation (see links below)
+
+** Quick start
+
+*** Prerequisites
+
+- Python 3.11+
+- [[https://platformio.org/][PlatformIO]] -- install via
+  [[https://pipx.pypa.io/][pipx]] (~apt~ package is outdated on recent
+  Ubuntu):
+
+  #+begin_example
+  sudo apt install pipx
+  pipx install platformio
+  pipx ensurepath          # if ~/.local/bin is not already on PATH
+  #+end_example
+
+*** Build
+
+#+begin_example
+make                  # create master venv + deps, build slave firmware
+#+end_example
+
+Individual targets:
+
+#+begin_example
+make build-master     # Python venv + pip install -e ".[test]"
+make build-slave      # PlatformIO firmware compile
+#+end_example
+
+*** Test
+
+#+begin_example
+make check            # run all tests (no hardware needed)
+#+end_example
+
+Individual targets:
+
+#+begin_example
+make check-master     # Python unit tests only
+make check-slave      # C/Unity protocol tests only
+#+end_example
+
+** Documentation
+
+- [[file:docs/protocol.org][Protocol Specification]]
+- [[file:docs/wiring.org][Wiring Reference]]
+- [[file:docs/storage.org][Storage Specification]]

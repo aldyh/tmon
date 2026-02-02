@@ -17,7 +17,7 @@ from tmon.protocol import (
 )
 
 
-# -- CRC known vectors from protocol.md -------------------------------------
+# -- CRC known vectors from protocol.org -------------------------------------
 
 
 class TestCrc16Modbus:

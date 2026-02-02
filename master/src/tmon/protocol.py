@@ -1,6 +1,6 @@
 """Frame encoding and decoding for the tmon RS-485 protocol.
 
-Handles the binary framing format described in docs/protocol.md:
+Handles the binary framing format described in docs/protocol.org:
 START, ADDR, CMD, LEN, PAYLOAD, CRC_LO, CRC_HI.
 
 Example:

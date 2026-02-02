@@ -5,7 +5,7 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
 
 ## Operating rules
 
-- **Read first:** `README.md`, then docs/*, then `PLAN.md`.
+- **Read first:** `README.org`, then docs/*, then `PLAN.org`.
 - **Keep commits small:** one logical change per commit.
 - **No default arguments in methods/functions.**
 - **Tests:** add/adjust tests with changes; run unit tests before committing.
@@ -21,7 +21,7 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
 
 ## Progress tracking
 
-Keep a running checklist for the current branch in the branch description and in `PLAN.md`.
+Keep a running checklist for the current branch in the branch description and in `PLAN.org`.
 After each commit, update the checklist by marking what is done.
 
 Commit checklist:
@@ -29,7 +29,7 @@ Commit checklist:
 - [ ] `pytest` passes
 - [ ] Code is simple/readable; no unnecessary abstractions
 - [ ] No default arguments introduced in methods/functions
-- [ ] Docs updated if behavior/interfaces changed (PLAN.md, docs/*).
+- [ ] Docs updated if behavior/interfaces changed (PLAN.org, docs/*).
 
 ## Coding guidelines
 

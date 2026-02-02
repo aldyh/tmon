@@ -17,9 +17,11 @@ As part of the commit mark the item as DONE in this file.
 
 Add a small blurb of anything interesting that came up during working on this item, that it might be useful to keep in the archived DONE item.  Add it to the item itself in org mode.
 
-* TODO Convert markdown files to org mode
+* DONE Convert markdown files to org mode
 Convert all *.md files in the project to .org mode, with the exception of CLAUDE.md
 which is needed for convention.
+Converted README.md, PLAN.md, docs/protocol.md, docs/storage.md, docs/wiring.md.
+Updated all cross-references in CLAUDE.md, Python docstrings, and test comments.
 * TODO Avoid documenting obvious things
 Change coding guidelines in CLAUDE.md to avoid documenting obvious things.  Say, a 3-4 line method shouldn't have extensive documentation. A sentence is fine.  No need to document each arg, etc.
 
