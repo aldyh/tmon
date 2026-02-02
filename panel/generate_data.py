@@ -82,11 +82,10 @@ def generate(db_path: str, days: int, seed: int) -> int:
     total_seconds = days * _SECONDS_PER_DAY
     total_steps = total_seconds // _INTERVAL
 
-    # We generate timestamps as ISO-8601 strings relative to a fixed
-    # start date.  The panel computes time windows relative to the
-    # newest row, so absolute dates do not matter.
+    # End at the current time so the mock data feels recent.
     from datetime import datetime, timedelta, timezone
-    start = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    now = datetime.now(timezone.utc).replace(microsecond=0)
+    start = now - timedelta(days=days)
 
     rows = []
     batch_size = 10000
