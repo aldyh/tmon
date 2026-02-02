@@ -11,3 +11,6 @@ dependencies = [
 test = [
     "pytest>=8.0",
 ]
+
+[tool.setuptools]
+py-modules = []
