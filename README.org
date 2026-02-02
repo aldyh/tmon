@@ -1,3 +1,5 @@
+#+STARTUP: showall
+
 * tmon: A temperature monitoring system
 
 A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over *RS-485*.

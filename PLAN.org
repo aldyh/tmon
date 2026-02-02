@@ -1,3 +1,5 @@
+#+STARTUP: showall
+
 * Project plan
 
 Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a few ESP32 nodes over RS-485, stores readings locally, and is easy to test without hardware.
