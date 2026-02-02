@@ -94,3 +94,60 @@ Renamed the temperature-specific function and its parameters:
   opaque blob, not structured temperature data
 - Left protocol-framing names (~encode_request~, ~decode_frame~, constants) unchanged
   since those describe the generic protocol, not temperature data.
+* TODO Fix stale protocol.md references in C files
+~slave/include/protocol.h~ (line 5) and ~slave/src/protocol.c~ (line 4) still
+reference ~docs/protocol.md~ -- should be ~docs/protocol.org~ since the
+markdown-to-org conversion.
+* TODO Poller.poll duplicates parse_reply logic
+~poller.py:99-105~ manually unpacks the REPLY payload (struct.unpack loop,
+PROTO_TEMP_INVALID check) instead of calling ~parse_reply()~ from
+~protocol.py~.  The same logic already exists in ~parse_reply~.  Use it.
+* TODO Deduplicate _downsample between app.py and build_demo.py
+~panel/app.py:237~ and ~panel/build_demo.py:31~ have identical ~_downsample~
+functions.  Extract to a shared module (e.g. ~panel/util.py~) or have
+~build_demo.py~ import it from ~app.py~.
+* TODO Deduplicate _make_reply test helper
+~master/tests/test_poller.py:16~ and ~master/tests/test_daemon.py:13~ define
+identical ~_make_reply(addr, t0, t1, t2, t3)~ helpers.  Move to ~conftest.py~.
+* TODO Remove unused import sys in generate_data.py
+~panel/generate_data.py~ imports ~sys~ (line 20) but never uses it.
+* TODO Move datetime imports to module level
+~panel/app.py~ imports ~from datetime import ...~ inside two route functions
+(lines 110, 179).  ~panel/build_demo.py~ does the same (lines 89, 128).
+Move to the top of each file.
+* TODO Trim verbose docstrings on test doubles
+The "avoid documenting obvious things" cleanup (branch 012) didn't reach
+test code.  These test helpers still have full Args/Returns sections on
+one-line methods:
+- ~master/tests/conftest.py~: FakeBus.send, .receive, .__init__
+- ~master/tests/test_daemon.py~: CountingBus and MultiBus (every method)
+- ~master/tests/test_poller.py~: _make_reply
+- ~master/tests/test_config.py~: _write_toml
+One-liner docstrings (or none) suffice for these.
+* TODO Trim obvious-command documentation in org files
+Several docs explain what competent readers can see from the Makefile:
+- ~README.org~ lines 47-63: spells out what ~make build-master~, ~make
+  build-slave~, ~make check-master~, ~make check-slave~ do.  The top-level
+  ~make~ and ~make check~ lines are fine; the per-target breakdown adds
+  little.
+- ~panel/README.org~ "Quick start" section: ~make demo-setup~ and ~make
+  demo-generate~ have inline comments that duplicate the Makefile.
+  Consolidate to just ~make demo-server~ (which is the one that matters)
+  and let the reader look at the Makefile for details.
+Keep documentation that is non-obvious, like the API reference table in
+~panel/README.org~ -- that's valuable.
+* TODO Retire docs/panel.org or move to an archive
+~docs/panel.org~ was an exploratory design document comparing three
+visualization options.  The decision was made (Option B) and is fully
+implemented.  The file is historical noise now.  Either delete it or move
+it to a ~docs/archive/~ directory so ~docs/~ only contains current specs.
+* TODO Duplicated CREATE TABLE SQL
+The ~readings~ table schema appears in three places:
+- ~master/src/tmon/storage.py~
+- ~panel/generate_data.py~
+- ~panel/tests/conftest.py~
+Since panel deliberately avoids importing from master, this is somewhat
+expected, but the generate_data.py copy could at least reference
+docs/storage.org so a reader knows the schema is defined there.  Consider
+adding a one-line comment in each copy pointing to the canonical schema in
+~docs/storage.org~.
