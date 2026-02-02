@@ -2,9 +2,219 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>tmon dashboard</title>
+<link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-<p>placeholder</p>
+<div class="container">
+
+  <header>
+    <h1>tmon</h1>
+    <span class="subtitle">temperature monitoring</span>
+  </header>
+
+  <!-- current readings -->
+  <div class="panel">
+    <div class="panel-title">current readings</div>
+    <table class="readings-table">
+      <thead>
+        <tr>
+          <th>slave</th>
+          <th>ch 0</th>
+          <th>ch 1</th>
+          <th>ch 2</th>
+          <th>ch 3</th>
+          <th>updated</th>
+        </tr>
+      </thead>
+      <tbody id="current-body">
+        <tr><td colspan="6" style="text-align:center; color:var(--text-dim)">loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- chart controls + chart -->
+  <div class="panel">
+    <div class="panel-title">history</div>
+    <div class="controls">
+      <div>
+        <label for="slave-select">slave</label>
+        <select id="slave-select"></select>
+      </div>
+      <div>
+        <label for="range-select">range</label>
+        <select id="range-select">
+          <option value="1">1 hour</option>
+          <option value="6">6 hours</option>
+          <option value="24" selected>24 hours</option>
+          <option value="168">7 days</option>
+          <option value="720">30 days</option>
+          <option value="8760">1 year</option>
+        </select>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <canvas id="history-chart"></canvas>
+    </div>
+  </div>
+
+  <footer>tmon mock panel</footer>
+
+</div>
+
+<script src="/static/vendor/chart.umd.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  var COLORS = ["#38bdf8", "#22c55e", "#f59e0b", "#ef4444"];
+  var CHANNEL_NAMES = ["ch 0", "ch 1", "ch 2", "ch 3"];
+  var REFRESH_MS = 10000;
+
+  var slaveSelect = document.getElementById("slave-select");
+  var rangeSelect = document.getElementById("range-select");
+  var currentBody = document.getElementById("current-body");
+
+  // -- chart setup --
+  var ctx = document.getElementById("history-chart").getContext("2d");
+  var chart = new Chart(ctx, {
+    type: "line",
+    data: { labels: [], datasets: [] },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      scales: {
+        x: {
+          ticks: { color: "#94a3b8", font: { family: "monospace", size: 10 }, maxTicksLimit: 12 },
+          grid: { color: "#1e293b" }
+        },
+        y: {
+          title: { display: true, text: "deg C", color: "#94a3b8", font: { family: "monospace" } },
+          ticks: { color: "#94a3b8", font: { family: "monospace", size: 10 } },
+          grid: { color: "#1e293b" }
+        }
+      },
+      plugins: {
+        legend: {
+          labels: { color: "#e2e8f0", font: { family: "monospace", size: 11 } }
+        },
+        tooltip: {
+          titleFont: { family: "monospace" },
+          bodyFont: { family: "monospace" }
+        }
+      }
+    }
+  });
+
+  // -- helpers --
+  function formatTemp(val) {
+    if (val === null || val === undefined) return "--";
+    return (val / 10).toFixed(1);
+  }
+
+  function formatTs(iso) {
+    // Show just time for short ranges, date+time for longer
+    var d = new Date(iso);
+    var hours = parseFloat(rangeSelect.value);
+    if (hours <= 24) {
+      return d.toISOString().slice(11, 19);
+    }
+    return d.toISOString().slice(5, 16).replace("T", " ");
+  }
+
+  // -- fetch current readings --
+  function refreshCurrent() {
+    fetch("/api/current")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.length === 0) {
+          currentBody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-dim)">no data</td></tr>';
+          return;
+        }
+        var html = "";
+        data.forEach(function (row) {
+          html += "<tr>";
+          html += '<td><span class="status-dot ok"></span>slave ' + row.addr + "</td>";
+          for (var ch = 0; ch < 4; ch++) {
+            var key = "temp_" + ch;
+            var val = row[key];
+            if (val === null || val === undefined) {
+              html += '<td class="temp-null">--</td>';
+            } else {
+              html += '<td class="temp-value">' + formatTemp(val) + '</td>';
+            }
+          }
+          html += "<td>" + row.ts.slice(11, 19) + "</td>";
+          html += "</tr>";
+        });
+        currentBody.innerHTML = html;
+      });
+  }
+
+  // -- populate slave selector --
+  function loadSlaves() {
+    fetch("/api/slaves")
+      .then(function (r) { return r.json(); })
+      .then(function (addrs) {
+        slaveSelect.innerHTML = "";
+        addrs.forEach(function (a) {
+          var opt = document.createElement("option");
+          opt.value = a;
+          opt.textContent = "slave " + a;
+          slaveSelect.appendChild(opt);
+        });
+        if (addrs.length > 0) refreshChart();
+      });
+  }
+
+  // -- fetch and render history chart --
+  function refreshChart() {
+    var addr = slaveSelect.value;
+    var hours = rangeSelect.value;
+    if (!addr) return;
+
+    fetch("/api/history?addr=" + addr + "&hours=" + hours + "&points=500")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var labels = data.map(function (r) { return formatTs(r.ts); });
+        var datasets = [];
+        for (var ch = 0; ch < 4; ch++) {
+          var key = "temp_" + ch;
+          var values = data.map(function (r) {
+            return r[key] !== null && r[key] !== undefined ? r[key] / 10 : null;
+          });
+          // Only show channels that have at least one non-null value
+          var hasData = values.some(function (v) { return v !== null; });
+          if (hasData) {
+            datasets.push({
+              label: CHANNEL_NAMES[ch],
+              data: values,
+              borderColor: COLORS[ch],
+              backgroundColor: COLORS[ch] + "33",
+              borderWidth: 1.5,
+              pointRadius: 0,
+              tension: 0.2,
+              spanGaps: true
+            });
+          }
+        }
+        chart.data.labels = labels;
+        chart.data.datasets = datasets;
+        chart.update();
+      });
+  }
+
+  // -- events --
+  slaveSelect.addEventListener("change", refreshChart);
+  rangeSelect.addEventListener("change", refreshChart);
+
+  // -- init --
+  loadSlaves();
+  refreshCurrent();
+  setInterval(refreshCurrent, REFRESH_MS);
+})();
+</script>
 </body>
 </html>
