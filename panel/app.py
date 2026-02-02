@@ -141,35 +141,54 @@ def create_app(db_path: str) -> Flask:
 
     @app.route("/api/export")
     def api_export() -> Response:
-        """Export readings for one node and date range as CSV.
+        """Export readings for one node as CSV over a trailing time window.
+
+        The window is computed relative to the newest reading for the
+        given node, exactly like ``/api/history``.
 
         Query parameters:
             addr: Node address (required, integer).
-            start: Start timestamp, ISO-8601 (required).
-            end: End timestamp, ISO-8601 (required).
+            hours: Time window in hours (required, positive float).
 
         Returns a CSV download with columns ts, temp_0 .. temp_3.
 
         Example:
-            GET /api/export?addr=1&start=2024-06-01T12:00:00Z&end=2024-06-01T13:00:00Z
+            GET /api/export?addr=1&hours=24
         """
         addr = request.args.get("addr", type=int)
         if addr is None:
             return jsonify({"error": "addr parameter required"}), 400
-        start = request.args.get("start", type=str)
-        if start is None:
-            return jsonify({"error": "start parameter required"}), 400
-        end = request.args.get("end", type=str)
-        if end is None:
-            return jsonify({"error": "end parameter required"}), 400
+        hours = request.args.get("hours", type=float)
+        if hours is None:
+            return jsonify({"error": "hours parameter required"}), 400
+        if hours <= 0:
+            return jsonify({"error": "hours must be positive"}), 400
 
         db = _get_db()
+
+        max_ts = db.execute(
+            "SELECT MAX(ts) FROM readings WHERE addr = ?", (addr,)
+        ).fetchone()[0]
+        if max_ts is None:
+            buf = io.StringIO()
+            csv.writer(buf).writerow(
+                ["ts", "temp_0", "temp_1", "temp_2", "temp_3"]
+            )
+            return Response(buf.getvalue(), mimetype="text/csv")
+
+        from datetime import datetime, timedelta, timezone
+        end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
+            tzinfo=timezone.utc
+        )
+        start = end - timedelta(hours=hours)
+        start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+
         rows = db.execute(
             "SELECT ts, temp_0, temp_1, temp_2, temp_3"
             " FROM readings"
             " WHERE addr = ? AND ts >= ? AND ts <= ?"
             " ORDER BY ts",
-            (addr, start, end),
+            (addr, start_str, max_ts),
         ).fetchall()
 
         buf = io.StringIO()
@@ -184,8 +203,8 @@ def create_app(db_path: str) -> Flask:
                 row["temp_3"] if row["temp_3"] is not None else "",
             ])
 
-        safe_start = start.replace(":", "-")
-        safe_end = end.replace(":", "-")
+        safe_start = start_str.replace(":", "-")
+        safe_end = max_ts.replace(":", "-")
         filename = "tmon_node{}_{}_{}.csv".format(addr, safe_start, safe_end)
         return Response(
             buf.getvalue(),

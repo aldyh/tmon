@@ -157,32 +157,22 @@ class TestApiExport:
 
     def test_requires_addr(self, client):
         """Missing addr returns 400."""
-        resp = client.get(
-            "/api/export?start=2024-06-01T12:00:00Z&end=2024-06-01T13:00:00Z"
-        )
+        resp = client.get("/api/export?hours=1")
         assert resp.status_code == 400
 
-    def test_requires_start(self, client):
-        """Missing start returns 400."""
-        resp = client.get(
-            "/api/export?addr=1&end=2024-06-01T13:00:00Z"
-        )
+    def test_requires_hours(self, client):
+        """Missing hours returns 400."""
+        resp = client.get("/api/export?addr=1")
         assert resp.status_code == 400
 
-    def test_requires_end(self, client):
-        """Missing end returns 400."""
-        resp = client.get(
-            "/api/export?addr=1&start=2024-06-01T12:00:00Z"
-        )
+    def test_invalid_hours(self, client):
+        """Non-positive hours returns 400."""
+        resp = client.get("/api/export?addr=1&hours=-1")
         assert resp.status_code == 400
 
     def test_returns_csv(self, client):
         """Valid request returns CSV with correct headers and row count."""
-        resp = client.get(
-            "/api/export?addr=1"
-            "&start=2024-06-01T12:00:00Z"
-            "&end=2024-06-01T12:01:00Z"
-        )
+        resp = client.get("/api/export?addr=1&hours=1")
         assert resp.status_code == 200
         assert resp.content_type == "text/csv; charset=utf-8"
         assert "attachment" in resp.headers["Content-Disposition"]
@@ -194,24 +184,16 @@ class TestApiExport:
 
     def test_null_handling(self, client):
         """Null temps appear as empty strings in CSV."""
-        resp = client.get(
-            "/api/export?addr=1"
-            "&start=2024-06-01T12:00:00Z"
-            "&end=2024-06-01T12:01:00Z"
-        )
+        resp = client.get("/api/export?addr=1&hours=1")
         reader = csv.reader(io.StringIO(resp.data.decode()))
         rows = list(reader)
         # Node 1 has temp_3 = None for all rows
         for row in rows[1:]:
             assert row[4] == ""  # temp_3 column
 
-    def test_empty_range(self, client):
-        """Range with no data returns header-only CSV."""
-        resp = client.get(
-            "/api/export?addr=1"
-            "&start=2099-01-01T00:00:00Z"
-            "&end=2099-01-01T01:00:00Z"
-        )
+    def test_unknown_node(self, client):
+        """Unknown node returns header-only CSV."""
+        resp = client.get("/api/export?addr=99&hours=24")
         assert resp.status_code == 200
         reader = csv.reader(io.StringIO(resp.data.decode()))
         rows = list(reader)
@@ -220,11 +202,7 @@ class TestApiExport:
 
     def test_empty_db(self, empty_client):
         """Empty database returns header-only CSV."""
-        resp = empty_client.get(
-            "/api/export?addr=1"
-            "&start=2024-06-01T12:00:00Z"
-            "&end=2024-06-01T13:00:00Z"
-        )
+        resp = empty_client.get("/api/export?addr=1&hours=24")
         assert resp.status_code == 200
         reader = csv.reader(io.StringIO(resp.data.decode()))
         rows = list(reader)
