@@ -20,7 +20,7 @@
     <table class="readings-table">
       <thead>
         <tr>
-          <th>slave</th>
+          <th>node</th>
           <th>ch 0</th>
           <th>ch 1</th>
           <th>ch 2</th>
@@ -39,8 +39,8 @@
     <div class="panel-title">history</div>
     <div class="controls">
       <div>
-        <label for="slave-select">slave</label>
-        <select id="slave-select"></select>
+        <label for="node-select">node</label>
+        <select id="node-select"></select>
       </div>
       <div>
         <label for="range-select">range</label>
@@ -72,7 +72,7 @@
   var CHANNEL_NAMES = ["ch 0", "ch 1", "ch 2", "ch 3"];
   var REFRESH_MS = 10000;
 
-  var slaveSelect = document.getElementById("slave-select");
+  var nodeSelect = document.getElementById("node-select");
   var rangeSelect = document.getElementById("range-select");
   var currentBody = document.getElementById("current-body");
 
@@ -136,7 +136,7 @@
         var html = "";
         data.forEach(function (row) {
           html += "<tr>";
-          html += '<td><span class="status-dot ok"></span>slave ' + row.addr + "</td>";
+          html += '<td><span class="status-dot ok"></span>node ' + row.addr + "</td>";
           for (var ch = 0; ch < 4; ch++) {
             var key = "temp_" + ch;
             var val = row[key];
@@ -153,17 +153,17 @@
       });
   }
 
-  // -- populate slave selector --
-  function loadSlaves() {
+  // -- populate node selector --
+  function loadNodes() {
     fetch("/api/slaves")
       .then(function (r) { return r.json(); })
       .then(function (addrs) {
-        slaveSelect.innerHTML = "";
+        nodeSelect.innerHTML = "";
         addrs.forEach(function (a) {
           var opt = document.createElement("option");
           opt.value = a;
-          opt.textContent = "slave " + a;
-          slaveSelect.appendChild(opt);
+          opt.textContent = "node " + a;
+          nodeSelect.appendChild(opt);
         });
         if (addrs.length > 0) refreshChart();
       });
@@ -171,7 +171,7 @@
 
   // -- fetch and render history chart --
   function refreshChart() {
-    var addr = slaveSelect.value;
+    var addr = nodeSelect.value;
     var hours = rangeSelect.value;
     if (!addr) return;
 
@@ -207,11 +207,11 @@
   }
 
   // -- events --
-  slaveSelect.addEventListener("change", refreshChart);
+  nodeSelect.addEventListener("change", refreshChart);
   rangeSelect.addEventListener("change", refreshChart);
 
   // -- init --
-  loadSlaves();
+  loadNodes();
   refreshCurrent();
   setInterval(refreshCurrent, REFRESH_MS);
 })();
