@@ -101,6 +101,14 @@ so something simple.
 - [x] Integration test: poller -> storage using simulator
 - [x] SQLite DB gets populated correctly during simulator run
 
+### Master daemon
+
+- [ ] Config-driven entry point (`tmon` console script via pyproject.toml)
+- [ ] Run poll loop on a configurable schedule
+- [ ] Logging (stdlib `logging`)
+- [ ] Clean shutdown on SIGINT/SIGTERM
+- [ ] Integration test: daemon starts, polls simulator, stores readings, shuts down cleanly
+
 ### ESP32 firmware: sensors + RS-485
 
 - [ ] Read NTC thermistors
