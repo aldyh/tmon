@@ -1,7 +1,7 @@
-.PHONY: all build-master build-slave build-panel \
-       check check-master check-slave check-integration check-panel \
-       generate-panel-data run-panel mock-panel \
-       demo demo-tar demo-upload demo-clean clean
+.PHONY: all build-master build-slave demo-setup \
+       check check-master check-slave check-integration check-demo \
+       demo-generate demo-server \
+       demo-static demo-static-tar demo-static-upload demo-static-clean clean
 
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
@@ -20,7 +20,7 @@ $(MASTER_STAMP): master/.venv master/pyproject.toml
 build-slave:
 	cd slave && pio run
 
-build-panel: $(PANEL_STAMP)
+demo-setup: $(PANEL_STAMP)
 
 panel/.venv:
 	python3 -m venv panel/.venv
@@ -29,7 +29,7 @@ $(PANEL_STAMP): panel/.venv panel/pyproject.toml
 	. panel/.venv/bin/activate && pip install -e "panel/.[test]"
 	touch $(PANEL_STAMP)
 
-check: check-master check-slave check-integration check-panel
+check: check-master check-slave check-integration check-demo
 
 check-master: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && pytest -m "not integration"
@@ -40,32 +40,29 @@ check-slave:
 check-integration: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && pytest -m integration -v
 
-check-panel: $(PANEL_STAMP)
+check-demo: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && pytest
 
-generate-panel-data: $(PANEL_STAMP)
+demo-generate: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && python generate_data.py
 
-run-panel: $(PANEL_STAMP)
+demo-server: demo-generate
+	@echo "Starting panel at http://localhost:5000"
 	cd panel && . .venv/bin/activate && flask --app app run
 
-mock-panel: generate-panel-data
-	@echo "Starting panel at http://localhost:5000"
-	$(MAKE) run-panel
-
-demo: generate-panel-data
+demo-static: demo-generate
 	cd panel && . .venv/bin/activate && python build_demo.py --db tmon_mock.db --output demo
 
-demo-tar: demo
+demo-static-tar: demo-static
 	tar czf tmon-demo.tar.gz --transform='s,^panel/demo,tmon-demo,' panel/demo
 
-demo-upload: demo-tar
+demo-static-upload: demo-static-tar
 	scp tmon-demo.tar.gz quesejoda.com:
 	ssh quesejoda.com 'rm -rf ~/quesejoda.com/tmon-demo/ && cd ~/quesejoda.com && tar xzf ~/tmon-demo.tar.gz && chmod -R a+rX ~/quesejoda.com/tmon-demo/'
 
-demo-clean:
+demo-static-clean:
 	rm -rf panel/demo tmon-demo.tar.gz
 
-clean: demo-clean
+clean: demo-static-clean
 	rm -rf master/.venv panel/.venv panel/tmon_mock.db
 	cd slave && pio run -t clean

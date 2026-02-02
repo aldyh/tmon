@@ -1,8 +1,8 @@
-"""Flask application for the tmon mock visualization panel.
+"""Flask application for the tmon demo dashboard.
 
 Serves a single-page dashboard and a JSON API for temperature data.
 Time windows are computed relative to the newest row in the database,
-so mock data always feels "live" regardless of when it was generated.
+so data always feels "live" regardless of when it was generated.
 
 Example:
     $ flask --app app run

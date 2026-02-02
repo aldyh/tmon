@@ -73,8 +73,8 @@ i want to see how stuff would actually look and work.
 Implemented as Option B (Flask + Chart.js) in panel/ directory.
 Self-contained: own venv, own pyproject.toml, no imports from master/.
 
-- ~make mock-panel~ generates data and starts the server in one step.
-- ~make check-panel~ runs 22 tests (6 for data generation, 16 for API).
+- ~make demo-server~ generates data and starts the server in one step.
+- ~make check-demo~ runs 22 tests (6 for data generation, 16 for API).
 - generate_data.py creates ~3M rows (3 slaves, 30s intervals, 365 days).
 - Temperature profiles: sinusoidal daily/seasonal cycles + Gaussian noise.
 - Slave 3 channel 1 has 5% null rate to exercise null handling.

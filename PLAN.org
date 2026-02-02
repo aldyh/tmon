@@ -111,7 +111,7 @@ so something simple.
 - [X] Clean shutdown on SIGINT/SIGTERM
 - [X] Integration test: daemon starts, polls simulator, stores readings, shuts down cleanly
 
-*** Mock visualization panel
+*** Demo visualization panel
 
 - [X] Directory structure, pyproject.toml, Makefile targets
 - [X] Vendor Chart.js
@@ -124,7 +124,7 @@ so something simple.
 
 - [X] ~build_demo.py~: generates static HTML/JSON/CSV from ~tmon_mock.db~
 - [X] Tests for all output files, JSON/CSV content, HTML transforms
-- [X] Makefile targets: ~demo~, ~demo-tar~, ~demo-clean~
+- [X] Makefile targets: ~demo-static~, ~demo-static-tar~, ~demo-static-clean~
 - [X] Documentation (panel/README.org, PLAN.org)
 
 *** ESP32 firmware: sensors + RS-485

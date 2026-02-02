@@ -1,15 +1,15 @@
 #+STARTUP: showall
 
-* Mock visualization panel
+* Demo visualization panel
 
-A self-contained mock of the tmon web dashboard (Flask + Chart.js).
+A self-contained demo of the tmon web dashboard (Flask + Chart.js).
 Generates a year of synthetic temperature data and serves an
 interactive browser UI with current readings and historical charts.
 
 ** Quick start
 
 #+begin_example
-make mock-panel            # generate data + start server
+make demo-server            # generate data + start server
 #+end_example
 
 Then open http://localhost:5000 in your browser.
@@ -17,15 +17,14 @@ Then open http://localhost:5000 in your browser.
 To run the steps separately:
 
 #+begin_example
-make build-panel           # create venv + install deps
-make generate-panel-data   # populate panel/tmon_mock.db (~3M rows)
-make run-panel             # start Flask on http://localhost:5000
+make demo-setup             # create venv + install deps
+make demo-generate          # populate panel/tmon_mock.db (~3M rows)
 #+end_example
 
 ** Running tests
 
 #+begin_example
-make check-panel           # run panel pytest suite
+make check-demo             # run panel pytest suite
 #+end_example
 
 ** API reference
@@ -64,9 +63,9 @@ Build a self-contained static version of the dashboard (no Flask
 needed to serve it):
 
 #+begin_example
-make demo                 # generate data + build panel/demo/
-make demo-tar             # package as tmon-demo.tar.gz
-make demo-clean           # remove panel/demo/ and tarball
+make demo-static              # generate data + build panel/demo/
+make demo-static-tar          # package as tmon-demo.tar.gz
+make demo-static-clean        # remove panel/demo/ and tarball
 #+end_example
 
 The output in ~panel/demo/~ can be served by any HTTP server:

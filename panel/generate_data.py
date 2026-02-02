@@ -1,4 +1,4 @@
-"""Generate mock temperature data for the visualization panel.
+"""Generate mock temperature data for the demo dashboard.
 
 Creates tmon_mock.db with the same schema as master/src/tmon/storage.py.
 Populates it with 1 year of readings for 3 slaves at 30-second intervals.
