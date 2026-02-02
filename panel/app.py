@@ -9,10 +9,12 @@ Example:
     # Then open http://localhost:5000 in a browser.
 """
 
+import csv
+import io
 import os
 import sqlite3
 
-from flask import Flask, g, jsonify, render_template, request
+from flask import Flask, Response, g, jsonify, render_template, request
 
 _DB_PATH = os.environ.get("TMON_DB", "tmon_mock.db")
 
@@ -136,6 +138,64 @@ def create_app(db_path: str) -> Flask:
             "SELECT DISTINCT addr FROM readings ORDER BY addr"
         ).fetchall()
         return jsonify([r["addr"] for r in rows]), 200
+
+    @app.route("/api/export")
+    def api_export() -> Response:
+        """Export readings for one node and date range as CSV.
+
+        Query parameters:
+            addr: Node address (required, integer).
+            start: Start timestamp, ISO-8601 (required).
+            end: End timestamp, ISO-8601 (required).
+
+        Returns a CSV download with columns ts, temp_0 .. temp_3.
+
+        Example:
+            GET /api/export?addr=1&start=2024-06-01T12:00:00Z&end=2024-06-01T13:00:00Z
+        """
+        addr = request.args.get("addr", type=int)
+        if addr is None:
+            return jsonify({"error": "addr parameter required"}), 400
+        start = request.args.get("start", type=str)
+        if start is None:
+            return jsonify({"error": "start parameter required"}), 400
+        end = request.args.get("end", type=str)
+        if end is None:
+            return jsonify({"error": "end parameter required"}), 400
+
+        db = _get_db()
+        rows = db.execute(
+            "SELECT ts, temp_0, temp_1, temp_2, temp_3"
+            " FROM readings"
+            " WHERE addr = ? AND ts >= ? AND ts <= ?"
+            " ORDER BY ts",
+            (addr, start, end),
+        ).fetchall()
+
+        buf = io.StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["ts", "temp_0", "temp_1", "temp_2", "temp_3"])
+        for row in rows:
+            writer.writerow([
+                row["ts"],
+                row["temp_0"] if row["temp_0"] is not None else "",
+                row["temp_1"] if row["temp_1"] is not None else "",
+                row["temp_2"] if row["temp_2"] is not None else "",
+                row["temp_3"] if row["temp_3"] is not None else "",
+            ])
+
+        safe_start = start.replace(":", "-")
+        safe_end = end.replace(":", "-")
+        filename = "tmon_node{}_{}_{}.csv".format(addr, safe_start, safe_end)
+        return Response(
+            buf.getvalue(),
+            mimetype="text/csv",
+            headers={
+                "Content-Disposition": 'attachment; filename="{}"'.format(
+                    filename
+                )
+            },
+        )
 
     @app.route("/api/range")
     def api_range() -> tuple:

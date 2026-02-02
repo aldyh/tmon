@@ -149,6 +149,24 @@ header .subtitle {
   outline: 1px solid var(--accent);
 }
 
+/* export button */
+.btn-export {
+  background: var(--bg);
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+}
+
+.btn-export:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
 /* chart */
 .chart-wrap {
   position: relative;

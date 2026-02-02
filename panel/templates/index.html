@@ -54,6 +54,17 @@
         </select>
       </div>
     </div>
+    <div class="controls export-controls">
+      <div>
+        <label for="export-start">start</label>
+        <input type="datetime-local" id="export-start" step="1">
+      </div>
+      <div>
+        <label for="export-end">end</label>
+        <input type="datetime-local" id="export-end" step="1">
+      </div>
+      <button id="export-btn" class="btn-export">export csv</button>
+    </div>
     <div class="chart-wrap">
       <canvas id="history-chart"></canvas>
     </div>
@@ -75,6 +86,9 @@
   var nodeSelect = document.getElementById("node-select");
   var rangeSelect = document.getElementById("range-select");
   var currentBody = document.getElementById("current-body");
+  var exportStart = document.getElementById("export-start");
+  var exportEnd = document.getElementById("export-end");
+  var exportBtn = document.getElementById("export-btn");
 
   // -- chart setup --
   var ctx = document.getElementById("history-chart").getContext("2d");
@@ -206,6 +220,32 @@
       });
   }
 
+  // -- export --
+  function initExportRange() {
+    fetch("/api/range")
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.min && data.max) {
+          // Convert "2024-06-01T12:00:00Z" to "2024-06-01T12:00:00" for datetime-local
+          exportStart.value = data.min.replace("Z", "");
+          exportEnd.value = data.max.replace("Z", "");
+        }
+      });
+  }
+
+  exportBtn.addEventListener("click", function () {
+    var addr = nodeSelect.value;
+    if (!addr) return;
+    var start = exportStart.value;
+    var end = exportEnd.value;
+    if (!start || !end) return;
+    // Convert datetime-local back to ISO with Z suffix
+    var url = "/api/export?addr=" + addr
+      + "&start=" + encodeURIComponent(start + "Z")
+      + "&end=" + encodeURIComponent(end + "Z");
+    window.open(url);
+  });
+
   // -- events --
   nodeSelect.addEventListener("change", refreshChart);
   rangeSelect.addEventListener("change", refreshChart);
@@ -213,6 +253,7 @@
   // -- init --
   loadNodes();
   refreshCurrent();
+  initExportRange();
   setInterval(refreshCurrent, REFRESH_MS);
 })();
 </script>
