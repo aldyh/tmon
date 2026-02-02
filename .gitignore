@@ -6,6 +6,7 @@ __pycache__/
 
 # Data
 data/
+panel/tmon_mock.db
 
 # PlatformIO
 .pio/

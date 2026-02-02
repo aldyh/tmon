@@ -1,0 +1,13 @@
+[project]
+name = "tmon-panel"
+version = "0.1.0"
+description = "Mock visualization panel for tmon temperature monitoring"
+requires-python = ">=3.11"
+dependencies = [
+    "flask>=3.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+]
