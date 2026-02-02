@@ -36,6 +36,7 @@ make check-panel           # run panel pytest suite
 | ~GET /api/current~ | Latest reading per slave (JSON) |
 | ~GET /api/history?addr=N&hours=H&points=P~ | Historical readings, downsampled to P points |
 | ~GET /api/slaves~ | List of distinct slave addresses |
+| ~GET /api/export?addr=N&hours=H~ | CSV download for node N, trailing H hours |
 | ~GET /api/range~ | Min/max timestamps in DB |
 
 Time windows are relative to the newest row in the database, so the
@@ -55,6 +56,37 @@ curl "http://localhost:5000/api/history?addr=1&hours=6&points=100"
 
 curl http://localhost:5000/api/range
 # {"min":"2024-01-01T00:00:00Z","max":"2024-12-31T23:59:30Z"}
+#+end_example
+
+** Deploying the demo (DreamHost)
+
+Build the tarball:
+
+#+begin_example
+make panel-demo           # generates data + tmon-demo.tar.gz
+#+end_example
+
+On DreamHost:
+
+1. In the DreamHost control panel, create a subdomain (e.g.
+   ~tmon.example.com~) with Passenger (Python) enabled.
+
+2. SSH in and deploy:
+
+#+begin_example
+cd ~/tmon.example.com
+tar xzf tmon-demo.tar.gz
+sh setup-demo.sh
+#+end_example
+
+The site should be live at ~https://tmon.example.com~.
+
+To update after regenerating the tarball:
+
+#+begin_example
+cd ~/tmon.example.com
+tar xzf tmon-demo.tar.gz
+touch tmp/restart.txt
 #+end_example
 
 ** How it works
