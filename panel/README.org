@@ -58,6 +58,27 @@ curl http://localhost:5000/api/range
 # {"min":"2024-01-01T00:00:00Z","max":"2024-12-31T23:59:30Z"}
 #+end_example
 
+** Static demo
+
+Build a self-contained static version of the dashboard (no Flask
+needed to serve it):
+
+#+begin_example
+make demo                 # generate data + build panel/demo/
+make demo-tar             # package as tmon-demo.tar.gz
+make demo-clean           # remove panel/demo/ and tarball
+#+end_example
+
+The output in ~panel/demo/~ can be served by any HTTP server:
+
+#+begin_example
+cd panel/demo && python -m http.server 8000
+#+end_example
+
+The tarball wraps everything in a ~tmon-demo/~ top-level directory.
+To deploy, extract on the server and point a web server at the
+extracted directory.
+
 ** How it works
 
 - ~generate_data.py~ creates ~tmon_mock.db~ with the same schema as

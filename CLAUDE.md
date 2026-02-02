@@ -30,6 +30,7 @@ Commit checklist:
 - [ ] Code is simple/readable; no unnecessary abstractions
 - [ ] No default arguments introduced in methods/functions
 - [ ] Docs updated if behavior/interfaces changed (PLAN.org, docs/*).
+- [ ] Generated/build artifacts added to `.gitignore`.
 
 ## Coding guidelines
 
