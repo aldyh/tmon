@@ -45,33 +45,17 @@ class Poller:
 
 
 
-    def __init__(self, bus, storage, slaves):
-        """Initialize the poller.
-
-        Args:
-            bus: Bus-like object for sending/receiving frames.
-            storage: Storage-like object for persisting readings.
-            slaves: List of integer slave addresses (1-247).
-        """
+    def __init__(self, bus, storage, slaves: list[int]):
+        """Initialize the poller."""
         self._bus = bus
         self._storage = storage
         self._slaves = list(slaves)
 
-    def poll(self, addr):
+    def poll(self, addr: int) -> dict | None:
         """Poll a single slave and return a reading dict or None.
 
-        Encodes a POLL frame, sends it, waits for a REPLY, validates
-        the response (address, command, payload length), and unpacks
-        the raw int16 temperatures.  Channels with value
-        PROTO_TEMP_INVALID are stored as None.
-
-        Args:
-            addr: Slave address to poll (int, 1-247).
-
-        Returns:
-            dict: Reading with keys ``addr``,
-                ``temp_0`` .. ``temp_3`` (raw int16 or None), or
-                None on timeout/error.
+        Sends a POLL frame, validates the REPLY, and unpacks raw int16
+        temperatures.  Returns None on timeout or protocol error.
 
         Example:
             >>> reading = poller.poll(3)
@@ -128,16 +112,12 @@ class Poller:
             "temp_3": temps[3],
         }
 
-    def poll_all(self):
-        """Execute a single poll cycle across all slaves.
-
-        Polls each slave in order.  Successful readings are inserted
-        into storage.  Returns a list of reading dicts (only the
-        successful ones).
+    def poll_all(self) -> list[dict]:
+        """Poll all slaves and store successful readings.
 
         Returns:
-            list[dict]: Readings collected this cycle.  Each dict has
-                keys ``addr``, ``temp_0`` .. ``temp_3``.
+            list[dict]: Readings collected this cycle (``addr``,
+                ``temp_0`` .. ``temp_3``).
 
         Example:
             >>> results = poller.poll_all()

@@ -23,7 +23,7 @@ which is needed for convention.
 ** Notes
 Converted README.md, PLAN.md, docs/protocol.md, docs/storage.md, docs/wiring.md.
 Updated all cross-references in CLAUDE.md, Python docstrings, and test comments.
-* TODO Avoid documenting obvious things
+* DONE Avoid documenting obvious things
 Change coding guidelines in CLAUDE.md to avoid documenting obvious things.  Say, a 3-4 line method shouldn't have extensive documentation. A sentence is fine.  No need to document each arg, etc.
 
 Instead for small methods, just write a small sentence on what the function does, and
@@ -37,6 +37,13 @@ def _require_str(raw: dict[str, object], key: str) -> None:
 Actually, when method is obvious enough, the above format is good enough.
 
 Change all code in project accordingly.
+
+** Notes
+Replaced verbose Args/Returns sections with type hints in signatures for
+short/obvious methods. Kept Google-style sections on main API functions
+(encode_request, decode_frame, parse_reply_payload, load_config, poll,
+poll_all, run) but trimmed redundant arg docs where the signature suffices.
+Updated CLAUDE.md guidelines to reflect the lighter approach.
 * TODO Come up with web panel plan.
 Familiarize with entire project, and suggest a few ways to visualize this data.
 I'd like a web panel where we can see current readings, and also an option to view historical data.

@@ -39,28 +39,18 @@ class Bus:
     # CRC is 2 bytes appended after the payload.
     _CRC_LEN = 2
 
-    def __init__(self, port, baudrate):
-        """Open the serial port.
-
-        Args:
-            port: Serial port device path (e.g. ``"/dev/ttyUSB0"``).
-            baudrate: Baud rate for the connection (e.g. ``9600``).
-        """
+    def __init__(self, port: str, baudrate: int):
+        """Open the serial port."""
         self._ser = serial.Serial(port, baudrate, timeout=0)
 
-    def send(self, data):
+    def send(self, data: bytes) -> None:
+        """Send raw bytes on the bus, flushing any stale input first."""
         self._ser.reset_input_buffer()
         self._ser.write(data)
         self._ser.flush()
 
-    def receive(self):
-        """Receive a complete protocol frame from the bus.
-
-        Example:
-            >>> frame = bus.receive()
-            >>> len(frame)  # 0 on timeout, >= 6 on success
-            15
-        """
+    def receive(self) -> bytes:
+        """Receive a complete protocol frame, or b"" on timeout."""
         self._ser.timeout = BUS_TIMEOUT_MS / 1000.0
         header = self._ser.read(self._HEADER_LEN)
         if len(header) < self._HEADER_LEN:
@@ -74,6 +64,6 @@ class Bus:
 
         return header + tail
 
-    def close(self):
+    def close(self) -> None:
         """Close the underlying serial port."""
         self._ser.close()

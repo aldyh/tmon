@@ -37,7 +37,6 @@ Commit checklist:
 
 - Main API methods and top-level externally visible functions, include
   usage/code examples in the docs (docsstring or comments).
-- Document each arg and return value in methods.
 
 ### C/C++ (GNU style)
 
@@ -64,7 +63,12 @@ Commit checklist:
 ### Python
 
 - Every class and every method/function gets a docstring.
-- Use Google-style docstrings (Args/Returns/Example sections).
+- Short/obvious methods: a one-line summary is enough. Use type hints
+  in the signature instead of documenting each arg.
+- Larger or non-obvious functions: use Google-style sections
+  (Args/Returns/Raises/Example) where they add value.
+- Main API methods and top-level externally visible functions: include
+  usage/code examples in the docstring.
 
 ## Notes
 

@@ -58,26 +58,16 @@ class Storage:
         >>> store.close()
     """
 
-    def __init__(self, db_path):
-        """Open the database and ensure the schema exists.
-
-        Args:
-            db_path: Filesystem path to the SQLite database, or
-                ``":memory:"`` for an in-memory database.
-        """
+    def __init__(self, db_path: str):
+        """Open the database and ensure the schema exists."""
         self._conn = sqlite3.connect(db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute(_CREATE_TABLE)
         self._conn.commit()
 
-    def insert(self, addr, temps):
+    def insert(self, addr: int, temps: list[int | None]) -> None:
         """Insert one reading row: *addr* + 4-element *temps* list.
-
-        Args:
-            addr: Slave address (int, 1-247).
-            temps: List of 4 int temperatures (tenths of deg C), or
-                None for invalid channels.
 
         Raises:
             ValueError: If *temps* does not contain exactly 4 elements.
@@ -95,15 +85,8 @@ class Storage:
         self._conn.execute(_INSERT, (ts, addr) + tuple(temps))
         self._conn.commit()
 
-    def fetch(self, count):
+    def fetch(self, count: int) -> list[dict]:
         """Return the newest *count* readings, newest first.
-
-        Args:
-            count: Maximum number of rows to return (int).
-
-        Returns:
-            list[dict]: Each dict has keys ``id``, ``ts``, ``addr``,
-                ``temp_0`` ... ``temp_3``.
 
         Example:
             >>> store = Storage(":memory:")
@@ -115,6 +98,6 @@ class Storage:
         cursor = self._conn.execute(_FETCH_RECENT, (count,))
         return [dict(row) for row in cursor.fetchall()]
 
-    def close(self):
+    def close(self) -> None:
         """Close the database connection."""
         self._conn.close()

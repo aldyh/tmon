@@ -21,22 +21,11 @@ import tomllib
 BUS_TIMEOUT_MS = 200
 
 
-def load_config(path):
+def load_config(path: str) -> dict:
     """Read a TOML config file and validate required keys.
 
-    The file must contain exactly these four keys:
-
-    - ``port`` (str): serial port path
-    - ``slaves`` (list[int]): slave addresses to poll
-    - ``db`` (str): SQLite database path
-    - ``interval`` (int): seconds between poll cycles
-
-    Args:
-        path: Filesystem path to the TOML config file.
-
-    Returns:
-        dict: Parsed configuration with keys ``port``, ``slaves``,
-            ``db``, and ``interval``.
+    Required keys: ``port`` (str), ``slaves`` (list[int]),
+    ``db`` (str), ``interval`` (int).
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
@@ -71,32 +60,16 @@ def load_config(path):
     }
 
 
-def _require_str(raw, key):
-    """Validate that *key* exists in *raw* and is a str.
-
-    Args:
-        raw: Dict of parsed TOML data.
-        key: Key name to check.
-
-    Raises:
-        ValueError: If the key is missing or not a str.
-    """
+def _require_str(raw: dict[str, object], key: str) -> None:
+    """Validate that *key* exists in *raw* and is a str."""
     if key not in raw:
         raise ValueError("missing required key: %s" % key)
     if not isinstance(raw[key], str):
         raise ValueError("%s must be str, got %s" % (key, type(raw[key]).__name__))
 
 
-def _require_int(raw, key):
-    """Validate that *key* exists in *raw* and is an int.
-
-    Args:
-        raw: Dict of parsed TOML data.
-        key: Key name to check.
-
-    Raises:
-        ValueError: If the key is missing or not an int.
-    """
+def _require_int(raw: dict[str, object], key: str) -> None:
+    """Validate that *key* exists in *raw* and is an int."""
     if key not in raw:
         raise ValueError("missing required key: %s" % key)
     if not isinstance(raw[key], int):

@@ -28,18 +28,12 @@ PROTO_TEMP_INVALID = 0x7FFF
 # -- CRC-16/MODBUS -----------------------------------------------------------
 
 
-def crc16_modbus(data):
+def crc16_modbus(data: bytes) -> int:
     """Compute CRC-16/MODBUS over a byte sequence.
 
     Uses polynomial 0x8005 with initial value 0xFFFF and reflected
     input/output (standard MODBUS CRC).  Bitwise implementation --
     simple and sufficient for our short frames.
-
-    Args:
-        data: Bytes-like object to compute the CRC over.
-
-    Returns:
-        int: 16-bit CRC value.
 
     Example:
         >>> crc16_modbus(bytes([0x03, 0x01, 0x00]))
@@ -59,19 +53,11 @@ def crc16_modbus(data):
 # -- Encoding ----------------------------------------------------------------
 
 
-def encode_request(addr, cmd, payload):
+def encode_request(addr: int, cmd: int, payload: bytes) -> bytes:
     """Build a complete protocol frame.
 
     Constructs the frame: START + ADDR + CMD + LEN + PAYLOAD + CRC_LO + CRC_HI.
     The CRC is computed over ADDR + CMD + LEN + PAYLOAD.
-
-    Args:
-        addr: Slave address (int, 1-247).
-        cmd: Command byte (int).
-        payload: Payload bytes (bytes, may be empty).
-
-    Returns:
-        bytes: The complete encoded frame.
 
     Raises:
         ValueError: If addr is outside the valid range 1-247.
@@ -96,19 +82,14 @@ def encode_request(addr, cmd, payload):
 # -- Decoding ----------------------------------------------------------------
 
 
-def decode_frame(data):
+def decode_frame(data: bytes) -> dict:
     """Parse raw bytes into a protocol frame dict.
 
     Validates the frame structure, length field, address range, and CRC.
 
-    Args:
-        data: Raw bytes received from the bus (bytes).
-
     Returns:
-        dict: Parsed frame with keys:
-            - ``addr`` (int): Slave address.
-            - ``cmd`` (int): Command byte.
-            - ``payload`` (bytes): Payload bytes (may be empty).
+        dict: Parsed frame with keys ``addr`` (int), ``cmd`` (int),
+            and ``payload`` (bytes).
 
     Raises:
         ValueError: On any validation failure (short frame, bad START byte,
@@ -163,20 +144,16 @@ def decode_frame(data):
     return {"addr": addr, "cmd": cmd, "payload": payload}
 
 
-def parse_reply_payload(payload):
+def parse_reply_payload(payload: bytes) -> dict:
     """Parse the 8-byte REPLY payload into temperatures.
 
     The payload layout is four int16-LE temperature values in tenths
     of a degree Celsius.  Channels with value PROTO_TEMP_INVALID are
     returned as None.
 
-    Args:
-        payload: Exactly 8 bytes of REPLY payload (bytes).
-
     Returns:
-        dict: Parsed reply with keys:
-            - ``temperatures`` (list): Four floats (degrees Celsius) or
-              None for invalid channels.
+        dict: ``{"temperatures": [float|None, ...]}`` -- four values
+            in degrees Celsius.
 
     Raises:
         ValueError: If payload is not exactly 8 bytes.

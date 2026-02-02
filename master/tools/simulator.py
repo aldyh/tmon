@@ -37,16 +37,13 @@ from tmon.protocol import (
 ADDR = 3
 
 
-def run(port):
+def run(port: str) -> None:
     """Run the simulator loop.
 
     Opens *port* via Bus, reads incoming frames, and replies to POLL
     frames addressed to ADDR with synthetic temperature data.
     Each channel produces a random value between 50 and 900 (5.0 to
     90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
-
-    Args:
-        port: Serial port device path.
     """
     bus = Bus(port, 9600)
 

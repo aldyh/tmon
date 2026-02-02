@@ -25,30 +25,18 @@ log = logging.getLogger(__name__)
 _shutdown = False
 
 
-def _on_signal(signum, frame):
-    """Signal handler that sets the shutdown flag.
-
-    Args:
-        signum: Signal number received.
-        frame: Current stack frame (unused).
-    """
+def _on_signal(signum: int, frame) -> None:
+    """Signal handler that sets the shutdown flag."""
     global _shutdown
     _shutdown = True
 
 
-def run(cfg, bus, storage):
+def run(cfg: dict, bus, storage) -> int:
     """Run the poll loop until shutdown is requested.
 
     Polls all slaves, sleeps for ``cfg["interval"]`` seconds, and
-    repeats.  Returns when the module-level ``_shutdown`` flag is set.
-
-    Args:
-        cfg: Configuration dict with at least ``slaves`` and ``interval``.
-        bus: Bus-like object with ``send()`` and ``receive()`` methods.
-        storage: Storage-like object with ``insert()`` method.
-
-    Returns:
-        int: Number of completed poll cycles.
+    repeats.  Returns the number of completed cycles when the
+    module-level ``_shutdown`` flag is set.
 
     Example:
         >>> run({"slaves": [3], "interval": 30}, bus, storage)
@@ -72,12 +60,8 @@ def run(cfg, bus, storage):
     return cycles
 
 
-def main():
+def main() -> None:
     """CLI entry point -- parse args, load config, run the daemon.
-
-    Parses one positional argument (config file path) and an optional
-    ``-v``/``--verbose`` flag.  Opens the bus and storage, installs
-    signal handlers, runs the poll loop, then cleans up.
 
     Example:
         From the shell::
