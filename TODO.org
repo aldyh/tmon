@@ -44,12 +44,20 @@ short/obvious methods. Kept Google-style sections on main API functions
 (encode_request, decode_frame, parse_reply_payload, load_config, poll,
 poll_all, run) but trimmed redundant arg docs where the signature suffices.
 Updated CLAUDE.md guidelines to reflect the lighter approach.
-* TODO Come up with web panel plan.
+* DONE Come up with web panel plan.
 Familiarize with entire project, and suggest a few ways to visualize this data.
 I'd like a web panel where we can see current readings, and also an option to view historical data.
 Give me the 2-3 most useful ways of visualizing this data, and document it in docs/panel.org with clear subsections, explaining each option and what the benefits and drawbacks are in terms of style, maintainability, heavy usage of libraries, etc.
 
 Provide a summary at the top (sub section in org mode) where you explain that the reader/system is free to ignore this entire file as it's just random musings, but do give a hint of where we're going with this project (that we'll need a visualization framework).
+
+** Notes
+Documented three options in docs/panel.org:
+- A: Flask + HTMX (server-rendered, near-zero JS)
+- B: Flask + Chart.js (JSON API + client-rendered charts)
+- C: Grafana + SQLite plugin (full dashboarding tool)
+Recommended Option B as the best balance of interactivity, simplicity,
+and testability.  Option C noted but too heavy for this project.
 * TODO Get rid of "payload" arguments in code base
 Even though payload is the right terminology for method arguments, we're always talking about temperatures.
 Perhaps rename this to something dealing with temperatures.  Choose something clean, short, and obvious.
