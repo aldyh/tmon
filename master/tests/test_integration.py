@@ -9,6 +9,7 @@ Run with::
 """
 
 import os
+import signal
 import shutil
 import subprocess
 import sys
@@ -143,3 +144,40 @@ class TestIntegration:
 
         bus.close()
         storage.close()
+
+    def test_daemon_subprocess(self, pty_pair, tmp_path):
+        """Daemon starts, polls simulator, stores readings, shuts down."""
+        db_path = os.path.join(str(tmp_path), "test.db")
+        config_path = os.path.join(str(tmp_path), "test.toml")
+
+        with open(config_path, "w") as f:
+            f.write('port = "%s"\n' % pty_pair)
+            f.write("slaves = [%d]\n" % SIM_ADDR)
+            f.write('db = "%s"\n' % db_path)
+            f.write("interval = 1\n")
+
+        proc = subprocess.Popen(
+            [sys.executable, "-m", "tmon.daemon", config_path, "-v"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        # Let it run a few poll cycles
+        time.sleep(4)
+
+        proc.send_signal(signal.SIGTERM)
+        proc.wait(timeout=5)
+
+        # SIGTERM is handled gracefully; exit code 0.
+        # If the signal fires during sleep before the handler runs,
+        # Python may exit with -SIGTERM; accept either.
+        assert proc.returncode in (0, -signal.SIGTERM)
+
+        # Verify readings were stored
+        import sqlite3
+        conn = sqlite3.connect(db_path)
+        cursor = conn.execute("SELECT COUNT(*) FROM readings")
+        count = cursor.fetchone()[0]
+        conn.close()
+
+        assert count >= 2

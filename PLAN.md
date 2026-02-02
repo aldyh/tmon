@@ -103,11 +103,11 @@ so something simple.
 
 ### Master daemon
 
-- [ ] Config-driven entry point (`tmon` console script via pyproject.toml)
-- [ ] Run poll loop on a configurable schedule
-- [ ] Logging (stdlib `logging`)
-- [ ] Clean shutdown on SIGINT/SIGTERM
-- [ ] Integration test: daemon starts, polls simulator, stores readings, shuts down cleanly
+- [x] Config-driven entry point (`tmon` console script via pyproject.toml)
+- [x] Run poll loop on a configurable schedule
+- [x] Logging (stdlib `logging`)
+- [x] Clean shutdown on SIGINT/SIGTERM
+- [x] Integration test: daemon starts, polls simulator, stores readings, shuts down cleanly
 
 ### ESP32 firmware: sensors + RS-485
 
