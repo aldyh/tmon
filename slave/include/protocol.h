@@ -121,7 +121,7 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
                    uint8_t *payload_len);
 
 /*
- * tmon_parse_reply_payload -- Parse an 8-byte REPLY payload.
+ * tmon_parse_reply -- Parse an 8-byte REPLY payload.
  *
  * Unpacks four int16-LE temperature values into a tmon_reply_payload
  * struct.  Invalid channels have the value TMON_TEMP_INVALID.
@@ -137,11 +137,11 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
  * Example:
  *   uint8_t pl[] = {0xEB,0x00, 0xC6,0x00, 0xFF,0x7F, 0xFF,0x7F};
  *   struct tmon_reply_payload rp;
- *   int rc = tmon_parse_reply_payload (pl, 8, &rp);
+ *   int rc = tmon_parse_reply (pl, 8, &rp);
  *   // rc = 0, rp.temps = {235, 198, 32767, 32767}
  */
 int
-tmon_parse_reply_payload (const uint8_t *payload, uint8_t payload_len,
-                          struct tmon_reply_payload *out);
+tmon_parse_reply (const uint8_t *payload, uint8_t payload_len,
+                  struct tmon_reply_payload *out);
 
 #endif /* TMON_PROTOCOL_H */

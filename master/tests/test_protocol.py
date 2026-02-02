@@ -13,7 +13,7 @@ from tmon.protocol import (
     crc16_modbus,
     decode_frame,
     encode_request,
-    parse_reply_payload,
+    parse_reply,
 )
 
 
@@ -195,10 +195,10 @@ class TestDecodeFrame:
             decode_frame(raw)
 
 
-# -- parse_reply_payload -----------------------------------------------------
+# -- parse_reply -------------------------------------------------------------
 
 
-class TestParseReplyPayload:
+class TestParseReply:
     """Tests for REPLY payload parsing."""
 
     def test_example2_payload(self):
@@ -206,7 +206,7 @@ class TestParseReplyPayload:
         payload = bytes([
             0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
-        result = parse_reply_payload(payload)
+        result = parse_reply(payload)
         assert result["temperatures"][0] == pytest.approx(23.5)
         assert result["temperatures"][1] == pytest.approx(19.8)
         assert result["temperatures"][2] is None
@@ -215,14 +215,14 @@ class TestParseReplyPayload:
     def test_all_channels_invalid(self):
         """All temps INVALID means all temperatures are None."""
         payload = bytes([0xFF, 0x7F] * 4)
-        result = parse_reply_payload(payload)
+        result = parse_reply(payload)
         assert result["temperatures"] == [None, None, None, None]
 
     def test_all_channels_valid(self):
         """All 4 temperatures returned as floats."""
         import struct
         temps_raw = struct.pack("<hhhh", 100, -50, 0, 325)
-        result = parse_reply_payload(temps_raw)
+        result = parse_reply(temps_raw)
         assert result["temperatures"][0] == pytest.approx(10.0)
         assert result["temperatures"][1] == pytest.approx(-5.0)
         assert result["temperatures"][2] == pytest.approx(0.0)
@@ -232,18 +232,18 @@ class TestParseReplyPayload:
         """Negative temperature values are handled correctly."""
         import struct
         temps_raw = struct.pack("<hhhh", -100, 0, 0, 0)
-        result = parse_reply_payload(temps_raw)
+        result = parse_reply(temps_raw)
         assert result["temperatures"][0] == pytest.approx(-10.0)
 
     def test_bad_length_short(self):
         """Payload shorter than 8 bytes should be rejected."""
         with pytest.raises(ValueError, match="8 bytes"):
-            parse_reply_payload(b"\x00" * 7)
+            parse_reply(b"\x00" * 7)
 
     def test_bad_length_long(self):
         """Payload longer than 8 bytes should be rejected."""
         with pytest.raises(ValueError, match="8 bytes"):
-            parse_reply_payload(b"\x00" * 9)
+            parse_reply(b"\x00" * 9)
 
 
 # -- Fuzz-ish ----------------------------------------------------------------

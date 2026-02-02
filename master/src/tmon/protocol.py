@@ -144,7 +144,7 @@ def decode_frame(data: bytes) -> dict:
     return {"addr": addr, "cmd": cmd, "payload": payload}
 
 
-def parse_reply_payload(payload: bytes) -> dict:
+def parse_reply(payload: bytes) -> dict:
     """Parse the 8-byte REPLY payload into temperatures.
 
     The payload layout is four int16-LE temperature values in tenths
@@ -159,7 +159,7 @@ def parse_reply_payload(payload: bytes) -> dict:
         ValueError: If payload is not exactly 8 bytes.
 
     Example:
-        >>> result = parse_reply_payload(
+        >>> result = parse_reply(
         ...     bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
         ... )
         >>> result['temperatures']

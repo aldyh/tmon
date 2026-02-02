@@ -81,8 +81,16 @@ Self-contained: own venv, own pyproject.toml, no imports from master/.
 - Time windows relative to newest DB row, so data always appears live.
 - Chart.js vendored at 4.4.7 (~206 KB), no CDN dependency.
 - Dark industrial/SCADA theme: navy background, monospace font, flat panels.
-* TODO Get rid of "payload" arguments in code base
+* DONE Get rid of "payload" arguments in code base
 Even though payload is the right terminology for method arguments, we're always talking about temperatures.
 Perhaps rename this to something dealing with temperatures.  Choose something clean, short, and obvious.
 
 This is for the method arguments.  I don't care what you do inside the code...for example tests.
+
+** Notes
+Renamed the temperature-specific function and its parameters:
+- Function: ~parse_reply_payload~ -> ~parse_reply~ (C: ~tmon_parse_reply_payload~ -> ~tmon_parse_reply~)
+- Parameter names (~payload~, ~payload_len~) kept as-is -- the argument is an
+  opaque blob, not structured temperature data
+- Left protocol-framing names (~encode_request~, ~decode_frame~, constants) unchanged
+  since those describe the generic protocol, not temperature data.

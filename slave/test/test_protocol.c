@@ -327,7 +327,7 @@ test_decode_error_addr_zero (void)
                                             &payload, &plen));
 }
 
-/* -- parse_reply_payload tests -------------------------------------------- */
+/* -- parse_reply tests ---------------------------------------------------- */
 
 void
 test_parse_example2_payload (void)
@@ -336,7 +336,7 @@ test_parse_example2_payload (void)
   uint8_t pl[] = {0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F};
   struct tmon_reply_payload rp;
 
-  TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
+  TEST_ASSERT_EQUAL (0, tmon_parse_reply (pl, sizeof (pl), &rp));
   TEST_ASSERT_EQUAL_INT16 (235, rp.temps[0]);
   TEST_ASSERT_EQUAL_INT16 (198, rp.temps[1]);
   TEST_ASSERT_EQUAL_INT16 ((int16_t)TMON_TEMP_INVALID, rp.temps[2]);
@@ -350,7 +350,7 @@ test_parse_all_channels_invalid (void)
   uint8_t pl[] = {0xFF, 0x7F, 0xFF, 0x7F, 0xFF, 0x7F, 0xFF, 0x7F};
   struct tmon_reply_payload rp;
 
-  TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
+  TEST_ASSERT_EQUAL (0, tmon_parse_reply (pl, sizeof (pl), &rp));
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)
     TEST_ASSERT_EQUAL_INT16 ((int16_t)TMON_TEMP_INVALID, rp.temps[i]);
@@ -369,7 +369,7 @@ test_parse_all_channels_valid (void)
   };
   struct tmon_reply_payload rp;
 
-  TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
+  TEST_ASSERT_EQUAL (0, tmon_parse_reply (pl, sizeof (pl), &rp));
   TEST_ASSERT_EQUAL_INT16 (100, rp.temps[0]);
   TEST_ASSERT_EQUAL_INT16 (-50, rp.temps[1]);
   TEST_ASSERT_EQUAL_INT16 (0, rp.temps[2]);
@@ -389,7 +389,7 @@ test_parse_negative_temperature (void)
   };
   struct tmon_reply_payload rp;
 
-  TEST_ASSERT_EQUAL (0, tmon_parse_reply_payload (pl, sizeof (pl), &rp));
+  TEST_ASSERT_EQUAL (0, tmon_parse_reply (pl, sizeof (pl), &rp));
   TEST_ASSERT_EQUAL_INT16 (-100, rp.temps[0]);
 }
 
@@ -400,7 +400,7 @@ test_parse_wrong_length_short (void)
   uint8_t pl[7];
   struct tmon_reply_payload rp;
   memset (pl, 0, sizeof (pl));
-  TEST_ASSERT_EQUAL (-1, tmon_parse_reply_payload (pl, 7, &rp));
+  TEST_ASSERT_EQUAL (-1, tmon_parse_reply (pl, 7, &rp));
 }
 
 void
@@ -410,7 +410,7 @@ test_parse_wrong_length_long (void)
   uint8_t pl[9];
   struct tmon_reply_payload rp;
   memset (pl, 0, sizeof (pl));
-  TEST_ASSERT_EQUAL (-1, tmon_parse_reply_payload (pl, 9, &rp));
+  TEST_ASSERT_EQUAL (-1, tmon_parse_reply (pl, 9, &rp));
 }
 
 /* -- Unity setup/teardown ------------------------------------------------- */

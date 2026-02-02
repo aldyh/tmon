@@ -105,8 +105,8 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
 }
 
 int
-tmon_parse_reply_payload (const uint8_t *payload, uint8_t payload_len,
-                          struct tmon_reply_payload *out)
+tmon_parse_reply (const uint8_t *payload, uint8_t payload_len,
+                  struct tmon_reply_payload *out)
 {
   int i;
 
