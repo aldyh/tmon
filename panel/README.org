@@ -58,37 +58,6 @@ curl http://localhost:5000/api/range
 # {"min":"2024-01-01T00:00:00Z","max":"2024-12-31T23:59:30Z"}
 #+end_example
 
-** Deploying the demo (DreamHost)
-
-Build the tarball:
-
-#+begin_example
-make panel-demo           # generates data + tmon-demo.tar.gz
-#+end_example
-
-On DreamHost:
-
-1. In the DreamHost control panel, create a subdomain (e.g.
-   ~tmon.example.com~) with Passenger (Python) enabled.
-
-2. SSH in and deploy:
-
-#+begin_example
-cd ~/tmon.example.com
-tar xzf tmon-demo.tar.gz
-sh setup-demo.sh
-#+end_example
-
-The site should be live at ~https://tmon.example.com~.
-
-To update after regenerating the tarball:
-
-#+begin_example
-cd ~/tmon.example.com
-tar xzf tmon-demo.tar.gz
-touch tmp/restart.txt
-#+end_example
-
 ** How it works
 
 - ~generate_data.py~ creates ~tmon_mock.db~ with the same schema as

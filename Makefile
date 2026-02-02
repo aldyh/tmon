@@ -1,6 +1,6 @@
 .PHONY: all build-master build-slave build-panel \
        check check-master check-slave check-integration check-panel \
-       generate-panel-data run-panel mock-panel panel-demo clean
+       generate-panel-data run-panel mock-panel clean
 
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
@@ -52,14 +52,6 @@ mock-panel: generate-panel-data
 	@echo "Starting panel at http://localhost:5000"
 	$(MAKE) run-panel
 
-panel-demo: generate-panel-data
-	@echo "Building tmon-demo.tar.gz..."
-	tar czf tmon-demo.tar.gz -C panel \
-		app.py passenger_wsgi.py setup-demo.sh tmon_mock.db \
-		templates/index.html \
-		static/style.css static/vendor/chart.umd.min.js
-	@echo "Created tmon-demo.tar.gz"
-
 clean:
-	rm -rf master/.venv panel/.venv panel/tmon_mock.db tmon-demo.tar.gz
+	rm -rf master/.venv panel/.venv panel/tmon_mock.db
 	cd slave && pio run -t clean
