@@ -58,7 +58,7 @@ Documented three options in docs/panel.org:
 - C: Grafana + SQLite plugin (full dashboarding tool)
 Recommended Option B as the best balance of interactivity, simplicity,
 and testability.  Option C noted but too heavy for this project.
-* TODO Implement mock visualization panel
+* DONE Implement mock visualization panel
 look at docs/panel.org.  i'm interested in option B, but only to see
 how it would feel.  in a branch, work on a mock implementation that
 reads from the db in the project (populate it with random reasonable
@@ -68,6 +68,19 @@ point my web browser at it, and play around with it.  write any design
 and notes in this item under the Notes section.
 
 i want to see how stuff would actually look and work.
+
+** Notes
+Implemented as Option B (Flask + Chart.js) in panel/ directory.
+Self-contained: own venv, own pyproject.toml, no imports from master/.
+
+- ~make mock-panel~ generates data and starts the server in one step.
+- ~make check-panel~ runs 22 tests (6 for data generation, 16 for API).
+- generate_data.py creates ~3M rows (3 slaves, 30s intervals, 365 days).
+- Temperature profiles: sinusoidal daily/seasonal cycles + Gaussian noise.
+- Slave 3 channel 1 has 5% null rate to exercise null handling.
+- Time windows relative to newest DB row, so data always appears live.
+- Chart.js vendored at 4.4.7 (~206 KB), no CDN dependency.
+- Dark industrial/SCADA theme: navy background, monospace font, flat panels.
 * TODO Get rid of "payload" arguments in code base
 Even though payload is the right terminology for method arguments, we're always talking about temperatures.
 Perhaps rename this to something dealing with temperatures.  Choose something clean, short, and obvious.

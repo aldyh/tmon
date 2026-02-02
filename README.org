@@ -18,6 +18,7 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
   - ~tests/~ -- pytest unit tests (no hardware)
   - ~tools/~ -- x86 simulator + ~socat~ harness (integration tests)
 - ~slave/~ -- ESP32 firmware (PlatformIO, Arduino framework)
+- ~panel/~ -- mock visualization dashboard (Flask + Chart.js)
 - ~docs/~ -- documentation (see links below)
 
 ** Quick start

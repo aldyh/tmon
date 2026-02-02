@@ -111,6 +111,15 @@ so something simple.
 - [X] Clean shutdown on SIGINT/SIGTERM
 - [X] Integration test: daemon starts, polls simulator, stores readings, shuts down cleanly
 
+*** Mock visualization panel
+
+- [X] Directory structure, pyproject.toml, Makefile targets
+- [X] Vendor Chart.js
+- [X] Data generation script + tests
+- [X] Flask API endpoints + tests
+- [X] Frontend: index.html + style.css (working dashboard)
+- [X] Documentation (panel/README.org, PLAN.org, TODO.org)
+
 *** ESP32 firmware: sensors + RS-485
 
 - [ ] Read NTC thermistors

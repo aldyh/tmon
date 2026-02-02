@@ -1,0 +1,69 @@
+#+STARTUP: showall
+
+* Mock visualization panel
+
+A self-contained mock of the tmon web dashboard (Flask + Chart.js).
+Generates a year of synthetic temperature data and serves an
+interactive browser UI with current readings and historical charts.
+
+** Quick start
+
+#+begin_example
+make mock-panel            # generate data + start server
+#+end_example
+
+Then open http://localhost:5000 in your browser.
+
+To run the steps separately:
+
+#+begin_example
+make build-panel           # create venv + install deps
+make generate-panel-data   # populate panel/tmon_mock.db (~3M rows)
+make run-panel             # start Flask on http://localhost:5000
+#+end_example
+
+** Running tests
+
+#+begin_example
+make check-panel           # run panel pytest suite
+#+end_example
+
+** API reference
+
+| Endpoint | Description |
+|---|---|
+| ~GET /~ | Dashboard HTML page |
+| ~GET /api/current~ | Latest reading per slave (JSON) |
+| ~GET /api/history?addr=N&hours=H&points=P~ | Historical readings, downsampled to P points |
+| ~GET /api/slaves~ | List of distinct slave addresses |
+| ~GET /api/range~ | Min/max timestamps in DB |
+
+Time windows are relative to the newest row in the database, so the
+mock data always appears current.
+
+*** Examples
+
+#+begin_example
+curl http://localhost:5000/api/slaves
+# [1, 2, 3]
+
+curl http://localhost:5000/api/current
+# [{"addr":1,"ts":"...","temp_0":220,...}, ...]
+
+curl "http://localhost:5000/api/history?addr=1&hours=6&points=100"
+# [{"ts":"...","temp_0":215,"temp_1":230,...}, ...]
+
+curl http://localhost:5000/api/range
+# {"min":"2024-01-01T00:00:00Z","max":"2024-12-31T23:59:30Z"}
+#+end_example
+
+** How it works
+
+- ~generate_data.py~ creates ~tmon_mock.db~ with the same schema as
+  ~master/src/tmon/storage.py~.  3 slaves, 2-4 channels each,
+  readings every 30s for 365 days.  Sinusoidal daily/seasonal cycles
+  plus Gaussian noise.
+- ~app.py~ is a Flask app that reads ~tmon_mock.db~ and serves JSON
+  API endpoints plus the dashboard page.
+- ~templates/index.html~ uses Chart.js for interactive line charts.
+  Dark industrial theme, auto-refresh every 10s.
