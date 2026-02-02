@@ -58,6 +58,16 @@ Documented three options in docs/panel.org:
 - C: Grafana + SQLite plugin (full dashboarding tool)
 Recommended Option B as the best balance of interactivity, simplicity,
 and testability.  Option C noted but too heavy for this project.
+* TODO Implement mock visualization panel
+look at docs/panel.org.  i'm interested in option B, but only to see
+how it would feel.  in a branch, work on a mock implementation that
+reads from the db in the project (populate it with random reasonable
+data for a year worth of readings).  put everything, including
+dependencies, in a directory so i can start some sort of server, and
+point my web browser at it, and play around with it.  write any design
+and notes in this item under the Notes section.
+
+i want to see how stuff would actually look and work.
 * TODO Get rid of "payload" arguments in code base
 Even though payload is the right terminology for method arguments, we're always talking about temperatures.
 Perhaps rename this to something dealing with temperatures.  Choose something clean, short, and obvious.
