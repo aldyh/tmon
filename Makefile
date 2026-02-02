@@ -1,7 +1,7 @@
 .PHONY: all build-master build-slave build-panel \
        check check-master check-slave check-integration check-panel \
        generate-panel-data run-panel mock-panel \
-       demo demo-tar demo-clean clean
+       demo demo-tar demo-upload demo-clean clean
 
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
@@ -58,6 +58,10 @@ demo: generate-panel-data
 
 demo-tar: demo
 	tar czf tmon-demo.tar.gz --transform='s,^panel/demo,tmon-demo,' panel/demo
+
+demo-upload: demo-tar
+	scp tmon-demo.tar.gz quesejoda.com:
+	ssh quesejoda.com 'rm -rf ~/quesejoda.com/tmon-demo/ && cd ~/quesejoda.com && tar xzf ~/tmon-demo.tar.gz && chmod -R a+rX ~/quesejoda.com/tmon-demo/'
 
 demo-clean:
 	rm -rf panel/demo tmon-demo.tar.gz
