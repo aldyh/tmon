@@ -19,6 +19,7 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
 - Each new branch should have master as the upstream: git branch -u master
 - If a task spans multiple commits, keep them reviewable and ordered.
 - When I review your code, use incremental commits on top of current topic branch.
+- Use fast-forward merges: `git merge <branch>` (no `--no-ff`).
 
 ## Progress tracking
 
