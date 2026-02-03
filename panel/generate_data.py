@@ -1,6 +1,7 @@
 """Generate mock temperature data for the demo dashboard.
 
-Creates tmon_mock.db with the same schema as master/src/tmon/storage.py.
+Creates tmon_mock.db with the readings table schema defined in
+docs/storage.org.
 Populates it with 1 year of readings for 3 slaves at 30-second intervals.
 
 Temperature profiles use sinusoidal daily and seasonal cycles plus
@@ -19,6 +20,7 @@ import random
 import sqlite3
 import sys
 
+# Schema: see docs/storage.org
 _CREATE_TABLE = """\
 CREATE TABLE IF NOT EXISTS readings (
     id        INTEGER PRIMARY KEY,

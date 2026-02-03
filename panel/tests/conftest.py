@@ -7,6 +7,7 @@ import tempfile
 import pytest
 
 
+# Schema: see docs/storage.org
 _CREATE_TABLE = """\
 CREATE TABLE IF NOT EXISTS readings (
     id        INTEGER PRIMARY KEY,
