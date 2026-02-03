@@ -6,6 +6,7 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
 ## Operating rules
 
 - **Read first:** `README.org`, then docs/*, then `PLAN.org`.
+- **TODO list for project:** `TODO.org`.
 - **Keep commits small:** one logical change per commit.
 - **No default arguments in methods/functions.**
 - **Tests:** add/adjust tests with changes; run unit tests before committing.
