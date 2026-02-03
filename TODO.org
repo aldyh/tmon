@@ -16,6 +16,24 @@ Usual commit guidelines per this project apply as described in CLAUDE.md.
 As part of the commit mark the item as DONE in this file.
 
 Add a subsection in the item named "Notes", of anything interesting that came up during working on this item, that might be useful to keep in the archived DONE item.
+* TODO Inconsistent error handling philosophy
+
+The protocol layer uses exceptions (Python) / return codes (C) for
+validation errors, but the poller layer silently swallows them:
+
+#+begin_example
+# poller.py:87-91
+try:
+    reply = decode_frame(raw)
+except ValueError as exc:
+    log.debug("bad frame from slave %d: %s", addr, exc)
+    return None
+#+end_example
+
+Returning ~None~ for all error conditions (timeout, bad CRC, bad
+address, unexpected command) loses information. A caller cannot
+distinguish "slave offline" from "slave sent garbage." For a home
+project this is acceptable, but it would be a problem at scale.
 * DONE Convert markdown files to org mode
 Convert all *.md files in the project to .org mode, with the exception of CLAUDE.md
 which is needed for convention.
