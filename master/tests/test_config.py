@@ -28,12 +28,14 @@ class TestLoadConfig:
         """A valid TOML file returns the expected dict."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = [1, 2, 3]\n'
             'db = "data/readings.db"\n'
             'interval = 30\n'
         ))
         cfg = load_config(path)
         assert cfg["port"] == "/dev/ttyUSB0"
+        assert cfg["baudrate"] == 9600
         assert cfg["slaves"] == [1, 2, 3]
         assert cfg["db"] == "data/readings.db"
         assert cfg["interval"] == 30
@@ -41,6 +43,7 @@ class TestLoadConfig:
     def test_missing_port(self, tmp_path):
         """Missing 'port' key raises ValueError."""
         path = _write_toml(tmp_path, (
+            'baudrate = 9600\n'
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
@@ -48,10 +51,22 @@ class TestLoadConfig:
         with pytest.raises(ValueError, match="port"):
             load_config(path)
 
+    def test_missing_baudrate(self, tmp_path):
+        """Missing 'baudrate' key raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'port = "/dev/ttyUSB0"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+        ))
+        with pytest.raises(ValueError, match="baudrate"):
+            load_config(path)
+
     def test_missing_slaves(self, tmp_path):
         """Missing 'slaves' key raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
@@ -62,6 +77,7 @@ class TestLoadConfig:
         """Missing 'db' key raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = [1]\n'
             'interval = 10\n'
         ))
@@ -72,6 +88,7 @@ class TestLoadConfig:
         """Missing 'interval' key raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = [1]\n'
             'db = "test.db"\n'
         ))
@@ -82,6 +99,7 @@ class TestLoadConfig:
         """Non-string 'port' raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = 123\n'
+            'baudrate = 9600\n'
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
@@ -89,10 +107,23 @@ class TestLoadConfig:
         with pytest.raises(ValueError, match="port"):
             load_config(path)
 
+    def test_baudrate_wrong_type(self, tmp_path):
+        """Non-int 'baudrate' raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'port = "/dev/ttyUSB0"\n'
+            'baudrate = "fast"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+        ))
+        with pytest.raises(ValueError, match="baudrate"):
+            load_config(path)
+
     def test_slaves_wrong_type(self, tmp_path):
         """Non-list 'slaves' raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = "not a list"\n'
             'db = "test.db"\n'
             'interval = 10\n'
@@ -104,6 +135,7 @@ class TestLoadConfig:
         """Non-int element in 'slaves' raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = [1, "two"]\n'
             'db = "test.db"\n'
             'interval = 10\n'
@@ -115,6 +147,7 @@ class TestLoadConfig:
         """Empty 'slaves' list raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = []\n'
             'db = "test.db"\n'
             'interval = 10\n'
@@ -126,6 +159,7 @@ class TestLoadConfig:
         """Non-int 'interval' raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = "fast"\n'
@@ -137,6 +171,7 @@ class TestLoadConfig:
         """Extra keys in the TOML are silently ignored."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'

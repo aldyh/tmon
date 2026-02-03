@@ -4,6 +4,7 @@
 # Run with: tmon config.toml
 
 port = "/dev/ttyUSB0"
+baudrate = 9600
 slaves = [1, 2, 3]
 db = "data/readings.db"
 # Polling interval in seconds.

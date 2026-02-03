@@ -160,7 +160,7 @@ class Frame:
 The current dict approach works, but it's weakly typed and requires
 the caller to know the key names by convention.
 
-*** TODO Magic numbers not centralized
+*** DONE Magic numbers not centralized
 
 Baud rate (9600) is hardcoded in ~daemon.py~:
 
@@ -171,8 +171,6 @@ bus = Bus(cfg["port"], 9600)
 But ~BUS_TIMEOUT_MS~ is centralized in ~config.py~. Both are bus
 parameters; they should live together. Either add ~baudrate~ to the
 config file, or add ~BUS_BAUDRATE = 9600~ to ~config.py~.
-
-Note: Agreed, everything in the config file.
 
 *** WAITING Global shutdown flag
 

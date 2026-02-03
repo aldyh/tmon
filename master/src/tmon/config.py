@@ -24,7 +24,7 @@ BUS_TIMEOUT_MS = 200
 def load_config(path: str) -> dict:
     """Read a TOML config file and validate required keys.
 
-    Required keys: ``port`` (str), ``slaves`` (list[int]),
+    Required keys: ``port`` (str), ``baudrate`` (int), ``slaves`` (list[int]),
     ``db`` (str), ``interval`` (int).
 
     Raises:
@@ -39,6 +39,7 @@ def load_config(path: str) -> dict:
         raw = tomllib.load(f)
 
     _require_str(raw, "port")
+    _require_int(raw, "baudrate")
     _require_str(raw, "db")
     _require_int(raw, "interval")
 
@@ -54,6 +55,7 @@ def load_config(path: str) -> dict:
 
     return {
         "port": raw["port"],
+        "baudrate": raw["baudrate"],
         "slaves": raw["slaves"],
         "db": raw["db"],
         "interval": raw["interval"],

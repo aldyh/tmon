@@ -152,6 +152,7 @@ class TestIntegration:
 
         with open(config_path, "w") as f:
             f.write('port = "%s"\n' % pty_pair)
+            f.write("baudrate = 9600\n")
             f.write("slaves = [%d]\n" % SIM_ADDR)
             f.write('db = "%s"\n' % db_path)
             f.write("interval = 1\n")
