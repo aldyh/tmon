@@ -14,13 +14,6 @@ make demo-server            # generate data + start server
 
 Then open http://localhost:5000 in your browser.
 
-To run the steps separately:
-
-#+begin_example
-make demo-setup             # create venv + install deps
-make demo-generate          # populate panel/tmon_mock.db (~3M rows)
-#+end_example
-
 ** Running tests
 
 #+begin_example

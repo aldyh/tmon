@@ -146,7 +146,7 @@ One-liner docstrings (or none) suffice for these.
 Replaced verbose Args/Returns sections with one-liner docstrings and type
 hints in signatures. FakeBus, CountingBus, MultiBus, _write_toml all trimmed.
 make_reply (formerly _make_reply) was moved to conftest and trimmed there.
-* TODO Trim obvious-command documentation in org files
+* DONE Trim obvious-command documentation in org files
 Several docs explain what competent readers can see from the Makefile:
 - ~README.org~ lines 47-63: spells out what ~make build-master~, ~make
   build-slave~, ~make check-master~, ~make check-slave~ do.  The top-level
@@ -158,6 +158,11 @@ Several docs explain what competent readers can see from the Makefile:
   and let the reader look at the Makefile for details.
 Keep documentation that is non-obvious, like the API reference table in
 ~panel/README.org~ -- that's valuable.
+
+** Notes
+Removed per-target breakdown from README.org (build-master, build-slave,
+check-master, check-slave). Removed demo-setup/demo-generate breakdown
+from panel/README.org. Kept API reference table.
 * DONE Retire docs/panel.org or move to an archive
 ~docs/panel.org~ was an exploratory design document comparing three
 visualization options.  The decision was made (Option B) and is fully

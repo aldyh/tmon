@@ -42,24 +42,10 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
 make                  # create master venv + deps, build slave firmware
 #+end_example
 
-Individual targets:
-
-#+begin_example
-make build-master     # Python venv + pip install -e ".[test]"
-make build-slave      # PlatformIO firmware compile
-#+end_example
-
 *** Test
 
 #+begin_example
 make check            # run all tests (no hardware needed)
-#+end_example
-
-Individual targets:
-
-#+begin_example
-make check-master     # Python unit tests only
-make check-slave      # C/Unity protocol tests only
 #+end_example
 
 ** Documentation
