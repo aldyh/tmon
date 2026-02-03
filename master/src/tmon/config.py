@@ -4,10 +4,6 @@ Central place for tuneable parameters shared across modules.
 Import individual names where needed.
 
 Example:
-    >>> from tmon.config import BUS_TIMEOUT_MS
-    >>> print(BUS_TIMEOUT_MS)
-    200
-
     >>> from tmon.config import load_config
     >>> cfg = load_config("config.toml")
     >>> cfg["port"]
@@ -17,15 +13,11 @@ Example:
 import tomllib
 
 
-# Serial bus receive timeout in milliseconds.
-BUS_TIMEOUT_MS = 200
-
-
 def load_config(path: str) -> dict:
     """Read a TOML config file and validate required keys.
 
     Required keys: ``port`` (str), ``baudrate`` (int), ``slaves`` (list[int]),
-    ``db`` (str), ``interval`` (int).
+    ``db`` (str), ``interval`` (int), ``timeout`` (int, milliseconds).
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
@@ -42,6 +34,7 @@ def load_config(path: str) -> dict:
     _require_int(raw, "baudrate")
     _require_str(raw, "db")
     _require_int(raw, "interval")
+    _require_int(raw, "timeout")
 
     if "slaves" not in raw:
         raise ValueError("missing required key: slaves")
@@ -59,6 +52,7 @@ def load_config(path: str) -> dict:
         "slaves": raw["slaves"],
         "db": raw["db"],
         "interval": raw["interval"],
+        "timeout": raw["timeout"],
     }
 
 

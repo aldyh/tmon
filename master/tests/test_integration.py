@@ -91,7 +91,7 @@ class TestIntegration:
 
     def test_poll_single_slave(self, pty_pair):
         """Poller.poll_all polls the simulator and gets a reading."""
-        bus = Bus(pty_pair, 9600)
+        bus = Bus(pty_pair, 9600, timeout_ms=200)
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [SIM_ADDR])
 
@@ -114,7 +114,7 @@ class TestIntegration:
 
     def test_multiple_polls(self, pty_pair):
         """Multiple poll_all calls accumulate readings in storage."""
-        bus = Bus(pty_pair, 9600)
+        bus = Bus(pty_pair, 9600, timeout_ms=200)
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [SIM_ADDR])
 
@@ -130,7 +130,7 @@ class TestIntegration:
 
     def test_temp_values_in_range(self, pty_pair):
         """Simulator produces temperatures in the 50-900 range."""
-        bus = Bus(pty_pair, 9600)
+        bus = Bus(pty_pair, 9600, timeout_ms=200)
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [SIM_ADDR])
 
@@ -154,6 +154,7 @@ class TestIntegration:
             f.write("slaves = [%d]\n" % SIM_ADDR)
             f.write('db = "%s"\n' % db_path)
             f.write("interval = 1\n")
+            f.write("timeout = 200\n")
 
         proc = subprocess.Popen(
             [sys.executable, "-m", "tmon.daemon", config_path, "-v"],

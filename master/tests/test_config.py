@@ -4,13 +4,7 @@ import os
 
 import pytest
 
-from tmon.config import BUS_TIMEOUT_MS, load_config
-
-
-def test_bus_timeout_ms_is_positive_int():
-    """BUS_TIMEOUT_MS is a positive integer."""
-    assert isinstance(BUS_TIMEOUT_MS, int)
-    assert BUS_TIMEOUT_MS > 0
+from tmon.config import load_config
 
 
 def _write_toml(tmp_path: str, text: str) -> str:
@@ -32,6 +26,7 @@ class TestLoadConfig:
             'slaves = [1, 2, 3]\n'
             'db = "data/readings.db"\n'
             'interval = 30\n'
+            'timeout = 200\n'
         ))
         cfg = load_config(path)
         assert cfg["port"] == "/dev/ttyUSB0"
@@ -39,6 +34,7 @@ class TestLoadConfig:
         assert cfg["slaves"] == [1, 2, 3]
         assert cfg["db"] == "data/readings.db"
         assert cfg["interval"] == 30
+        assert cfg["timeout"] == 200
 
     def test_missing_port(self, tmp_path):
         """Missing 'port' key raises ValueError."""
@@ -47,6 +43,7 @@ class TestLoadConfig:
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="port"):
             load_config(path)
@@ -58,6 +55,7 @@ class TestLoadConfig:
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="baudrate"):
             load_config(path)
@@ -69,6 +67,7 @@ class TestLoadConfig:
             'baudrate = 9600\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="slaves"):
             load_config(path)
@@ -80,6 +79,7 @@ class TestLoadConfig:
             'baudrate = 9600\n'
             'slaves = [1]\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="db"):
             load_config(path)
@@ -91,8 +91,21 @@ class TestLoadConfig:
             'baudrate = 9600\n'
             'slaves = [1]\n'
             'db = "test.db"\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="interval"):
+            load_config(path)
+
+    def test_missing_timeout(self, tmp_path):
+        """Missing 'timeout' key raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+        ))
+        with pytest.raises(ValueError, match="timeout"):
             load_config(path)
 
     def test_port_wrong_type(self, tmp_path):
@@ -103,6 +116,7 @@ class TestLoadConfig:
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="port"):
             load_config(path)
@@ -115,6 +129,7 @@ class TestLoadConfig:
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="baudrate"):
             load_config(path)
@@ -127,6 +142,7 @@ class TestLoadConfig:
             'slaves = "not a list"\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="slaves"):
             load_config(path)
@@ -139,6 +155,7 @@ class TestLoadConfig:
             'slaves = [1, "two"]\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="slaves"):
             load_config(path)
@@ -151,6 +168,7 @@ class TestLoadConfig:
             'slaves = []\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="slaves"):
             load_config(path)
@@ -163,6 +181,7 @@ class TestLoadConfig:
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = "fast"\n'
+            'timeout = 200\n'
         ))
         with pytest.raises(ValueError, match="interval"):
             load_config(path)
@@ -175,6 +194,7 @@ class TestLoadConfig:
             'slaves = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
+            'timeout = 200\n'
             'extra = "ignored"\n'
         ))
         cfg = load_config(path)

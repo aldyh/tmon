@@ -1,12 +1,10 @@
 """Tests for tmon.bus."""
 
+import struct
 from unittest.mock import MagicMock, patch
 
 from tmon.bus import Bus
-from tmon.config import BUS_TIMEOUT_MS
 from tmon.protocol import encode_request, PROTO_CMD_POLL, PROTO_CMD_REPLY
-
-import struct
 
 
 class TestBusSend:
@@ -17,7 +15,7 @@ class TestBusSend:
         """send() writes data to the serial port."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         data = b"\x01\x03\x01\x00\x80\x50"
         bus.send(data)
         mock_ser.write.assert_called_once_with(data)
@@ -27,7 +25,7 @@ class TestBusSend:
         """send() flushes input buffer before write, output after."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         bus.send(b"\x01")
         calls = [c[0] for c in mock_ser.method_calls]
         assert "reset_input_buffer" in calls
@@ -55,7 +53,7 @@ class TestBusReceive:
         # Simulate: first read returns header, second returns rest
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         result = bus.receive()
         assert result == frame
 
@@ -66,7 +64,7 @@ class TestBusReceive:
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"")
 
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         result = bus.receive()
         assert result == b""
 
@@ -77,7 +75,7 @@ class TestBusReceive:
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"\x01\x03")
 
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         result = bus.receive()
         assert result == b""
 
@@ -90,20 +88,20 @@ class TestBusReceive:
         header = b"\x01\x03\x02\x09"
         mock_ser.read = MagicMock(side_effect=[header, b"\x03\xEB\x00"])
 
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         result = bus.receive()
         assert result == b""
 
     @patch("tmon.bus.serial.Serial")
-    def test_receive_sets_timeout_from_config(self, mock_serial_cls):
-        """receive() sets serial timeout from BUS_TIMEOUT_MS config."""
+    def test_receive_sets_timeout_from_constructor(self, mock_serial_cls):
+        """receive() sets serial timeout from constructor parameter."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"")
 
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=250)
         bus.receive()
-        assert mock_ser.timeout == BUS_TIMEOUT_MS / 1000.0
+        assert mock_ser.timeout == 250 / 1000.0
 
     @patch("tmon.bus.serial.Serial")
     def test_receive_poll_frame(self, mock_serial_cls):
@@ -114,6 +112,6 @@ class TestBusReceive:
         frame = encode_request(3, PROTO_CMD_POLL, b"")
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
-        bus = Bus("/dev/ttyUSB0", 9600)
+        bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
         result = bus.receive()
         assert result == frame

@@ -87,11 +87,12 @@ def main() -> None:
 
     cfg = load_config(args.config)
     log.info(
-        "starting: port=%s baudrate=%d slaves=%s db=%s interval=%ds",
+        "starting: port=%s baudrate=%d slaves=%s db=%s interval=%ds timeout=%dms",
         cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"], cfg["interval"],
+        cfg["timeout"],
     )
 
-    bus = Bus(cfg["port"], cfg["baudrate"])
+    bus = Bus(cfg["port"], cfg["baudrate"], timeout_ms=cfg["timeout"])
     storage = Storage(cfg["db"])
 
     signal.signal(signal.SIGINT, _on_signal)

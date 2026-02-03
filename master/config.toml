@@ -9,3 +9,5 @@ slaves = [1, 2, 3]
 db = "data/readings.db"
 # Polling interval in seconds.
 interval = 30
+# Bus receive timeout in milliseconds.  200ms is reasonable for 9600 baud.
+timeout = 200
