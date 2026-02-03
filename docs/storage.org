@@ -8,6 +8,10 @@ master poller.
 - *Engine:* SQLite 3
 - *Write pattern:* one INSERT per successful poll reply.
 - *No deletes or updates* during normal operation.
+- *Failed polls:* no row is inserted. Timeouts, CRC errors, and other
+  failures result in timestamp gaps rather than placeholder rows. This
+  is intentional -- gaps keep the data clean and are easy to detect by
+  checking timestamp intervals.
 
 ** Schema
 
