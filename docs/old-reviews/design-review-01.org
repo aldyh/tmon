@@ -1,0 +1,340 @@
+#+STARTUP: showall
+
+* Design review: tmon project
+
+This document is a critical engineering and design review of the tmon
+codebase, written with "fresh eyes" after the core implementation was
+complete.
+
+** Original request
+
+#+begin_quote
+i want you to look at this project with fresh eyes (everything but
+the internal structure of panel/, as that's just a demo). give me
+honest feedback on the overall feel, what works, what doesn't, what to
+continue doing in future projects, what to avoid in future work. be
+very critical as designer. i want feedback from a design and
+engineering stand point. write your analysis in docs/, in a branch.
+
+oh, include the prompt above in the document, so i know what i asked
+you for you to do the design.
+#+end_quote
+
+** Executive summary
+
+This is a well-executed small-scope project. The architecture is clean,
+the code is readable, and the testing strategy is sound. The main
+criticisms are around minor API inconsistencies and a few places where
+abstractions leak across layers. Nothing here is broken; this is about
+refinement.
+
+Overall grade: *B+*. Solid engineering with room for polish.
+
+** What works well
+
+*** Layered architecture
+
+The ~protocol -> bus -> poller -> daemon~ layering is textbook correct.
+Each module has a single responsibility and a minimal public API:
+
+- ~protocol.py~: encode, decode, CRC
+- ~bus.py~: send, receive
+- ~poller.py~: poll, poll_all
+- ~daemon.py~: run, main
+
+This makes the code easy to understand, test, and modify. A developer
+can read ~poller.py~ without understanding CRC internals.
+
+*** Testing without hardware
+
+The testing strategy is the project's strongest design decision. The
+~FakeBus~ pattern and the ~socat~ + simulator approach mean the entire
+master codebase can be validated on any x86 Linux machine. This is
+exactly right for embedded systems development: separate protocol
+correctness from hardware bring-up.
+
+The Unity tests for the C firmware running on x86 (not ESP32) follow
+the same principle. You can refactor the protocol layer with high
+confidence.
+
+*** Documentation by example
+
+The docstrings use executable examples throughout:
+
+#+begin_example python
+>>> crc16_modbus(bytes([0x03, 0x01, 0x00]))
+0x5080
+#+end_example
+
+This serves as both documentation and informal test. It's much more
+useful than prose descriptions of what a function does.
+
+*** Protocol design
+
+The custom binary protocol was the right call. It's purpose-built:
+- Fixed payload size (8 bytes) makes parsing trivial
+- CRC-16/MODBUS is well-documented and testable
+- Single command type (POLL/REPLY) matches the use case exactly
+
+A tempting alternative would have been to use MODBUS directly, but
+that would have dragged in complexity (function codes, register maps,
+exception responses) that this system doesn't need.
+
+*** Discipline on scope
+
+The project stayed small. There's no:
+- Configuration GUI
+- Multi-database support
+- Plugin system
+- Abstract factory pattern
+
+This restraint is rare and valuable. The codebase does one thing.
+
+*** The TODO.org workflow
+
+The TODO.org file with its "Notes" subsections on completed items
+creates a project diary. When you come back in six months, you can
+see why decisions were made.
+
+** What doesn't work
+
+*** DONE Semantic mismatch between layers
+
+~parse_reply()~ returns temperatures as floats (degrees Celsius):
+
+#+begin_example python
+>>> parse_reply(payload)
+{"temperatures": [23.5, 19.8, None, None]}
+#+end_example
+
+But ~storage.insert()~ expects raw int16 values (tenths of degrees):
+
+#+begin_example python
+>>> storage.insert(addr, [235, 198, None, None])
+#+end_example
+
+So ~poller.poll()~ has to do this awkward conversion:
+
+#+begin_src python
+parsed = parse_reply(payload)
+temps = []
+for t in parsed["temperatures"]:
+    temps.append(int(t * 10) if t is not None else None)
+#+end_src
+
+This round-trips through floating point unnecessarily and obscures
+intent. Either:
+1. ~parse_reply~ should return raw int16 values, or
+2. ~Storage~ should accept floats
+
+I'd pick option 1: keep temperatures as integers throughout the data
+path and only convert to human-readable at display time. Integers
+don't have precision loss.
+
+*** DONE Dict returns where simpler types would suffice
+
+~parse_reply()~ returns:
+
+#+begin_src python
+{"temperatures": [23.5, 19.8, None, None]}
+#+end_src
+
+This is a dict with exactly one key. Just return the list:
+
+#+begin_src python
+[23.5, 19.8, None, None]
+#+end_src
+
+Similarly, ~decode_frame()~ returns a dict with three keys. A
+~namedtuple~ or ~dataclass~ would be clearer and provide attribute
+access without the string-key ceremony:
+
+#+begin_src python
+@dataclass
+class Frame:
+    addr: int
+    cmd: int
+    payload: bytes
+#+end_src
+
+The current dict approach works, but it's weakly typed and requires
+the caller to know the key names by convention.
+
+*** DONE Magic numbers not centralized
+
+Baud rate (9600) is hardcoded in ~daemon.py~:
+
+#+begin_src python
+bus = Bus(cfg["port"], 9600)
+#+end_src
+
+But ~BUS_TIMEOUT_MS~ is centralized in ~config.py~. Both are bus
+parameters; they should live together. Either add ~baudrate~ to the
+config file, or add ~BUS_BAUDRATE = 9600~ to ~config.py~.
+
+*** WAITING Global shutdown flag
+
+- State "WAITING"    from              [2026-02-03 Tue 13:32] \\
+  Don't fix.  I like it the way it is.
+The ~_shutdown~ module-level flag in ~daemon.py~ is the classic
+Unix approach, but it makes the module carry global state:
+
+#+begin_src python
+_shutdown = False
+
+def _on_signal(signum, frame):
+    global _shutdown
+    _shutdown = True
+#+end_src
+
+This works but requires ~test_daemon.py~ to reset the flag between
+tests. An alternative is to pass a threading.Event or a callable
+predicate to ~run()~. Not critical, but worth noting.
+
+*** DONE Schema lives in three places
+
+The ~readings~ table schema appears in:
+- ~master/src/tmon/storage.py~
+- ~panel/generate_data.py~
+- ~panel/tests/conftest.py~
+
+The "panel is isolated from master" rule is reasonable, but this
+creates drift risk. The comments referencing ~docs/storage.org~ help,
+but if someone changes the schema, they have to remember to update
+three files.
+
+Consider generating the schema from a single source (could be the
+.org file itself, parsed at build time).
+
+*** DONE Address validation is scattered
+
+Address bounds checking (1-247) happens in:
+- ~encode_request()~
+- ~decode_frame()~
+
+And implicitly in the C equivalents. A single ~is_valid_address()~
+function would make the invariant explicit and searchable.
+
+*** WAITING Config validation is verbose
+
+- State "WAITING"    from              [2026-02-03 Tue 13:37] \\
+  Leave as is.  I like it.
+~config.py~ has ~_require_str~ and ~_require_int~ helpers, then
+special-cases ~slaves~ validation inline. This is functional but
+ad-hoc. For a larger project, a schema-validation library (or a
+simple declarative approach) would reduce boilerplate:
+
+#+begin_src python
+SCHEMA = {
+    "port": str,
+    "db": str,
+    "interval": int,
+    "slaves": list[int],  # non-empty
+}
+#+end_src
+
+For this project size, the current approach is fine. Just noting
+the pattern doesn't scale.
+
+** Continue doing in future projects
+
+*** Test fakes over mocks
+
+~FakeBus~ is better than ~unittest.mock.Mock()~. It has explicit
+behavior and can be inspected. The tests read clearly:
+
+#+begin_src python
+bus = FakeBus([make_reply(1, 200, 200, None, None)])
+poller = Poller(bus, storage, [1])
+result = poller.poll(1)
+assert result["temp_0"] == 200
+#+end_src
+
+Prefer hand-written fakes for core interfaces.
+
+*** Simulator for integration
+
+The ~socat~ + ~simulator.py~ pattern is powerful. You can test the
+real daemon binary against a virtual bus. This catches issues that
+unit tests miss (signal handling, timing, resource cleanup).
+
+Apply this pattern to any project with hardware dependencies.
+
+*** Executable examples in docstrings
+
+The ~>>>~ examples serve as documentation and regression tests
+(via doctest, though this project uses pytest). They're more
+trustworthy than prose because they actually run.
+
+*** Org-mode for living documents
+
+~PLAN.org~ and ~TODO.org~ track the project's evolution. The
+"Notes" sections on completed items preserve rationale. This is
+much more useful than a flat task list.
+
+*** Minimal dependencies
+
+The master daemon needs only ~pyserial~ beyond stdlib. This makes
+deployment trivial and reduces supply-chain risk.
+
+*** The "no default arguments" rule
+
+Forcing explicit parameters at call sites makes code easier to
+read and grep. You always see what's being passed:
+
+#+begin_src python
+Poller(bus, storage, [1, 2, 3])  # not Poller(bus)
+#+end_src
+
+*** Small, focused commits
+
+The git history shows incremental progress. Each branch does one
+thing. This makes review and bisection practical.
+
+** Avoid in future work
+
+*** Returning dicts where structured types would be clearer
+
+Dicts are convenient but provide no type safety. Use ~dataclass~,
+~namedtuple~, or ~TypedDict~ when the shape is known and stable.
+
+*** Converting between representations more than necessary
+
+If the storage layer wants int16, and the protocol layer produces
+int16, don't convert to float in between. Keep the same representation
+until you need to display it.
+
+*** Hardcoding values that belong with related constants
+
+If ~BUS_TIMEOUT_MS~ is a constant, ~BUS_BAUDRATE~ should be too. Group
+related configuration together.
+
+*** Duplicating schema across isolated components
+
+If isolation is important, generate the duplicates from a single
+source. Manual synchronization will eventually drift.
+
+*** Over-documenting obvious code
+
+The earlier project phases had verbose Args/Returns sections on
+one-line methods. The cleanup (branch 012) fixed this. Keep that
+discipline: type hints in signatures, one-line docstrings, detailed
+docs only where non-obvious.
+
+** Minor observations
+
+- The C code follows GNU style consistently. Good.
+- The Makefile is clean and self-documenting via target names.
+- WAL mode on SQLite is the right default for a read-heavy workload.
+- The 200ms timeout is reasonable for RS-485 at 9600 baud.
+- The panel demo is nicely self-contained.
+
+** Conclusion
+
+This is a competent, maintainable project. The core design decisions
+(layering, test strategy, protocol simplicity) are sound. The
+criticisms above are refinements, not fundamental issues.
+
+The project demonstrates that small, focused systems are achievable
+and maintainable. The discipline to *not* add features is itself a
+skill worth preserving.
