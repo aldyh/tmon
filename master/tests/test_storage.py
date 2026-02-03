@@ -21,9 +21,10 @@ class TestStorage:
         store.close()
 
     def test_insert_and_fetch(self):
-        """insert + fetch round-trips data."""
+        """insert + commit + fetch round-trips data."""
         store = Storage(":memory:")
         store.insert(1, [235, 198, None, None])
+        store.commit()
         rows = store.fetch(10)
         assert len(rows) == 1
         row = rows[0]
@@ -38,6 +39,7 @@ class TestStorage:
         """All four temps can be None."""
         store = Storage(":memory:")
         store.insert(5, [None, None, None, None])
+        store.commit()
         rows = store.fetch(1)
         assert rows[0]["temp_0"] is None
         assert rows[0]["temp_1"] is None
@@ -49,6 +51,7 @@ class TestStorage:
         """All four temps can be non-None."""
         store = Storage(":memory:")
         store.insert(2, [100, 200, 300, 400])
+        store.commit()
         rows = store.fetch(1)
         row = rows[0]
         assert row["temp_0"] == 100
@@ -63,6 +66,7 @@ class TestStorage:
         store.insert(1, [100, None, None, None])
         store.insert(1, [200, None, None, None])
         store.insert(1, [300, None, None, None])
+        store.commit()
         rows = store.fetch(10)
         assert [r["temp_0"] for r in rows] == [300, 200, 100]
         store.close()
@@ -72,6 +76,7 @@ class TestStorage:
         store = Storage(":memory:")
         for i in range(5):
             store.insert(1, [i * 10, None, None, None])
+        store.commit()
         rows = store.fetch(2)
         assert len(rows) == 2
         store.close()
@@ -80,6 +85,7 @@ class TestStorage:
         """Timestamp is a Unix epoch integer."""
         store = Storage(":memory:")
         store.insert(1, [100, None, None, None])
+        store.commit()
         rows = store.fetch(1)
         ts = rows[0]["ts"]
         assert isinstance(ts, int)
@@ -90,6 +96,7 @@ class TestStorage:
         """Negative temperatures are stored correctly."""
         store = Storage(":memory:")
         store.insert(1, [-100, None, None, None])
+        store.commit()
         rows = store.fetch(1)
         assert rows[0]["temp_0"] == -100
         store.close()
@@ -99,6 +106,7 @@ class TestStorage:
         store = Storage(":memory:")
         store.insert(1, [100, None, None, None])
         store.insert(2, [200, None, None, None])
+        store.commit()
         rows = store.fetch(10)
         addrs = {r["addr"] for r in rows}
         assert addrs == {1, 2}

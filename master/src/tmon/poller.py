@@ -146,4 +146,5 @@ class Poller:
                     ],
                 )
                 results.append(reading)
+        self._storage.commit()
         return results

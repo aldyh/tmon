@@ -229,7 +229,7 @@ Options:
 
 For a home project, option 1 is fine.  The schema is 12 lines and rarely
 changes; keeping it inline avoids deployment edge cases.
-* TODO Batch commits in poll_all
+* DONE Batch commits in poll_all
 
 Each ~Storage.insert()~ call commits immediately.  For a poll cycle with
 4 slaves, this means 4 separate transactions.  Batching into one commit
@@ -243,6 +243,11 @@ self._storage.commit()
 This requires exposing ~commit()~ on Storage and removing the per-insert
 commit.  Not critical at this scale, but it's a 3-line change that makes
 the write pattern cleaner.
+
+** Notes
+Removed per-insert commit from Storage.insert(), added Storage.commit()
+method, and poll_all() now calls commit() once after all inserts.
+Updated storage tests to call commit() before fetch().
 * DONE Duplicated CREATE TABLE SQL
 The ~readings~ table schema appears in three places:
 - ~master/src/tmon/storage.py~

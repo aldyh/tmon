@@ -67,12 +67,15 @@ class Storage:
     def insert(self, addr: int, temps: list[int | None]) -> None:
         """Insert one reading row: *addr* + 4-element *temps* list.
 
+        Does not commit; call ``commit()`` after a batch of inserts.
+
         Raises:
             ValueError: If *temps* does not contain exactly 4 elements.
 
         Example:
             >>> store = Storage(":memory:")
             >>> store.insert(1, [235, 198, None, None])
+            >>> store.commit()
         """
         if len(temps) != _NUM_CHANNELS:
             raise ValueError(
@@ -81,7 +84,6 @@ class Storage:
             )
         ts = int(time.time())
         self._conn.execute(_INSERT, (ts, addr) + tuple(temps))
-        self._conn.commit()
 
     def fetch(self, count: int) -> list[dict]:
         """Return the newest *count* readings, newest first.
@@ -89,12 +91,17 @@ class Storage:
         Example:
             >>> store = Storage(":memory:")
             >>> store.insert(1, [200, None, None, None])
+            >>> store.commit()
             >>> rows = store.fetch(10)
             >>> len(rows)
             1
         """
         cursor = self._conn.execute(_FETCH_RECENT, (count,))
         return [dict(row) for row in cursor.fetchall()]
+
+    def commit(self) -> None:
+        """Commit the current transaction."""
+        self._conn.commit()
 
     def close(self) -> None:
         """Close the database connection."""
