@@ -7,11 +7,12 @@ Example:
     >>> from tmon.poller import Poller
     >>> poller = Poller(bus, storage, [1, 2])
     >>> readings = poller.poll_all()
-    >>> readings[0]["addr"]
+    >>> readings[0].addr
     1
 """
 
 import logging
+from dataclasses import dataclass
 
 from tmon.protocol import (
     encode_request,
@@ -23,6 +24,20 @@ from tmon.protocol import (
 )
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class Reading:
+    """A single temperature reading from a slave device.
+
+    Temperatures are in tenths of a degree C, or None if invalid.
+    """
+
+    addr: int
+    temp_0: int | None
+    temp_1: int | None
+    temp_2: int | None
+    temp_3: int | None
 
 
 class Poller:
@@ -50,15 +65,15 @@ class Poller:
         self._storage = storage
         self._slaves = list(slaves)
 
-    def poll(self, addr: int) -> dict | None:
-        """Poll a single slave and return a reading dict or None.
+    def poll(self, addr: int) -> Reading | None:
+        """Poll a single slave and return a Reading or None.
 
         Sends a POLL frame, validates the REPLY, and unpacks raw int16
         temperatures.  Returns None on timeout or protocol error.
 
         Example:
             >>> reading = poller.poll(3)
-            >>> reading["temp_0"]
+            >>> reading.temp_0
             235
         """
         frame = encode_request(addr, PROTO_CMD_POLL, b"")
@@ -97,20 +112,19 @@ class Poller:
 
         temps = parse_reply(payload)
 
-        return {
-            "addr": addr,
-            "temp_0": temps[0],
-            "temp_1": temps[1],
-            "temp_2": temps[2],
-            "temp_3": temps[3],
-        }
+        return Reading(
+            addr=addr,
+            temp_0=temps[0],
+            temp_1=temps[1],
+            temp_2=temps[2],
+            temp_3=temps[3],
+        )
 
-    def poll_all(self) -> list[dict]:
+    def poll_all(self) -> list[Reading]:
         """Poll all slaves and store successful readings.
 
         Returns:
-            list[dict]: Readings collected this cycle (``addr``,
-                ``temp_0`` .. ``temp_3``).
+            list[Reading]: Readings collected this cycle.
 
         Example:
             >>> results = poller.poll_all()
@@ -122,12 +136,12 @@ class Poller:
             reading = self.poll(addr)
             if reading is not None:
                 self._storage.insert(
-                    reading["addr"],
+                    reading.addr,
                     [
-                        reading["temp_0"],
-                        reading["temp_1"],
-                        reading["temp_2"],
-                        reading["temp_3"],
+                        reading.temp_0,
+                        reading.temp_1,
+                        reading.temp_2,
+                        reading.temp_3,
                     ],
                 )
                 results.append(reading)

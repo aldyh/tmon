@@ -99,10 +99,9 @@ class TestIntegration:
 
         assert len(results) == 1
         r = results[0]
-        assert r["addr"] == SIM_ADDR
+        assert r.addr == SIM_ADDR
         # All four channels should be present (valid int16 or None)
-        for key in ("temp_0", "temp_1", "temp_2", "temp_3"):
-            val = r[key]
+        for val in (r.temp_0, r.temp_1, r.temp_2, r.temp_3):
             if val is not None:
                 assert 50 <= val <= 900
 
@@ -137,8 +136,7 @@ class TestIntegration:
 
         results = poller.poll_all()
         r = results[0]
-        for key in ("temp_0", "temp_1", "temp_2", "temp_3"):
-            val = r[key]
+        for val in (r.temp_0, r.temp_1, r.temp_2, r.temp_3):
             if val is not None:
                 assert 50 <= val <= 900
 

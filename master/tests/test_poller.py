@@ -1,7 +1,7 @@
 """Tests for tmon.poller."""
 
 from conftest import FakeBus, make_reply
-from tmon.poller import Poller
+from tmon.poller import Poller, Reading
 from tmon.storage import Storage
 from tmon.protocol import PROTO_TEMP_INVALID
 
@@ -10,7 +10,7 @@ class TestPollSlave:
     """Tests for Poller.poll."""
 
     def test_success(self):
-        """Successful poll returns a reading dict with raw int16 temps."""
+        """Successful poll returns a Reading with raw int16 temps."""
         reply = make_reply(3, 235, 198, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
@@ -20,11 +20,12 @@ class TestPollSlave:
         reading = poller.poll(3)
 
         assert reading is not None
-        assert reading["addr"] == 3
-        assert reading["temp_0"] == 235
-        assert reading["temp_1"] == 198
-        assert reading["temp_2"] is None
-        assert reading["temp_3"] is None
+        assert isinstance(reading, Reading)
+        assert reading.addr == 3
+        assert reading.temp_0 == 235
+        assert reading.temp_1 == 198
+        assert reading.temp_2 is None
+        assert reading.temp_3 is None
         storage.close()
 
     def test_timeout(self):
@@ -71,10 +72,10 @@ class TestPollSlave:
         poller = Poller(bus, storage, [1])
 
         reading = poller.poll(1)
-        assert reading["temp_0"] == 100
-        assert reading["temp_1"] == 200
-        assert reading["temp_2"] == 300
-        assert reading["temp_3"] == 400
+        assert reading.temp_0 == 100
+        assert reading.temp_1 == 200
+        assert reading.temp_2 == 300
+        assert reading.temp_3 == 400
         storage.close()
 
     def test_negative_temps(self):
@@ -86,7 +87,7 @@ class TestPollSlave:
         poller = Poller(bus, storage, [1])
 
         reading = poller.poll(1)
-        assert reading["temp_0"] == -100
+        assert reading.temp_0 == -100
         storage.close()
 
     def test_sends_poll_frame(self):
@@ -125,8 +126,8 @@ class TestRunOnce:
         results = poller.poll_all()
 
         assert len(results) == 2
-        assert results[0]["addr"] == 1
-        assert results[1]["addr"] == 2
+        assert results[0].addr == 1
+        assert results[1].addr == 2
 
         # Verify storage got both readings
         rows = storage.fetch(10)
@@ -145,7 +146,7 @@ class TestRunOnce:
         results = poller.poll_all()
 
         assert len(results) == 1
-        assert results[0]["addr"] == 1
+        assert results[0].addr == 1
 
         rows = storage.fetch(10)
         assert len(rows) == 1
