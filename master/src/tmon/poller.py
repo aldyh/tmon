@@ -75,19 +75,19 @@ class Poller:
             log.debug("bad frame from slave %d: %s", addr, exc)
             return None
 
-        if reply["addr"] != addr:
+        if reply.addr != addr:
             log.debug(
-                "addr mismatch: expected %d, got %d", addr, reply["addr"]
+                "addr mismatch: expected %d, got %d", addr, reply.addr
             )
             return None
 
-        if reply["cmd"] != PROTO_CMD_REPLY:
+        if reply.cmd != PROTO_CMD_REPLY:
             log.debug(
-                "unexpected cmd from slave %d: 0x%02X", addr, reply["cmd"]
+                "unexpected cmd from slave %d: 0x%02X", addr, reply.cmd
             )
             return None
 
-        payload = reply["payload"]
+        payload = reply.payload
         if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
             log.debug(
                 "bad payload length from slave %d: %d",
@@ -95,9 +95,9 @@ class Poller:
             )
             return None
 
-        parsed = parse_reply(payload)
+        temps_float = parse_reply(payload)
         temps = []
-        for t in parsed["temperatures"]:
+        for t in temps_float:
             temps.append(int(t * 10) if t is not None else None)
 
         return {

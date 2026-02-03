@@ -133,7 +133,7 @@ don't have precision loss.
 
 Note: Agreed, implement option 1
 
-*** TODO Dict returns where simpler types would suffice
+*** DONE Dict returns where simpler types would suffice
 
 ~parse_reply()~ returns:
 
@@ -146,8 +146,6 @@ This is a dict with exactly one key. Just return the list:
 #+begin_src python
 [23.5, 19.8, None, None]
 #+end_src
-
-Note: Agreed, return the list.
 
 Similarly, ~decode_frame()~ returns a dict with three keys. A
 ~namedtuple~ or ~dataclass~ would be clearer and provide attribute
@@ -163,8 +161,6 @@ class Frame:
 
 The current dict approach works, but it's weakly typed and requires
 the caller to know the key names by convention.
-
-Note: Agreed, dataclass.
 
 *** TODO Magic numbers not centralized
 

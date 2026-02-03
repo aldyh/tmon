@@ -5,6 +5,7 @@ import random
 import pytest
 
 from tmon.protocol import (
+    Frame,
     PROTO_ADDR_MAX,
     PROTO_ADDR_MIN,
     PROTO_CMD_POLL,
@@ -149,26 +150,26 @@ class TestDecodeFrame:
         """encode then decode should recover the original fields."""
         raw = encode_request(5, PROTO_CMD_POLL, b"")
         frame = decode_frame(raw)
-        assert frame["addr"] == 5
-        assert frame["cmd"] == PROTO_CMD_POLL
-        assert frame["payload"] == b""
+        assert frame.addr == 5
+        assert frame.cmd == PROTO_CMD_POLL
+        assert frame.payload == b""
 
     def test_roundtrip_reply(self):
         """Round-trip with a non-empty payload."""
         payload = bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
         raw = encode_request(10, PROTO_CMD_REPLY, payload)
         frame = decode_frame(raw)
-        assert frame["addr"] == 10
-        assert frame["cmd"] == PROTO_CMD_REPLY
-        assert frame["payload"] == payload
+        assert frame.addr == 10
+        assert frame.cmd == PROTO_CMD_REPLY
+        assert frame.payload == payload
 
     def test_example1_from_spec(self):
         """Decode the Example 1 frame from the protocol spec."""
         raw = bytes([0x01, 0x03, 0x01, 0x00, 0x80, 0x50])
         frame = decode_frame(raw)
-        assert frame["addr"] == 3
-        assert frame["cmd"] == PROTO_CMD_POLL
-        assert frame["payload"] == b""
+        assert frame.addr == 3
+        assert frame.cmd == PROTO_CMD_POLL
+        assert frame.payload == b""
 
     def test_example2_from_spec(self):
         """Decode the Example 2 frame from the protocol spec."""
@@ -178,9 +179,15 @@ class TestDecodeFrame:
             0x90, 0xEB,
         ])
         frame = decode_frame(raw)
-        assert frame["addr"] == 3
-        assert frame["cmd"] == PROTO_CMD_REPLY
-        assert len(frame["payload"]) == 8
+        assert frame.addr == 3
+        assert frame.cmd == PROTO_CMD_REPLY
+        assert len(frame.payload) == 8
+
+    def test_returns_frame_dataclass(self):
+        """decode_frame returns a Frame dataclass instance."""
+        raw = encode_request(1, PROTO_CMD_POLL, b"")
+        frame = decode_frame(raw)
+        assert isinstance(frame, Frame)
 
     def test_error_short_frame(self):
         """Frames shorter than 6 bytes should be rejected."""
@@ -240,34 +247,34 @@ class TestParseReply:
         payload = bytes([
             0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
-        result = parse_reply(payload)
-        assert result["temperatures"][0] == pytest.approx(23.5)
-        assert result["temperatures"][1] == pytest.approx(19.8)
-        assert result["temperatures"][2] is None
-        assert result["temperatures"][3] is None
+        temps = parse_reply(payload)
+        assert temps[0] == pytest.approx(23.5)
+        assert temps[1] == pytest.approx(19.8)
+        assert temps[2] is None
+        assert temps[3] is None
 
     def test_all_channels_invalid(self):
         """All temps INVALID means all temperatures are None."""
         payload = bytes([0xFF, 0x7F] * 4)
-        result = parse_reply(payload)
-        assert result["temperatures"] == [None, None, None, None]
+        temps = parse_reply(payload)
+        assert temps == [None, None, None, None]
 
     def test_all_channels_valid(self):
         """All 4 temperatures returned as floats."""
         import struct
         temps_raw = struct.pack("<hhhh", 100, -50, 0, 325)
-        result = parse_reply(temps_raw)
-        assert result["temperatures"][0] == pytest.approx(10.0)
-        assert result["temperatures"][1] == pytest.approx(-5.0)
-        assert result["temperatures"][2] == pytest.approx(0.0)
-        assert result["temperatures"][3] == pytest.approx(32.5)
+        temps = parse_reply(temps_raw)
+        assert temps[0] == pytest.approx(10.0)
+        assert temps[1] == pytest.approx(-5.0)
+        assert temps[2] == pytest.approx(0.0)
+        assert temps[3] == pytest.approx(32.5)
 
     def test_negative_temperature(self):
         """Negative temperature values are handled correctly."""
         import struct
         temps_raw = struct.pack("<hhhh", -100, 0, 0, 0)
-        result = parse_reply(temps_raw)
-        assert result["temperatures"][0] == pytest.approx(-10.0)
+        temps = parse_reply(temps_raw)
+        assert temps[0] == pytest.approx(-10.0)
 
     def test_bad_length_short(self):
         """Payload shorter than 8 bytes should be rejected."""

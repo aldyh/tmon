@@ -9,13 +9,14 @@ Example:
     >>> raw.hex(' ')
     '01 03 01 00 80 50'
     >>> frame = decode_frame(raw)
-    >>> frame['addr']
+    >>> frame.addr
     3
-    >>> frame['cmd']
+    >>> frame.cmd
     1
 """
 
 import struct
+from dataclasses import dataclass
 
 # -- Protocol constants ------------------------------------------------------
 
@@ -33,6 +34,15 @@ PROTO_ADDR_MAX = 247
 def is_valid_address(addr: int) -> bool:
     """Check whether *addr* is in the valid range (1-247)."""
     return PROTO_ADDR_MIN <= addr <= PROTO_ADDR_MAX
+
+
+@dataclass
+class Frame:
+    """Decoded protocol frame."""
+
+    addr: int
+    cmd: int
+    payload: bytes
 
 # -- CRC-16/MODBUS -----------------------------------------------------------
 
@@ -93,14 +103,10 @@ def encode_request(addr: int, cmd: int, payload: bytes) -> bytes:
 # -- Decoding ----------------------------------------------------------------
 
 
-def decode_frame(data: bytes) -> dict:
-    """Parse raw bytes into a protocol frame dict.
+def decode_frame(data: bytes) -> Frame:
+    """Parse raw bytes into a Frame.
 
     Validates the frame structure, length field, address range, and CRC.
-
-    Returns:
-        dict: Parsed frame with keys ``addr`` (int), ``cmd`` (int),
-            and ``payload`` (bytes).
 
     Raises:
         ValueError: On any validation failure (short frame, bad START byte,
@@ -108,7 +114,7 @@ def decode_frame(data: bytes) -> dict:
 
     Example:
         >>> frame = decode_frame(bytes.fromhex('01 03 01 00 80 50'))
-        >>> frame['addr'], frame['cmd'], frame['payload']
+        >>> (frame.addr, frame.cmd, frame.payload)
         (3, 1, b'')
     """
     if len(data) < 6:
@@ -154,10 +160,10 @@ def decode_frame(data: bytes) -> dict:
             )
         )
 
-    return {"addr": addr, "cmd": cmd, "payload": payload}
+    return Frame(addr, cmd, payload)
 
 
-def parse_reply(payload: bytes) -> dict:
+def parse_reply(payload: bytes) -> list[float | None]:
     """Parse the 8-byte REPLY payload into temperatures.
 
     The payload layout is four int16-LE temperature values in tenths
@@ -165,17 +171,13 @@ def parse_reply(payload: bytes) -> dict:
     returned as None.
 
     Returns:
-        dict: ``{"temperatures": [float|None, ...]}`` -- four values
-            in degrees Celsius.
+        list: Four values in degrees Celsius, or None for invalid.
 
     Raises:
         ValueError: If payload is not exactly 8 bytes.
 
     Example:
-        >>> result = parse_reply(
-        ...     bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
-        ... )
-        >>> result['temperatures']
+        >>> parse_reply(bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F]))
         [23.5, 19.8, None, None]
     """
     if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
@@ -193,4 +195,4 @@ def parse_reply(payload: bytes) -> dict:
         else:
             temperatures.append(None)
 
-    return {"temperatures": temperatures}
+    return temperatures

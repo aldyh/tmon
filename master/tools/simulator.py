@@ -61,10 +61,10 @@ def run(port: str) -> None:
             except ValueError:
                 continue
 
-            if frame["addr"] != ADDR:
+            if frame.addr != ADDR:
                 continue
 
-            if frame["cmd"] != PROTO_CMD_POLL:
+            if frame.cmd != PROTO_CMD_POLL:
                 continue
 
             temps = []
