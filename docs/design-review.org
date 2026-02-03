@@ -136,8 +136,9 @@ Storage()    # where's the data going?
 #+end_src
 
 ** What doesn't work (or could be better)
+*** TODO Return type inconsistency: dict vs dataclass
 
-*** Return type inconsistency: dict vs dataclass
+Note: Fix this.  Use dataclasses.
 
 ~decode_frame()~ returns a ~Frame~ dataclass:
 
@@ -168,7 +169,9 @@ adds cognitive load.
 If I were to pick: dicts for database rows (they *are* dynamic), but
 a ~Reading~ dataclass for ~poll()~ return values.
 
-*** Simulator hardcodes address
+*** TODO Simulator hardcodes address
+
+Note: Fix this.  Accept address as a command line arg, but if you can implement multiple addresses cheaply (very succinctly and it looks better, than do that).  Don't bloat the software, but make it elegant.
 
 ~simulator.py~ has:
 
@@ -219,7 +222,9 @@ tested, but the actual device bring-up is unfinished. This is fine
 for a "master first" development approach, but the project isn't
 deployable yet.
 
-*** Storage timestamps are strings
+*** TODO Storage timestamps are strings
+
+Note: Fix this.  Unix timestamps is ok.  Make sure export to CSV in panel/ still works correctly, cause the CSV consumer definitely doesn't want to see a unix timestamp.
 
 ~storage.py~ stores timestamps as ISO-8601 strings:
 
@@ -235,7 +240,9 @@ SQLite can store these, and they sort correctly, but:
 For a small-scale project this is fine. For a larger one, consider
 Unix timestamps (INTEGER) with conversion at the boundary.
 
-*** Bus timeout is a module-level constant
+*** TODO Bus timeout is a module-level constant
+
+Note: Fix this.  It should be in toml.
 
 ~BUS_TIMEOUT_MS = 200~ in ~config.py~ is not configurable via TOML.
 But ~baudrate~ (which arguably matters less) *is* in the config file.
