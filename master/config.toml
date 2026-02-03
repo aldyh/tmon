@@ -6,4 +6,5 @@
 port = "/dev/ttyUSB0"
 slaves = [1, 2, 3]
 db = "data/readings.db"
+# Polling interval in seconds.
 interval = 30
