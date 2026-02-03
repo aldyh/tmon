@@ -18,7 +18,6 @@ import math
 import os
 import random
 import sqlite3
-import sys
 
 # Schema: see docs/storage.org
 _CREATE_TABLE = """\

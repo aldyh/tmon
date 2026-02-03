@@ -120,8 +120,11 @@ identical ~_make_reply(addr, t0, t1, t2, t3)~ helpers.  Move to ~conftest.py~.
 ** Notes
 Moved helper to conftest.py as make_reply() (without underscore prefix since
 it's now shared). Updated imports in test_poller.py and test_daemon.py.
-* TODO Remove unused import sys in generate_data.py
+* DONE Remove unused import sys in generate_data.py
 ~panel/generate_data.py~ imports ~sys~ (line 20) but never uses it.
+
+** Notes
+Removed the unused import.
 * TODO Move datetime imports to module level
 ~panel/app.py~ imports ~from datetime import ...~ inside two route functions
 (lines 110, 179).  ~panel/build_demo.py~ does the same (lines 89, 128).
