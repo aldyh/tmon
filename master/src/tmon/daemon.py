@@ -21,7 +21,8 @@ from tmon.storage import Storage
 
 log = logging.getLogger(__name__)
 
-# Module-level flag; set by the signal handler.
+# Module-level shutdown flag set by signal handler.  This is the classic
+# Unix daemon pattern -- simple and correct for a single-threaded poll loop.
 _shutdown = False
 
 
