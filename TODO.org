@@ -141,7 +141,7 @@ Keep documentation that is non-obvious, like the API reference table in
 visualization options.  The decision was made (Option B) and is fully
 implemented.  The file is historical noise now.  Either delete it or move
 it to a ~docs/archive/~ directory so ~docs/~ only contains current specs.
-* TODO Duplicated CREATE TABLE SQL
+* DONE Duplicated CREATE TABLE SQL
 The ~readings~ table schema appears in three places:
 - ~master/src/tmon/storage.py~
 - ~panel/generate_data.py~
@@ -151,3 +151,11 @@ expected, but the generate_data.py copy could at least reference
 docs/storage.org so a reader knows the schema is defined there.  Consider
 adding a one-line comment in each copy pointing to the canonical schema in
 ~docs/storage.org~.
+
+** Notes
+- ~master/src/tmon/storage.py~ already referenced docs/storage.org in its
+  module docstring, so no change needed there.
+- Added ~# Schema: see docs/storage.org~ comment above _CREATE_TABLE in
+  ~panel/generate_data.py~ and ~panel/tests/conftest.py~.
+- Updated ~panel/generate_data.py~ docstring to reference docs/storage.org
+  instead of master/src/tmon/storage.py.
