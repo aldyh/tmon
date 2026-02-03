@@ -10,13 +10,14 @@ The simulator responds to any address (promiscuous mode), echoing
 the address from the incoming frame in the reply.
 
 Usage:
-    python simulator.py <port>
+    python simulator.py <port> <baudrate>
 
 Args:
     port: Serial port path (e.g. /tmp/tmon-slave).
+    baudrate: Baud rate (e.g. 9600).
 
 Example:
-    python simulator.py /tmp/tmon-slave
+    python simulator.py /tmp/tmon-slave 9600
 """
 
 import random
@@ -36,15 +37,15 @@ from tmon.protocol import (
 )
 
 
-def run(port: str) -> None:
+def run(port: str, baudrate: int) -> None:
     """Run the simulator loop.
 
-    Opens *port* via Bus, reads incoming frames, and replies to POLL
-    frames with synthetic temperature data.  Responds to any address.
-    Each channel produces a random value between 50 and 900 (5.0 to
-    90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
+    Opens *port* via Bus at *baudrate*, reads incoming frames, and
+    replies to POLL frames with synthetic temperature data.  Responds
+    to any address.  Each channel produces a random value between 50
+    and 900 (5.0 to 90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
     """
-    bus = Bus(port, 9600, timeout_ms=200)
+    bus = Bus(port, baudrate, timeout_ms=200)
 
     print("simulator: listening on {}".format(port), flush=True)
 
@@ -80,7 +81,7 @@ def run(port: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("usage: simulator.py <port>", file=sys.stderr)
+    if len(sys.argv) != 3:
+        print("usage: simulator.py <port> <baudrate>", file=sys.stderr)
         sys.exit(1)
-    run(sys.argv[1])
+    run(sys.argv[1], int(sys.argv[2]))

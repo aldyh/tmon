@@ -66,7 +66,7 @@ def pty_pair():
 
     sim = subprocess.Popen(
         [sys.executable, os.path.join(TOOLS_DIR, "simulator.py"),
-         SLAVE_PTY],
+         SLAVE_PTY, "9600"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
