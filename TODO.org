@@ -136,11 +136,15 @@ Several docs explain what competent readers can see from the Makefile:
   and let the reader look at the Makefile for details.
 Keep documentation that is non-obvious, like the API reference table in
 ~panel/README.org~ -- that's valuable.
-* TODO Retire docs/panel.org or move to an archive
+* DONE Retire docs/panel.org or move to an archive
 ~docs/panel.org~ was an exploratory design document comparing three
 visualization options.  The decision was made (Option B) and is fully
 implemented.  The file is historical noise now.  Either delete it or move
 it to a ~docs/archive/~ directory so ~docs/~ only contains current specs.
+
+** Notes
+Deleted the file. The design rationale is preserved in the archived TODO
+items that reference it.
 * DONE Duplicated CREATE TABLE SQL
 The ~readings~ table schema appears in three places:
 - ~master/src/tmon/storage.py~
