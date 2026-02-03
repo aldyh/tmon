@@ -1,6 +1,6 @@
 """SQLite storage for temperature readings.
 
-Persists poll data according to the schema in docs/storage.org.
+Persists poll data according to the schema in schema/readings.sql.
 One row per successful REPLY frame, storing raw int16 temperatures
 (tenths of a degree Celsius).
 
@@ -16,20 +16,17 @@ Example:
 
 import sqlite3
 from datetime import datetime, timezone
+from pathlib import Path
 
 
 _NUM_CHANNELS = 4
 
-_CREATE_TABLE = """\
-CREATE TABLE IF NOT EXISTS readings (
-    id        INTEGER PRIMARY KEY,
-    ts        TEXT    NOT NULL,
-    addr      INTEGER NOT NULL,
-    temp_0    INTEGER,
-    temp_1    INTEGER,
-    temp_2    INTEGER,
-    temp_3    INTEGER
-)"""
+_SCHEMA_PATH = Path(__file__).resolve().parents[3] / "schema" / "readings.sql"
+
+
+def _load_schema() -> str:
+    """Read the CREATE TABLE statement from schema/readings.sql."""
+    return _SCHEMA_PATH.read_text()
 
 _INSERT = """\
 INSERT INTO readings (ts, addr, temp_0, temp_1, temp_2, temp_3)
@@ -63,7 +60,7 @@ class Storage:
         self._conn = sqlite3.connect(db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
-        self._conn.execute(_CREATE_TABLE)
+        self._conn.executescript(_load_schema())
         self._conn.commit()
 
     def insert(self, addr: int, temps: list[int | None]) -> None:

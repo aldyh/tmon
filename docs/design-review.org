@@ -191,9 +191,7 @@ This works but requires ~test_daemon.py~ to reset the flag between
 tests. An alternative is to pass a threading.Event or a callable
 predicate to ~run()~. Not critical, but worth noting.
 
-*** TODO Schema lives in three places
-
-Note: I wanna fix this, but let's discuss this before implementing.
+*** DONE Schema lives in three places
 
 The ~readings~ table schema appears in:
 - ~master/src/tmon/storage.py~

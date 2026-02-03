@@ -3,21 +3,17 @@
 import os
 import sqlite3
 import tempfile
+from pathlib import Path
 
 import pytest
 
 
-# Schema: see docs/storage.org
-_CREATE_TABLE = """\
-CREATE TABLE IF NOT EXISTS readings (
-    id        INTEGER PRIMARY KEY,
-    ts        TEXT    NOT NULL,
-    addr      INTEGER NOT NULL,
-    temp_0    INTEGER,
-    temp_1    INTEGER,
-    temp_2    INTEGER,
-    temp_3    INTEGER
-)"""
+_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schema" / "readings.sql"
+
+
+def _load_schema() -> str:
+    """Read the CREATE TABLE statement from schema/readings.sql."""
+    return _SCHEMA_PATH.read_text()
 
 
 @pytest.fixture()
@@ -26,7 +22,7 @@ def empty_db():
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     conn = sqlite3.connect(path)
-    conn.execute(_CREATE_TABLE)
+    conn.executescript(_load_schema())
     conn.commit()
     conn.close()
     yield path
@@ -39,7 +35,7 @@ def sample_db():
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     conn = sqlite3.connect(path)
-    conn.execute(_CREATE_TABLE)
+    conn.executescript(_load_schema())
     rows = [
         ("2024-06-01T12:00:00Z", 1, 220, 230, 240, None),
         ("2024-06-01T12:00:30Z", 1, 221, 231, 241, None),
