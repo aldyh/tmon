@@ -15,5 +15,5 @@ feedback on the overall feel, what works, what doesn't, what to
 continue doing in future projects, what to avoid in future work. be
 very critical as designer. i want feedback from a design and
 engineering stand point. write your analysis by filling out the rest of
-this file... on a branch.
+this file... on a branch, and add any suggested things to do in TODO.org.
 #+end_quote
