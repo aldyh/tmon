@@ -136,7 +136,7 @@ Storage()    # where's the data going?
 #+end_src
 
 ** What doesn't work (or could be better)
-*** TODO Return type inconsistency: dict vs dataclass
+*** DONE Return type inconsistency: dict vs dataclass
 
 Note: Fix this.  Use dataclasses.
 
@@ -169,7 +169,7 @@ adds cognitive load.
 If I were to pick: dicts for database rows (they *are* dynamic), but
 a ~Reading~ dataclass for ~poll()~ return values.
 
-*** TODO Simulator hardcodes address
+*** DONE Simulator hardcodes address
 
 Note: Fix this.  Accept address as a command line arg, but if you can implement multiple addresses cheaply (very succinctly and it looks better, than do that).  Don't bloat the software, but make it elegant.
 
@@ -222,7 +222,7 @@ tested, but the actual device bring-up is unfinished. This is fine
 for a "master first" development approach, but the project isn't
 deployable yet.
 
-*** TODO Storage timestamps are strings
+*** DONE Storage timestamps are strings
 
 Note: Fix this.  Unix timestamps is ok.  Make sure export to CSV in panel/ still works correctly, cause the CSV consumer definitely doesn't want to see a unix timestamp.
 
@@ -240,7 +240,7 @@ SQLite can store these, and they sort correctly, but:
 For a small-scale project this is fine. For a larger one, consider
 Unix timestamps (INTEGER) with conversion at the boundary.
 
-*** TODO Bus timeout is a module-level constant
+*** DONE Bus timeout is a module-level constant
 
 Note: Fix this.  It should be in toml.
 
