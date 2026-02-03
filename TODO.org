@@ -109,10 +109,6 @@ PROTO_TEMP_INVALID check) instead of calling ~parse_reply()~ from
 ** Notes
 Modified poll() to call parse_reply() and convert temperatures back to raw
 int16 values (multiply by 10). Removed unused struct import.
-* WAITING Deduplicate _downsample between app.py and build_demo.py
-~panel/app.py:237~ and ~panel/build_demo.py:31~ have identical ~_downsample~
-functions.  Extract to a shared module (e.g. ~panel/util.py~) or have
-~build_demo.py~ import it from ~app.py~.
 * DONE Deduplicate _make_reply test helper
 ~master/tests/test_poller.py:16~ and ~master/tests/test_daemon.py:13~ define
 identical ~_make_reply(addr, t0, t1, t2, t3)~ helpers.  Move to ~conftest.py~.
