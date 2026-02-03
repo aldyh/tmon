@@ -94,15 +94,18 @@ Renamed the temperature-specific function and its parameters:
   opaque blob, not structured temperature data
 - Left protocol-framing names (~encode_request~, ~decode_frame~, constants) unchanged
   since those describe the generic protocol, not temperature data.
-* TODO Fix stale protocol.md references in C files
+* DONE Fix stale protocol.md references in C files
 ~slave/include/protocol.h~ (line 5) and ~slave/src/protocol.c~ (line 4) still
 reference ~docs/protocol.md~ -- should be ~docs/protocol.org~ since the
 markdown-to-org conversion.
+
+** Notes
+Updated both files to reference docs/protocol.org.
 * TODO Poller.poll duplicates parse_reply logic
 ~poller.py:99-105~ manually unpacks the REPLY payload (struct.unpack loop,
 PROTO_TEMP_INVALID check) instead of calling ~parse_reply()~ from
 ~protocol.py~.  The same logic already exists in ~parse_reply~.  Use it.
-* TODO Deduplicate _downsample between app.py and build_demo.py
+* WAITING Deduplicate _downsample between app.py and build_demo.py
 ~panel/app.py:237~ and ~panel/build_demo.py:31~ have identical ~_downsample~
 functions.  Extract to a shared module (e.g. ~panel/util.py~) or have
 ~build_demo.py~ import it from ~app.py~.

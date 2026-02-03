@@ -1,7 +1,7 @@
 /*
  * protocol.h -- tmon RS-485 frame encoding/decoding
  *
- * Binary framing as described in docs/protocol.md.
+ * Binary framing as described in docs/protocol.org.
  * Shared between slave firmware modules.
  */
 
