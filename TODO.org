@@ -101,10 +101,14 @@ markdown-to-org conversion.
 
 ** Notes
 Updated both files to reference docs/protocol.org.
-* TODO Poller.poll duplicates parse_reply logic
+* DONE Poller.poll duplicates parse_reply logic
 ~poller.py:99-105~ manually unpacks the REPLY payload (struct.unpack loop,
 PROTO_TEMP_INVALID check) instead of calling ~parse_reply()~ from
 ~protocol.py~.  The same logic already exists in ~parse_reply~.  Use it.
+
+** Notes
+Modified poll() to call parse_reply() and convert temperatures back to raw
+int16 values (multiply by 10). Removed unused struct import.
 * WAITING Deduplicate _downsample between app.py and build_demo.py
 ~panel/app.py:237~ and ~panel/build_demo.py:31~ have identical ~_downsample~
 functions.  Extract to a shared module (e.g. ~panel/util.py~) or have

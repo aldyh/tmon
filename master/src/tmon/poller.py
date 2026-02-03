@@ -11,16 +11,15 @@ Example:
     1
 """
 
-import struct
 import logging
 
 from tmon.protocol import (
     encode_request,
     decode_frame,
+    parse_reply,
     PROTO_CMD_POLL,
     PROTO_CMD_REPLY,
     PROTO_REPLY_PAYLOAD_LEN,
-    PROTO_TEMP_INVALID,
 )
 
 log = logging.getLogger(__name__)
@@ -96,13 +95,10 @@ class Poller:
             )
             return None
 
+        parsed = parse_reply(payload)
         temps = []
-        for i in range(4):
-            raw_val = struct.unpack_from("<h", payload, i * 2)[0]
-            if raw_val != PROTO_TEMP_INVALID:
-                temps.append(raw_val)
-            else:
-                temps.append(None)
+        for t in parsed["temperatures"]:
+            temps.append(int(t * 10) if t is not None else None)
 
         return {
             "addr": addr,
