@@ -77,12 +77,13 @@ class TestStorage:
         store.close()
 
     def test_timestamp_format(self):
-        """Timestamp is ISO-8601 UTC (YYYY-MM-DDTHH:MM:SSZ)."""
+        """Timestamp is a Unix epoch integer."""
         store = Storage(":memory:")
         store.insert(1, [100, None, None, None])
         rows = store.fetch(1)
         ts = rows[0]["ts"]
-        assert re.match(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", ts)
+        assert isinstance(ts, int)
+        assert ts > 0
         store.close()
 
     def test_negative_temps(self):

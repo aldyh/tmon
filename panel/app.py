@@ -4,6 +4,9 @@ Serves a single-page dashboard and a JSON API for temperature data.
 Time windows are computed relative to the newest row in the database,
 so data always feels "live" regardless of when it was generated.
 
+Internally, timestamps are stored as Unix epoch integers.  The API
+converts them to ISO-8601 strings for JSON responses and CSV export.
+
 Example:
     $ flask --app app run
     # Then open http://localhost:5000 in a browser.
@@ -16,6 +19,13 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, Response, g, jsonify, render_template, request
+
+
+def _ts_to_iso(ts: int) -> str:
+    """Convert Unix timestamp to ISO-8601 UTC string."""
+    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
 _DB_PATH = os.environ.get("TMON_DB", "tmon_mock.db")
 
@@ -58,7 +68,7 @@ def create_app(db_path: str) -> Flask:
         """Return the latest reading per slave.
 
         Response JSON:
-            [{"addr": 1, "ts": "...", "temp_0": 220, ...}, ...]
+            [{"addr": 1, "ts": "2024-01-01T00:00:00Z", "temp_0": 220, ...}, ...]
         """
         db = _get_db()
         max_ts = db.execute(
@@ -73,7 +83,12 @@ def create_app(db_path: str) -> Flask:
             "   WHERE r2.addr = readings.addr"
             " ) GROUP BY addr ORDER BY addr"
         ).fetchall()
-        return jsonify([dict(r) for r in rows]), 200
+        result = []
+        for r in rows:
+            d = dict(r)
+            d["ts"] = _ts_to_iso(d["ts"])
+            result.append(d)
+        return jsonify(result), 200
 
     @app.route("/api/history")
     def api_history() -> tuple:
@@ -85,7 +100,7 @@ def create_app(db_path: str) -> Flask:
             points: Maximum points to return (default 500).
 
         Response JSON:
-            [{"ts": "...", "temp_0": 220, ...}, ...]
+            [{"ts": "2024-01-01T00:00:00Z", "temp_0": 220, ...}, ...]
         """
         addr = request.args.get("addr", type=int)
         if addr is None:
@@ -108,23 +123,24 @@ def create_app(db_path: str) -> Flask:
         if max_ts is None:
             return jsonify([]), 200
 
-        end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
-            tzinfo=timezone.utc
-        )
-        start = end - timedelta(hours=hours)
-        start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+        start_ts = max_ts - int(hours * 3600)
 
         rows = db.execute(
             "SELECT ts, temp_0, temp_1, temp_2, temp_3"
             " FROM readings"
             " WHERE addr = ? AND ts >= ? AND ts <= ?"
             " ORDER BY ts",
-            (addr, start_str, max_ts),
+            (addr, start_ts, max_ts),
         ).fetchall()
 
         # Downsample by stepping through evenly
-        result = _downsample(rows, points)
-        return jsonify([dict(r) for r in result]), 200
+        sampled = _downsample(rows, points)
+        result = []
+        for r in sampled:
+            d = dict(r)
+            d["ts"] = _ts_to_iso(d["ts"])
+            result.append(d)
+        return jsonify(result), 200
 
     @app.route("/api/slaves")
     def api_slaves() -> tuple:
@@ -151,6 +167,7 @@ def create_app(db_path: str) -> Flask:
             hours: Time window in hours (required, positive float).
 
         Returns a CSV download with columns ts, temp_0 .. temp_3.
+        Timestamps are exported as ISO-8601 strings.
 
         Example:
             GET /api/export?addr=1&hours=24
@@ -176,18 +193,14 @@ def create_app(db_path: str) -> Flask:
             )
             return Response(buf.getvalue(), mimetype="text/csv")
 
-        end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
-            tzinfo=timezone.utc
-        )
-        start = end - timedelta(hours=hours)
-        start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+        start_ts = max_ts - int(hours * 3600)
 
         rows = db.execute(
             "SELECT ts, temp_0, temp_1, temp_2, temp_3"
             " FROM readings"
             " WHERE addr = ? AND ts >= ? AND ts <= ?"
             " ORDER BY ts",
-            (addr, start_str, max_ts),
+            (addr, start_ts, max_ts),
         ).fetchall()
 
         buf = io.StringIO()
@@ -195,16 +208,16 @@ def create_app(db_path: str) -> Flask:
         writer.writerow(["ts", "temp_0", "temp_1", "temp_2", "temp_3"])
         for row in rows:
             writer.writerow([
-                row["ts"],
+                _ts_to_iso(row["ts"]),
                 row["temp_0"] if row["temp_0"] is not None else "",
                 row["temp_1"] if row["temp_1"] is not None else "",
                 row["temp_2"] if row["temp_2"] is not None else "",
                 row["temp_3"] if row["temp_3"] is not None else "",
             ])
 
-        safe_start = start_str.replace(":", "-")
-        safe_end = max_ts.replace(":", "-")
-        filename = "tmon_node{}_{}_{}.csv".format(addr, safe_start, safe_end)
+        start_iso = _ts_to_iso(start_ts).replace(":", "-")
+        end_iso = _ts_to_iso(max_ts).replace(":", "-")
+        filename = "tmon_node{}_{}_{}.csv".format(addr, start_iso, end_iso)
         return Response(
             buf.getvalue(),
             mimetype="text/csv",
@@ -228,7 +241,10 @@ def create_app(db_path: str) -> Flask:
         ).fetchone()
         if row["min_ts"] is None:
             return jsonify({"min": None, "max": None}), 200
-        return jsonify({"min": row["min_ts"], "max": row["max_ts"]}), 200
+        return jsonify({
+            "min": _ts_to_iso(row["min_ts"]),
+            "max": _ts_to_iso(row["max_ts"]),
+        }), 200
 
     return app
 

@@ -20,11 +20,18 @@ import os
 import re
 import shutil
 import sqlite3
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 
 # Range options matching the <select> in index.html
 _RANGE_HOURS = [1, 6, 24, 168, 720, 8760]
+
+
+def _ts_to_iso(ts: int) -> str:
+    """Convert Unix timestamp to ISO-8601 UTC string."""
+    return datetime.fromtimestamp(ts, tz=timezone.utc).strftime(
+        "%Y-%m-%dT%H:%M:%SZ"
+    )
 
 _MAX_POINTS = 500
 
@@ -62,7 +69,7 @@ def _query_current(conn: sqlite3.Connection) -> list:
     ).fetchall()
     return [
         {
-            "addr": r[0], "ts": r[1],
+            "addr": r[0], "ts": _ts_to_iso(r[1]),
             "temp_0": r[2], "temp_1": r[3],
             "temp_2": r[4], "temp_3": r[5],
         }
@@ -75,7 +82,9 @@ def _query_range(conn: sqlite3.Connection) -> dict:
     row = conn.execute(
         "SELECT MIN(ts) AS min_ts, MAX(ts) AS max_ts FROM readings"
     ).fetchone()
-    return {"min": row[0], "max": row[1]}
+    if row[0] is None:
+        return {"min": None, "max": None}
+    return {"min": _ts_to_iso(row[0]), "max": _ts_to_iso(row[1])}
 
 
 def _query_history(conn: sqlite3.Connection, addr: int,
@@ -87,24 +96,20 @@ def _query_history(conn: sqlite3.Connection, addr: int,
     if max_ts is None:
         return []
 
-    end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
-        tzinfo=timezone.utc
-    )
-    start = end - timedelta(hours=hours)
-    start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+    start_ts = max_ts - int(hours * 3600)
 
     rows = conn.execute(
         "SELECT ts, temp_0, temp_1, temp_2, temp_3"
         " FROM readings"
         " WHERE addr = ? AND ts >= ? AND ts <= ?"
         " ORDER BY ts",
-        (addr, start_str, max_ts),
+        (addr, start_ts, max_ts),
     ).fetchall()
 
     downsampled = _downsample(rows, _MAX_POINTS)
     return [
         {
-            "ts": r[0], "temp_0": r[1], "temp_1": r[2],
+            "ts": _ts_to_iso(r[0]), "temp_0": r[1], "temp_1": r[2],
             "temp_2": r[3], "temp_3": r[4],
         }
         for r in downsampled
@@ -125,23 +130,19 @@ def _query_export(conn: sqlite3.Connection, addr: int,
     if max_ts is None:
         return buf.getvalue()
 
-    end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
-        tzinfo=timezone.utc
-    )
-    start = end - timedelta(hours=hours)
-    start_str = start.strftime("%Y-%m-%dT%H:%M:%SZ")
+    start_ts = max_ts - int(hours * 3600)
 
     rows = conn.execute(
         "SELECT ts, temp_0, temp_1, temp_2, temp_3"
         " FROM readings"
         " WHERE addr = ? AND ts >= ? AND ts <= ?"
         " ORDER BY ts",
-        (addr, start_str, max_ts),
+        (addr, start_ts, max_ts),
     ).fetchall()
 
     for row in rows:
         writer.writerow([
-            row[0],
+            _ts_to_iso(row[0]),
             row[1] if row[1] is not None else "",
             row[2] if row[2] is not None else "",
             row[3] if row[3] is not None else "",
@@ -214,7 +215,7 @@ def build(db_path: str, output_dir: str) -> None:
         >>> conn = sqlite3.connect(db)
         >>> _ = conn.execute(
         ...     "CREATE TABLE readings (id INTEGER PRIMARY KEY,"
-        ...     " ts TEXT, addr INTEGER,"
+        ...     " ts INTEGER, addr INTEGER,"
         ...     " temp_0 INTEGER, temp_1 INTEGER,"
         ...     " temp_2 INTEGER, temp_3 INTEGER)")
         >>> conn.commit(); conn.close()

@@ -87,9 +87,11 @@ def generate(db_path: str, days: int, seed: int) -> int:
     batch_size = 10000
     count = 0
 
+    start_epoch = int(start.timestamp())
+
     for step in range(total_steps):
+        ts_epoch = start_epoch + step * _INTERVAL
         ts = start + timedelta(seconds=step * _INTERVAL)
-        ts_str = ts.strftime("%Y-%m-%dT%H:%M:%SZ")
         day_frac = (ts.hour * 3600 + ts.minute * 60 + ts.second) / _SECONDS_PER_DAY
         year_frac = ts.timetuple().tm_yday / 365.0
 
@@ -107,7 +109,7 @@ def generate(db_path: str, days: int, seed: int) -> int:
                     t = _temperature(base + ch_offset, amplitude,
                                      day_frac, year_frac, 5)
                     temps.append(t)
-            rows.append((ts_str, addr, temps[0], temps[1],
+            rows.append((ts_epoch, addr, temps[0], temps[1],
                          temps[2], temps[3]))
             count += 1
 

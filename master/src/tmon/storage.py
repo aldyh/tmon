@@ -2,7 +2,8 @@
 
 Persists poll data according to the schema in schema/readings.sql.
 One row per successful REPLY frame, storing raw int16 temperatures
-(tenths of a degree Celsius).
+(tenths of a degree Celsius).  Timestamps are stored as Unix epoch
+integers (seconds since 1970-01-01 00:00:00 UTC).
 
 Example:
     >>> from tmon.storage import Storage
@@ -15,7 +16,7 @@ Example:
 """
 
 import sqlite3
-from datetime import datetime, timezone
+import time
 from pathlib import Path
 
 
@@ -78,7 +79,7 @@ class Storage:
                 "temps must have %d elements, got %d"
                 % (_NUM_CHANNELS, len(temps))
             )
-        ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        ts = int(time.time())
         self._conn.execute(_INSERT, (ts, addr) + tuple(temps))
         self._conn.commit()
 
