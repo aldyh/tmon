@@ -98,7 +98,7 @@ see why decisions were made.
 
 ** What doesn't work
 
-*** Semantic mismatch between layers
+*** TODO Semantic mismatch between layers
 
 ~parse_reply()~ returns temperatures as floats (degrees Celsius):
 
@@ -131,7 +131,9 @@ I'd pick option 1: keep temperatures as integers throughout the data
 path and only convert to human-readable at display time. Integers
 don't have precision loss.
 
-*** Dict returns where simpler types would suffice
+Note: Agreed, implement option 1
+
+*** TODO Dict returns where simpler types would suffice
 
 ~parse_reply()~ returns:
 
@@ -144,6 +146,8 @@ This is a dict with exactly one key. Just return the list:
 #+begin_src python
 [23.5, 19.8, None, None]
 #+end_src
+
+Note: Agreed, return the list.
 
 Similarly, ~decode_frame()~ returns a dict with three keys. A
 ~namedtuple~ or ~dataclass~ would be clearer and provide attribute
@@ -160,7 +164,9 @@ class Frame:
 The current dict approach works, but it's weakly typed and requires
 the caller to know the key names by convention.
 
-*** Magic numbers not centralized
+Note: Agreed, dataclass.
+
+*** TODO Magic numbers not centralized
 
 Baud rate (9600) is hardcoded in ~daemon.py~:
 
@@ -172,8 +178,12 @@ But ~BUS_TIMEOUT_MS~ is centralized in ~config.py~. Both are bus
 parameters; they should live together. Either add ~baudrate~ to the
 config file, or add ~BUS_BAUDRATE = 9600~ to ~config.py~.
 
-*** Global shutdown flag
+Note: Agreed, everything in the config file.
 
+*** WAITING Global shutdown flag
+
+- State "WAITING"    from              [2026-02-03 Tue 13:32] \\
+  Don't fix.  I like it the way it is.
 The ~_shutdown~ module-level flag in ~daemon.py~ is the classic
 Unix approach, but it makes the module carry global state:
 
@@ -189,7 +199,9 @@ This works but requires ~test_daemon.py~ to reset the flag between
 tests. An alternative is to pass a threading.Event or a callable
 predicate to ~run()~. Not critical, but worth noting.
 
-*** Schema lives in three places
+*** TODO Schema lives in three places
+
+Note: I wanna fix this, but let's discuss this before implementing.
 
 The ~readings~ table schema appears in:
 - ~master/src/tmon/storage.py~
@@ -204,7 +216,7 @@ three files.
 Consider generating the schema from a single source (could be the
 .org file itself, parsed at build time).
 
-*** Address validation is scattered
+*** TODO Address validation is scattered
 
 Address bounds checking (1-247) happens in:
 - ~encode_request()~
@@ -213,8 +225,10 @@ Address bounds checking (1-247) happens in:
 And implicitly in the C equivalents. A single ~is_valid_address()~
 function would make the invariant explicit and searchable.
 
-*** Config validation is verbose
+*** WAITING Config validation is verbose
 
+- State "WAITING"    from              [2026-02-03 Tue 13:37] \\
+  Leave as is.  I like it.
 ~config.py~ has ~_require_str~ and ~_require_int~ helpers, then
 special-cases ~slaves~ validation inline. This is functional but
 ad-hoc. For a larger project, a schema-validation library (or a
