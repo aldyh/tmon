@@ -113,9 +113,13 @@ int16 values (multiply by 10). Removed unused struct import.
 ~panel/app.py:237~ and ~panel/build_demo.py:31~ have identical ~_downsample~
 functions.  Extract to a shared module (e.g. ~panel/util.py~) or have
 ~build_demo.py~ import it from ~app.py~.
-* TODO Deduplicate _make_reply test helper
+* DONE Deduplicate _make_reply test helper
 ~master/tests/test_poller.py:16~ and ~master/tests/test_daemon.py:13~ define
 identical ~_make_reply(addr, t0, t1, t2, t3)~ helpers.  Move to ~conftest.py~.
+
+** Notes
+Moved helper to conftest.py as make_reply() (without underscore prefix since
+it's now shared). Updated imports in test_poller.py and test_daemon.py.
 * TODO Remove unused import sys in generate_data.py
 ~panel/generate_data.py~ imports ~sys~ (line 20) but never uses it.
 * TODO Move datetime imports to module level

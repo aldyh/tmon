@@ -1,33 +1,9 @@
 """Tests for tmon.poller."""
 
-import struct
-
-from conftest import FakeBus
+from conftest import FakeBus, make_reply
 from tmon.poller import Poller
 from tmon.storage import Storage
-from tmon.protocol import (
-    encode_request,
-    crc16_modbus,
-    PROTO_CMD_REPLY,
-    PROTO_TEMP_INVALID,
-)
-
-
-def _make_reply(addr, t0, t1, t2, t3):
-    """Build a valid REPLY frame for testing.
-
-    Args:
-        addr: Slave address (int).
-        t0: Channel 0 raw int16 temperature.
-        t1: Channel 1 raw int16 temperature.
-        t2: Channel 2 raw int16 temperature.
-        t3: Channel 3 raw int16 temperature.
-
-    Returns:
-        bytes: Complete REPLY frame.
-    """
-    payload = struct.pack("<hhhh", t0, t1, t2, t3)
-    return encode_request(addr, PROTO_CMD_REPLY, payload)
+from tmon.protocol import PROTO_TEMP_INVALID
 
 
 class TestPollSlave:
@@ -35,7 +11,7 @@ class TestPollSlave:
 
     def test_success(self):
         """Successful poll returns a reading dict with raw int16 temps."""
-        reply = _make_reply(3, 235, 198, PROTO_TEMP_INVALID,
+        reply = make_reply(3, 235, 198, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
@@ -63,7 +39,7 @@ class TestPollSlave:
 
     def test_bad_crc(self):
         """Corrupted CRC returns None."""
-        reply = _make_reply(3, 235, 198, PROTO_TEMP_INVALID,
+        reply = make_reply(3, 235, 198, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID)
         # Flip last byte to corrupt CRC
         corrupted = reply[:-1] + bytes([reply[-1] ^ 0xFF])
@@ -77,7 +53,7 @@ class TestPollSlave:
 
     def test_wrong_addr(self):
         """Reply from wrong address returns None."""
-        reply = _make_reply(5, 100, PROTO_TEMP_INVALID,
+        reply = make_reply(5, 100, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
@@ -89,7 +65,7 @@ class TestPollSlave:
 
     def test_all_channels_valid(self):
         """All four channels valid returns four raw int16 temps."""
-        reply = _make_reply(1, 100, 200, 300, 400)
+        reply = make_reply(1, 100, 200, 300, 400)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [1])
@@ -103,7 +79,7 @@ class TestPollSlave:
 
     def test_negative_temps(self):
         """Negative temperatures are unpacked correctly."""
-        reply = _make_reply(1, -100, PROTO_TEMP_INVALID,
+        reply = make_reply(1, -100, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
@@ -115,7 +91,7 @@ class TestPollSlave:
 
     def test_sends_poll_frame(self):
         """poll sends a correctly encoded POLL frame."""
-        reply = _make_reply(3, 100, PROTO_TEMP_INVALID,
+        reply = make_reply(3, 100, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
@@ -138,9 +114,9 @@ class TestRunOnce:
 
     def test_polls_all_slaves(self):
         """poll_all polls each slave and returns readings."""
-        reply1 = _make_reply(1, 100, PROTO_TEMP_INVALID,
+        reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        reply2 = _make_reply(2, 200, PROTO_TEMP_INVALID,
+        reply2 = make_reply(2, 200, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply1, reply2])
         storage = Storage(":memory:")
@@ -159,7 +135,7 @@ class TestRunOnce:
 
     def test_partial_failure(self):
         """poll_all skips failed slaves and stores successful ones."""
-        reply1 = _make_reply(1, 100, PROTO_TEMP_INVALID,
+        reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         # Slave 2 times out
         bus = FakeBus([reply1, b""])
