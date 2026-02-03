@@ -16,7 +16,7 @@ Usual commit guidelines per this project apply as described in CLAUDE.md.
 As part of the commit mark the item as DONE in this file.
 
 Add a subsection in the item named "Notes", of anything interesting that came up during working on this item, that might be useful to keep in the archived DONE item.
-* TODO Inconsistent error handling philosophy
+* DONE Inconsistent error handling philosophy
 
 The protocol layer uses exceptions (Python) / return codes (C) for
 validation errors, but the poller layer silently swallows them:
@@ -34,6 +34,12 @@ Returning ~None~ for all error conditions (timeout, bad CRC, bad
 address, unexpected command) loses information. A caller cannot
 distinguish "slave offline" from "slave sent garbage." For a home
 project this is acceptable, but it would be a problem at scale.
+
+** Notes
+Closed as working as designed.  Returning None for all failure modes
+is intentional: callers only need "got data" or "didn't get data";
+diagnostic details are logged.  Added a one-line comment in poller.py
+documenting this choice.
 * DONE Convert markdown files to org mode
 Convert all *.md files in the project to .org mode, with the exception of CLAUDE.md
 which is needed for convention.

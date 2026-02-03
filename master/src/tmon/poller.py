@@ -80,6 +80,7 @@ class Poller:
         self._bus.send(frame)
         raw = self._bus.receive()
 
+        # All error conditions return None; details go to the log.
         if not raw:
             log.debug("timeout polling slave %d", addr)
             return None
