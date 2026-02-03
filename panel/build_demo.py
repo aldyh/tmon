@@ -20,6 +20,7 @@ import os
 import re
 import shutil
 import sqlite3
+from datetime import datetime, timedelta, timezone
 
 
 # Range options matching the <select> in index.html
@@ -86,7 +87,6 @@ def _query_history(conn: sqlite3.Connection, addr: int,
     if max_ts is None:
         return []
 
-    from datetime import datetime, timedelta, timezone
     end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
         tzinfo=timezone.utc
     )
@@ -125,7 +125,6 @@ def _query_export(conn: sqlite3.Connection, addr: int,
     if max_ts is None:
         return buf.getvalue()
 
-    from datetime import datetime, timedelta, timezone
     end = datetime.strptime(max_ts, "%Y-%m-%dT%H:%M:%SZ").replace(
         tzinfo=timezone.utc
     )

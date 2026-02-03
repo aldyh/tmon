@@ -125,10 +125,13 @@ it's now shared). Updated imports in test_poller.py and test_daemon.py.
 
 ** Notes
 Removed the unused import.
-* TODO Move datetime imports to module level
+* DONE Move datetime imports to module level
 ~panel/app.py~ imports ~from datetime import ...~ inside two route functions
 (lines 110, 179).  ~panel/build_demo.py~ does the same (lines 89, 128).
 Move to the top of each file.
+
+** Notes
+Moved datetime/timedelta/timezone imports to module level in both files.
 * TODO Trim verbose docstrings on test doubles
 The "avoid documenting obvious things" cleanup (branch 012) didn't reach
 test code.  These test helpers still have full Args/Returns sections on
