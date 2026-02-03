@@ -132,7 +132,7 @@ Move to the top of each file.
 
 ** Notes
 Moved datetime/timedelta/timezone imports to module level in both files.
-* TODO Trim verbose docstrings on test doubles
+* DONE Trim verbose docstrings on test doubles
 The "avoid documenting obvious things" cleanup (branch 012) didn't reach
 test code.  These test helpers still have full Args/Returns sections on
 one-line methods:
@@ -141,6 +141,11 @@ one-line methods:
 - ~master/tests/test_poller.py~: _make_reply
 - ~master/tests/test_config.py~: _write_toml
 One-liner docstrings (or none) suffice for these.
+
+** Notes
+Replaced verbose Args/Returns sections with one-liner docstrings and type
+hints in signatures. FakeBus, CountingBus, MultiBus, _write_toml all trimmed.
+make_reply (formerly _make_reply) was moved to conftest and trimmed there.
 * TODO Trim obvious-command documentation in org files
 Several docs explain what competent readers can see from the Makefile:
 - ~README.org~ lines 47-63: spells out what ~make build-master~, ~make

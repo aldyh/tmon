@@ -13,16 +13,8 @@ def test_bus_timeout_ms_is_positive_int():
     assert BUS_TIMEOUT_MS > 0
 
 
-def _write_toml(tmp_path, text):
-    """Write TOML text to a temp file and return its path.
-
-    Args:
-        tmp_path: Directory to write in.
-        text: TOML content string.
-
-    Returns:
-        str: Path to the written file.
-    """
+def _write_toml(tmp_path: str, text: str) -> str:
+    """Write TOML text to a temp file and return its path."""
     path = os.path.join(tmp_path, "cfg.toml")
     with open(path, "w") as f:
         f.write(text)
