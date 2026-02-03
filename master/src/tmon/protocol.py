@@ -25,6 +25,15 @@ PROTO_CMD_REPLY = 0x02
 PROTO_REPLY_PAYLOAD_LEN = 8
 PROTO_TEMP_INVALID = 0x7FFF
 
+# Valid address range per MODBUS: 1-247.
+PROTO_ADDR_MIN = 1
+PROTO_ADDR_MAX = 247
+
+
+def is_valid_address(addr: int) -> bool:
+    """Check whether *addr* is in the valid range (1-247)."""
+    return PROTO_ADDR_MIN <= addr <= PROTO_ADDR_MAX
+
 # -- CRC-16/MODBUS -----------------------------------------------------------
 
 
@@ -70,9 +79,11 @@ def encode_request(addr: int, cmd: int, payload: bytes) -> bytes:
         >>> encode_request(3, PROTO_CMD_REPLY, payload).hex(' ')
         '01 03 02 08 eb 00 c6 00 ff 7f ff 7f 90 eb'
     """
-    if not (1 <= addr <= 247):
+    if not is_valid_address(addr):
         raise ValueError(
-            "addr must be in range 1-247, got {}".format(addr)
+            "addr must be in range {}-{}, got {}".format(
+                PROTO_ADDR_MIN, PROTO_ADDR_MAX, addr
+            )
         )
     body = bytes([addr, cmd, len(payload)]) + payload
     crc = crc16_modbus(body)
@@ -136,9 +147,11 @@ def decode_frame(data: bytes) -> dict:
             )
         )
 
-    if not (1 <= addr <= 247):
+    if not is_valid_address(addr):
         raise ValueError(
-            "addr out of range: {} (must be 1-247)".format(addr)
+            "addr out of range: {} (must be {}-{})".format(
+                addr, PROTO_ADDR_MIN, PROTO_ADDR_MAX
+            )
         )
 
     return {"addr": addr, "cmd": cmd, "payload": payload}

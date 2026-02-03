@@ -5,6 +5,8 @@ import random
 import pytest
 
 from tmon.protocol import (
+    PROTO_ADDR_MAX,
+    PROTO_ADDR_MIN,
     PROTO_CMD_POLL,
     PROTO_CMD_REPLY,
     PROTO_START,
@@ -13,8 +15,40 @@ from tmon.protocol import (
     crc16_modbus,
     decode_frame,
     encode_request,
+    is_valid_address,
     parse_reply,
 )
+
+
+# -- Address validation ------------------------------------------------------
+
+
+class TestIsValidAddress:
+    """Tests for is_valid_address."""
+
+    def test_min_valid(self):
+        """Minimum valid address (1) is accepted."""
+        assert is_valid_address(PROTO_ADDR_MIN) is True
+
+    def test_max_valid(self):
+        """Maximum valid address (247) is accepted."""
+        assert is_valid_address(PROTO_ADDR_MAX) is True
+
+    def test_mid_range(self):
+        """Mid-range address is accepted."""
+        assert is_valid_address(100) is True
+
+    def test_zero_invalid(self):
+        """Address 0 is rejected."""
+        assert is_valid_address(0) is False
+
+    def test_above_max_invalid(self):
+        """Address 248 is rejected."""
+        assert is_valid_address(248) is False
+
+    def test_negative_invalid(self):
+        """Negative address is rejected."""
+        assert is_valid_address(-1) is False
 
 
 # -- CRC known vectors from protocol.org -------------------------------------

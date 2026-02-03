@@ -216,7 +216,7 @@ three files.
 Consider generating the schema from a single source (could be the
 .org file itself, parsed at build time).
 
-*** TODO Address validation is scattered
+*** DONE Address validation is scattered
 
 Address bounds checking (1-247) happens in:
 - ~encode_request()~
