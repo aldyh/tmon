@@ -163,22 +163,22 @@ def decode_frame(data: bytes) -> Frame:
     return Frame(addr, cmd, payload)
 
 
-def parse_reply(payload: bytes) -> list[float | None]:
-    """Parse the 8-byte REPLY payload into temperatures.
+def parse_reply(payload: bytes) -> list[int | None]:
+    """Parse the 8-byte REPLY payload into raw int16 temperatures.
 
     The payload layout is four int16-LE temperature values in tenths
     of a degree Celsius.  Channels with value PROTO_TEMP_INVALID are
     returned as None.
 
     Returns:
-        list: Four values in degrees Celsius, or None for invalid.
+        list: Four raw int16 values (tenths of degree C), or None for invalid.
 
     Raises:
         ValueError: If payload is not exactly 8 bytes.
 
     Example:
         >>> parse_reply(bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F]))
-        [23.5, 19.8, None, None]
+        [235, 198, None, None]
     """
     if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
         raise ValueError(
@@ -191,7 +191,7 @@ def parse_reply(payload: bytes) -> list[float | None]:
     for i in range(4):
         raw = struct.unpack_from("<h", payload, i * 2)[0]
         if raw != PROTO_TEMP_INVALID:
-            temperatures.append(raw / 10.0)
+            temperatures.append(raw)
         else:
             temperatures.append(None)
 

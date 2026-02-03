@@ -95,10 +95,7 @@ class Poller:
             )
             return None
 
-        temps_float = parse_reply(payload)
-        temps = []
-        for t in temps_float:
-            temps.append(int(t * 10) if t is not None else None)
+        temps = parse_reply(payload)
 
         return {
             "addr": addr,

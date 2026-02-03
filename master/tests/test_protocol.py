@@ -248,8 +248,8 @@ class TestParseReply:
             0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
         temps = parse_reply(payload)
-        assert temps[0] == pytest.approx(23.5)
-        assert temps[1] == pytest.approx(19.8)
+        assert temps[0] == 235
+        assert temps[1] == 198
         assert temps[2] is None
         assert temps[3] is None
 
@@ -260,21 +260,21 @@ class TestParseReply:
         assert temps == [None, None, None, None]
 
     def test_all_channels_valid(self):
-        """All 4 temperatures returned as floats."""
+        """All 4 temperatures returned as raw int16 values."""
         import struct
         temps_raw = struct.pack("<hhhh", 100, -50, 0, 325)
         temps = parse_reply(temps_raw)
-        assert temps[0] == pytest.approx(10.0)
-        assert temps[1] == pytest.approx(-5.0)
-        assert temps[2] == pytest.approx(0.0)
-        assert temps[3] == pytest.approx(32.5)
+        assert temps[0] == 100
+        assert temps[1] == -50
+        assert temps[2] == 0
+        assert temps[3] == 325
 
     def test_negative_temperature(self):
         """Negative temperature values are handled correctly."""
         import struct
         temps_raw = struct.pack("<hhhh", -100, 0, 0, 0)
         temps = parse_reply(temps_raw)
-        assert temps[0] == pytest.approx(-10.0)
+        assert temps[0] == -100
 
     def test_bad_length_short(self):
         """Payload shorter than 8 bytes should be rejected."""

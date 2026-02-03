@@ -98,7 +98,7 @@ see why decisions were made.
 
 ** What doesn't work
 
-*** TODO Semantic mismatch between layers
+*** DONE Semantic mismatch between layers
 
 ~parse_reply()~ returns temperatures as floats (degrees Celsius):
 
@@ -130,8 +130,6 @@ intent. Either:
 I'd pick option 1: keep temperatures as integers throughout the data
 path and only convert to human-readable at display time. Integers
 don't have precision loss.
-
-Note: Agreed, implement option 1
 
 *** DONE Dict returns where simpler types would suffice
 
