@@ -192,6 +192,57 @@ it to a ~docs/archive/~ directory so ~docs/~ only contains current specs.
 ** Notes
 Deleted the file. The design rationale is preserved in the archived TODO
 items that reference it.
+* TODO Missing index on readings table
+
+The ~readings~ table (schema/readings.sql) has no indexes beyond the
+primary key.  The panel's ~/api/history~ and ~/api/export~ endpoints
+filter by ~(addr, ts)~ range:
+
+#+begin_example
+SELECT ... FROM readings WHERE addr = ? AND ts >= ? AND ts <= ?
+#+end_example
+
+With a year of data (~3M rows per slave), this scans the full table.
+Adding a composite index would help:
+
+#+begin_example
+CREATE INDEX idx_readings_addr_ts ON readings(addr, ts);
+#+end_example
+
+This is a straightforward change to ~schema/readings.sql~.  Existing
+databases can be migrated with a one-time ~CREATE INDEX~ command.
+* TODO Fragile schema loading path in storage.py
+
+~storage.py~ loads the schema from ~schema/readings.sql~ using relative
+path traversal:
+
+#+begin_example
+_SCHEMA_PATH = Path(__file__).resolve().parents[3] / "schema" / "readings.sql"
+#+end_example
+
+This works in development but would break if the package is pip-installed
+to site-packages (the directory structure differs).
+
+Options:
+1. Embed the schema as a string constant in storage.py (simple, robust).
+2. Use ~importlib.resources~ to load from a package data directory.
+
+For a home project, option 1 is fine.  The schema is 12 lines and rarely
+changes; keeping it inline avoids deployment edge cases.
+* TODO Batch commits in poll_all
+
+Each ~Storage.insert()~ call commits immediately.  For a poll cycle with
+4 slaves, this means 4 separate transactions.  Batching into one commit
+per cycle would reduce write overhead:
+
+#+begin_example
+# In Poller.poll_all, after the loop:
+self._storage.commit()
+#+end_example
+
+This requires exposing ~commit()~ on Storage and removing the per-insert
+commit.  Not critical at this scale, but it's a 3-line change that makes
+the write pattern cleaner.
 * DONE Duplicated CREATE TABLE SQL
 The ~readings~ table schema appears in three places:
 - ~master/src/tmon/storage.py~
