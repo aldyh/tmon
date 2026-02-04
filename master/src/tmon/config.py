@@ -6,8 +6,8 @@ Import individual names where needed.
 Example:
     >>> from tmon.config import load_config
     >>> cfg = load_config("config.toml")
-    >>> cfg["port"]
-    '/dev/ttyUSB0'
+    >>> cfg["transport"]
+    'rs485'
 """
 
 import tomllib
@@ -16,8 +16,11 @@ import tomllib
 def load_config(path: str) -> dict:
     """Read a TOML config file and validate required keys.
 
-    Required keys: ``port`` (str), ``baudrate`` (int), ``slaves`` (list[int]),
+    Common keys: ``transport`` (str, "rs485" or "wifi"), ``slaves`` (list[int]),
     ``db`` (str), ``interval`` (int), ``timeout`` (int, milliseconds).
+
+    For rs485: ``port`` (str), ``baudrate`` (int).
+    For wifi: ``[wifi]`` section with ``host`` (str), ``port`` (int).
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
@@ -30,12 +33,40 @@ def load_config(path: str) -> dict:
     with open(path, "rb") as f:
         raw = tomllib.load(f)
 
-    _require_str(raw, "port")
-    _require_int(raw, "baudrate")
+    transport = raw.get("transport", "rs485")
+    if not isinstance(transport, str):
+        raise ValueError("transport must be str, got %s" % type(transport).__name__)
+    if transport not in ("rs485", "wifi"):
+        raise ValueError("transport must be 'rs485' or 'wifi', got '%s'" % transport)
+
     _require_str(raw, "db")
     _require_int(raw, "interval")
     _require_int(raw, "timeout")
+    _require_slaves(raw)
 
+    result = {
+        "transport": transport,
+        "slaves": raw["slaves"],
+        "db": raw["db"],
+        "interval": raw["interval"],
+        "timeout": raw["timeout"],
+    }
+
+    if transport == "rs485":
+        _require_str(raw, "port")
+        _require_int(raw, "baudrate")
+        result["port"] = raw["port"]
+        result["baudrate"] = raw["baudrate"]
+    else:
+        _require_wifi_section(raw)
+        result["wifi_host"] = raw["wifi"]["host"]
+        result["wifi_port"] = raw["wifi"]["port"]
+
+    return result
+
+
+def _require_slaves(raw: dict[str, object]) -> None:
+    """Validate that slaves exists and is a non-empty list of ints."""
     if "slaves" not in raw:
         raise ValueError("missing required key: slaves")
     if not isinstance(raw["slaves"], list):
@@ -46,14 +77,22 @@ def load_config(path: str) -> dict:
     if len(raw["slaves"]) == 0:
         raise ValueError("slaves must not be empty")
 
-    return {
-        "port": raw["port"],
-        "baudrate": raw["baudrate"],
-        "slaves": raw["slaves"],
-        "db": raw["db"],
-        "interval": raw["interval"],
-        "timeout": raw["timeout"],
-    }
+
+def _require_wifi_section(raw: dict[str, object]) -> None:
+    """Validate [wifi] section has host (str) and port (int)."""
+    if "wifi" not in raw:
+        raise ValueError("wifi transport requires [wifi] section")
+    wifi = raw["wifi"]
+    if not isinstance(wifi, dict):
+        raise ValueError("[wifi] must be a table")
+    if "host" not in wifi:
+        raise ValueError("missing required key: wifi.host")
+    if not isinstance(wifi["host"], str):
+        raise ValueError("wifi.host must be str, got %s" % type(wifi["host"]).__name__)
+    if "port" not in wifi:
+        raise ValueError("missing required key: wifi.port")
+    if not isinstance(wifi["port"], int):
+        raise ValueError("wifi.port must be int, got %s" % type(wifi["port"]).__name__)
 
 
 def _require_str(raw: dict[str, object], key: str) -> None:

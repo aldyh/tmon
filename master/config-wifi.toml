@@ -1,0 +1,18 @@
+# tmon WiFi configuration
+#
+# Use this for WiFi transport instead of RS-485.
+# Run with: tmon config-wifi.toml
+
+transport = "wifi"
+slaves = [1, 2, 3]
+db = "data/readings.db"
+# Polling interval in seconds.
+interval = 30
+# Socket receive timeout in milliseconds.
+timeout = 200
+
+[wifi]
+# Interface to bind (0.0.0.0 for all interfaces)
+host = "0.0.0.0"
+# TCP port for slave connections
+port = 5555

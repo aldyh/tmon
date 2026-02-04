@@ -18,8 +18,8 @@ def _write_toml(tmp_path: str, text: str) -> str:
 class TestLoadConfig:
     """Tests for load_config()."""
 
-    def test_valid_config(self, tmp_path):
-        """A valid TOML file returns the expected dict."""
+    def test_valid_rs485_config(self, tmp_path):
+        """RS-485 config (default transport) returns expected dict."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
@@ -29,12 +29,34 @@ class TestLoadConfig:
             'timeout = 200\n'
         ))
         cfg = load_config(path)
+        assert cfg["transport"] == "rs485"
         assert cfg["port"] == "/dev/ttyUSB0"
         assert cfg["baudrate"] == 9600
         assert cfg["slaves"] == [1, 2, 3]
         assert cfg["db"] == "data/readings.db"
         assert cfg["interval"] == 30
         assert cfg["timeout"] == 200
+
+    def test_valid_wifi_config(self, tmp_path):
+        """WiFi config with [wifi] section returns expected dict."""
+        path = _write_toml(tmp_path, (
+            'transport = "wifi"\n'
+            'slaves = [1, 2]\n'
+            'db = "data/readings.db"\n'
+            'interval = 30\n'
+            'timeout = 200\n'
+            '\n'
+            '[wifi]\n'
+            'host = "0.0.0.0"\n'
+            'port = 5555\n'
+        ))
+        cfg = load_config(path)
+        assert cfg["transport"] == "wifi"
+        assert cfg["wifi_host"] == "0.0.0.0"
+        assert cfg["wifi_port"] == 5555
+        assert cfg["slaves"] == [1, 2]
+        assert "port" not in cfg
+        assert "baudrate" not in cfg
 
     def test_missing_port(self, tmp_path):
         """Missing 'port' key raises ValueError."""
@@ -199,3 +221,73 @@ class TestLoadConfig:
         ))
         cfg = load_config(path)
         assert "extra" not in cfg
+
+    def test_invalid_transport(self, tmp_path):
+        """Invalid transport value raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'transport = "bluetooth"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+            'timeout = 200\n'
+        ))
+        with pytest.raises(ValueError, match="transport"):
+            load_config(path)
+
+    def test_wifi_missing_section(self, tmp_path):
+        """WiFi transport without [wifi] section raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'transport = "wifi"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+            'timeout = 200\n'
+        ))
+        with pytest.raises(ValueError, match="wifi.*section"):
+            load_config(path)
+
+    def test_wifi_missing_host(self, tmp_path):
+        """WiFi section without host raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'transport = "wifi"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+            'timeout = 200\n'
+            '\n'
+            '[wifi]\n'
+            'port = 5555\n'
+        ))
+        with pytest.raises(ValueError, match="wifi.host"):
+            load_config(path)
+
+    def test_wifi_missing_port(self, tmp_path):
+        """WiFi section without port raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'transport = "wifi"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+            'timeout = 200\n'
+            '\n'
+            '[wifi]\n'
+            'host = "0.0.0.0"\n'
+        ))
+        with pytest.raises(ValueError, match="wifi.port"):
+            load_config(path)
+
+    def test_wifi_port_wrong_type(self, tmp_path):
+        """WiFi port as string raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'transport = "wifi"\n'
+            'slaves = [1]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+            'timeout = 200\n'
+            '\n'
+            '[wifi]\n'
+            'host = "0.0.0.0"\n'
+            'port = "5555"\n'
+        ))
+        with pytest.raises(ValueError, match="wifi.port.*int"):
+            load_config(path)
