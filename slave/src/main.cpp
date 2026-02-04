@@ -14,11 +14,9 @@
 
 #include <Arduino.h>
 
-extern "C" {
 #include "handler.h"
 #include "protocol.h"
 #include "sensors.h"
-}
 
 /* Pin assignments per docs/wiring.org */
 static const int PIN_UART_RX = 16;

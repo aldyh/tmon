@@ -11,7 +11,15 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 size_t tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
                              uint8_t *out, size_t out_len);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TMON_HANDLER_H */

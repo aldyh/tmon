@@ -9,11 +9,9 @@
 #include <Arduino.h>
 #include <WiFi.h>
 
-extern "C" {
 #include "handler.h"
 #include "protocol.h"
 #include "sensors.h"
-}
 
 /*
  * Required build flags (injected by wifi_config.py from master/config-wifi.toml):

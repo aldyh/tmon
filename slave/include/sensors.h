@@ -11,7 +11,15 @@
 #include <stdint.h>
 #include "protocol.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void tmon_sensors_init (void);
 void tmon_read_temps (int16_t temps[TMON_NUM_CHANNELS]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* TMON_SENSORS_H */
