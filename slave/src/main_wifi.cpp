@@ -97,7 +97,7 @@ loop (void)
   if (wifi_connected && !wifi_was_connected)
     {
       Serial.println ("WiFi connected");
-      led_notify_wifi_connected ();
+      led_notify_ready ();
     }
   else if (!wifi_connected && wifi_was_connected)
     {

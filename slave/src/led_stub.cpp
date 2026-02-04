@@ -39,7 +39,7 @@ led_notify_poll (void)
 }
 
 void
-led_notify_wifi_connected (void)
+led_notify_ready (void)
 {
   if (current_state == LED_STATE_NO_WIFI)
     current_state = LED_STATE_WAITING;

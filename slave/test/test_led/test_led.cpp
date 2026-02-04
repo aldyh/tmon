@@ -114,7 +114,7 @@ test_wifi_connected_goes_to_waiting (void)
   led_notify_wifi_disconnected ();
   TEST_ASSERT_EQUAL (LED_STATE_NO_WIFI, led_stub_get_state ());
 
-  led_notify_wifi_connected ();
+  led_notify_ready ();
   TEST_ASSERT_EQUAL (LED_STATE_WAITING, led_stub_get_state ());
 }
 
@@ -126,7 +126,7 @@ test_wifi_connected_no_effect_when_active (void)
   led_notify_poll ();
   TEST_ASSERT_EQUAL (LED_STATE_ACTIVE, led_stub_get_state ());
 
-  led_notify_wifi_connected ();
+  led_notify_ready ();
   TEST_ASSERT_EQUAL (LED_STATE_ACTIVE, led_stub_get_state ());
 }
 
@@ -150,7 +150,7 @@ test_wifi_full_cycle (void)
   led_notify_wifi_disconnected ();  /* Start with no WiFi */
   TEST_ASSERT_EQUAL (LED_STATE_NO_WIFI, led_stub_get_state ());
 
-  led_notify_wifi_connected ();     /* WiFi connects */
+  led_notify_ready ();     /* WiFi connects */
   TEST_ASSERT_EQUAL (LED_STATE_WAITING, led_stub_get_state ());
 
   led_notify_poll ();               /* First POLL */
@@ -172,7 +172,7 @@ test_wifi_reconnect_after_disconnect (void)
   led_notify_wifi_disconnected ();
   TEST_ASSERT_EQUAL (LED_STATE_NO_WIFI, led_stub_get_state ());
 
-  led_notify_wifi_connected ();
+  led_notify_ready ();
   TEST_ASSERT_EQUAL (LED_STATE_WAITING, led_stub_get_state ());
 }
 

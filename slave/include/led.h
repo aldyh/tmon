@@ -17,8 +17,8 @@
 #include <stdint.h>
 
 void led_init (uint32_t watchdog_timeout_ms);
+void led_notify_ready (void);
 void led_notify_poll (void);
-void led_notify_wifi_connected (void);
 void led_notify_wifi_disconnected (void);
 void led_update (uint32_t now_ms);
 

@@ -60,8 +60,9 @@ setup (void)
   /* Initialize temperature sensors */
   tmon_sensors_init ();
 
-  /* Initialize status LED */
+  /* Initialize status LED (yellow = waiting for POLL) */
   led_init (WATCHDOG_TIMEOUT_MS);
+  led_notify_ready ();
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);

@@ -91,11 +91,11 @@ led_notify_poll (void)
 }
 
 /*
- * Notify that WiFi has connected.
- * Transitions from red (no WiFi) to yellow (waiting for POLL).
+ * Notify that transport is ready (WiFi connected, or UART configured).
+ * Transitions to yellow (waiting for POLL).
  */
 void
-led_notify_wifi_connected (void)
+led_notify_ready (void)
 {
   if (current_state == LED_STATE_NO_WIFI)
     current_state = LED_STATE_WAITING;
