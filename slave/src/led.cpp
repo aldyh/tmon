@@ -30,7 +30,7 @@ static const uint32_t COLOR_RED    = 0xFF0000;
 typedef enum
 {
   LED_STATE_NO_WIFI,        /* Red fast blink (3 Hz) */
-  LED_STATE_WAITING,        /* Yellow slow blink (1 Hz) */
+  LED_STATE_WAITING,        /* Yellow solid */
   LED_STATE_ACTIVE,         /* Green solid */
   LED_STATE_TIMEOUT         /* Red slow blink (1 Hz) */
 } led_state_t;
@@ -147,13 +147,8 @@ led_update (uint32_t now_ms)
       break;
 
     case LED_STATE_WAITING:
-      /* Slow yellow blink (1 Hz) */
-      if ((now_ms - last_blink_time) >= SLOW_BLINK_PERIOD)
-        {
-          blink_on = !blink_on;
-          last_blink_time = now_ms;
-          led_set_color (blink_on ? COLOR_YELLOW : COLOR_OFF);
-        }
+      /* Solid yellow */
+      led_set_color (COLOR_YELLOW);
       break;
 
     case LED_STATE_ACTIVE:

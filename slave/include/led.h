@@ -6,7 +6,7 @@
  *
  * LED states:
  *   Green solid       - Recent POLL received (communication active)
- *   Yellow slow blink - Waiting for first POLL (1 Hz)
+ *   Yellow solid      - Waiting for first POLL
  *   Red fast blink    - No WiFi connection (3 Hz, WiFi build only)
  *   Red slow blink    - Watchdog timeout, no POLL for too long (1 Hz)
  */
