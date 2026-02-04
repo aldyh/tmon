@@ -18,7 +18,7 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
   - Examples: `claude/000-protocol-python`, `claude/001-simulator`, etc.
 - Each new branch should have master as the upstream: git branch -u master
 - If a task spans multiple commits, keep them reviewable and ordered.
-- When I review your code, use incremental commits on top of current topic branch.
+- When I review your code, amend the specific commits being reviewed via interactive rebase, rather than adding fix-up commits on top.
 - Use fast-forward merges: `git merge <branch>` (no `--no-ff`).
 
 ## Progress tracking

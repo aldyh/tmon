@@ -9,6 +9,8 @@ When asked to work on an item, work on a new branch as per the guidelines in CLA
 
 When working on a TODO item, constrain yourself to the item at hand.  No fly-by refactors, etc.
 
+New items go at the top of the file, right after this INSTRUCTIONS section.
+
 The TODO item itself will contain the instructions itself.
 
 Usual commit guidelines per this project apply as described in CLAUDE.md.
