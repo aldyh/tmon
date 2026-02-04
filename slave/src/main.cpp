@@ -1,20 +1,24 @@
 /*
- * tmon slave firmware -- ESP32
+ * tmon slave firmware -- ESP32-S3 blink test
  *
- * Reads NTC thermistors and responds to RS-485 poll requests
- * from the master.
+ * Minimal sketch to verify the toolchain and flash process.
  */
 
 #include <Arduino.h>
 
+#define LED_PIN 2
+
 void
 setup (void)
 {
-  /* TODO: initialize serial, RS-485 transceiver, ADC pins */
+  pinMode (LED_PIN, OUTPUT);
 }
 
 void
 loop (void)
 {
-  /* TODO: listen for poll request, send response */
+  digitalWrite (LED_PIN, HIGH);
+  delay (500);
+  digitalWrite (LED_PIN, LOW);
+  delay (500);
 }
