@@ -283,7 +283,7 @@ Options:
 
 For a home project, option 1 is fine.  The schema is 12 lines and rarely
 changes; keeping it inline avoids deployment edge cases.
-* TODO Document Pi UART setup in wiring.org
+* DONE Document Pi UART setup in wiring.org
 Add a section for the Pi side GPIO UART configuration:
 - /boot/firmware/config.txt: enable_uart=1, dtoverlay=disable-bt
 - Disable serial console in /boot/firmware/cmdline.txt
@@ -302,7 +302,10 @@ Phase 2 - With MAX485:
   Pi uses USB-RS485 adapter (/dev/ttyUSB0) instead of GPIO UART.
 
 ESP32 wiring is identical in both phases - just the Pi side changes.
-* TODO Update wiring.org for ESP32-S3
+
+** Notes
+Implemented in commit 4848bc5 as part of branch claude/031-esp32-s3-uart-docs.
+* DONE Update wiring.org for ESP32-S3
 The current wiring doc assumes ESP32-WROOM-32. Update pin assignments
 for ESP32-S3:
 - UART: GPIO 16 (RX), GPIO 17 (TX) - same pins as WROOM-32 but via GPIO matrix
@@ -312,3 +315,6 @@ for ESP32-S3:
 
 These pins work for both bare UART test and later MAX485 connection.
 Defer until blink test passes and we confirm hardware works.
+
+** Notes
+Implemented in commit 4848bc5 as part of branch claude/031-esp32-s3-uart-docs.

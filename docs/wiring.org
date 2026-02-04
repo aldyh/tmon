@@ -130,7 +130,7 @@ GND          ----[wire]----- GND
 GPIO 5 (DE/RE)               [toggled but not connected]
 #+end_example
 
-The ESP32 firmware still toggles GPIO 4 for DE/RE timing, but since
+The ESP32 firmware still toggles GPIO 5 for DE/RE timing, but since
 there is no MAX485, the signal goes nowhere.  This validates the UART
 and protocol logic before adding RS-485 hardware.
 
