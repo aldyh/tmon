@@ -131,13 +131,13 @@ so something simple.
 
 **** Blink test (verify toolchain)
 - [X] Update platformio.ini for ESP32-S3
-- [ ] Blink sketch compiles and uploads
-- [ ] GPIO toggles on real hardware
+- [X] Blink sketch compiles and uploads
+- [X] GPIO toggles on real hardware
 
 **** Bare UART test (GPIO-to-GPIO, no RS485)
-- [ ] Document Pi UART setup in docs/wiring.org (disable BT, enable UART)
+- [X] Document Pi UART setup in docs/wiring.org (disable BT, enable UART)
 - [ ] ESP32 UART2 wired directly to Pi UART (TX->RX, RX->TX, GND)
-- [ ] Firmware: configure UART on GPIO 16/17, toggle DE/RE on GPIO 5
+- [X] Firmware: configure UART on GPIO 16/17, toggle DE/RE on GPIO 5
 - [ ] Echo test: ESP32 echoes received bytes
 - [ ] Protocol test: ESP32 responds to POLL_REQUEST with dummy data
 - [ ] Master talks to real ESP32 over /dev/serial0
