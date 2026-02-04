@@ -12,7 +12,12 @@ interval = 30
 timeout = 200
 
 [wifi]
-# Interface to bind (0.0.0.0 for all interfaces)
+# Network credentials (used by slave firmware)
+ssid = "changeme"
+password = "changeme"
+# Master's IP address (slave connects to this)
+master_ip = "192.168.1.100"
+# Interface to bind (master daemon)
 host = "0.0.0.0"
 # TCP port for slave connections
 port = 5555
