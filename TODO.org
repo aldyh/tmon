@@ -320,3 +320,18 @@ Defer until blink test passes and we confirm hardware works.
 
 ** Notes
 Implemented in commit 4848bc5 as part of branch claude/031-esp32-s3-uart-docs.
+* TODO YOLO with wifi!
+Crazy idea, how about we add an option so we can test the entire
+project over wifi, no cables.  Well, we'd still need to wire the NTC's to each esp32, but the esp32 and pis (or x86 linux) would talk over wifi.  Draft up a plan for the entire thing as a TODO item in TODO.org
+
+Since we currently don't even have the rs485/uart implementation ready (it's just an echo stub), implement that as well as part of this work.  With some way where we can choose whether we're running in rs485/uart mode or wifi (as a parameter, or makefile target or whatever).
+
+Implement it all in a branch.
+
+Use your best judgement, following the style and goals of this project.  Ask few questions.
+
+Use multiple small commits easy to review.  Use the guidelines for simplicity, etc in this project.
+
+Make sure SSID/passwd can be set in toml (or somewhere configurable) for both client/server.  Make sure we can test with make file.  Implement the entire wifi client for the esp32 as it would ultimately work...
+
+Can you do this, or is anything not clear?  Don't ask too many questions, but if anything absolutely needs clarification, ask now before you start.
