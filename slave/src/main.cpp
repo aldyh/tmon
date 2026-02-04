@@ -52,6 +52,7 @@ setup (void)
 {
   /* USB serial for debug output */
   Serial.begin (115200);
+  delay (5000);  /* Wait for USB CDC to enumerate */
   Serial.println ("tmon slave starting");
   Serial.print ("Address: ");
   Serial.println (MY_ADDR);
