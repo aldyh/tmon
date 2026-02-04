@@ -62,6 +62,11 @@ Commit checklist:
 - Space before parentheses in function calls and definitions: `foo (arg)`,
   `if (cond)`.
 - Space after commas.
+- **Documentation placement**: Headers (`.h`) contain only prototypes and brief
+  comments for types/constants. Full function documentation (description, Args,
+  Returns, Example) goes in the source (`.c`) file, directly above each function
+  definition. See `slave/include/protocol.h` and `slave/src/protocol.c` for the
+  reference style.
 
 ### Python
 
