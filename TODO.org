@@ -15,7 +15,7 @@ The TODO item itself will contain the instructions itself.
 
 Usual commit guidelines per this project apply as described in CLAUDE.md.
 
-As part of the commit mark the item as DONE in this file.
+As part of the commit mark the item as DONE in this file, and update any milestones that may need updating in PLAN.org.
 
 Add a subsection in the item named "Notes", of anything interesting that came up during working on this item, that might be useful to keep in the archived DONE item.
 * DONE Inconsistent error handling philosophy
