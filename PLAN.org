@@ -148,6 +148,17 @@ so something simple.
 - [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
 
+*** WiFi transport (alternative to RS-485)
+
+- [X] Master: WifiBus TCP server implementation
+- [X] Master: Config transport selection (rs485 or wifi)
+- [X] Master: WiFi integration tests
+- [X] Slave: Full protocol handler (respond to POLL with REPLY)
+- [X] Slave: NTC thermistor reading (Steinhart-Hart)
+- [X] Slave: WiFi client connecting to master
+- [X] Slave: Build environments (uart vs wifi)
+- [X] Makefile targets for WiFi builds
+
 *** Integration + polish
 
 - [ ] Real bus smoke test with 1 slave -> then scale to all slaves

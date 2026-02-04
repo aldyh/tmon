@@ -320,7 +320,7 @@ Defer until blink test passes and we confirm hardware works.
 
 ** Notes
 Implemented in commit 4848bc5 as part of branch claude/031-esp32-s3-uart-docs.
-* TODO YOLO with wifi!
+* DONE YOLO with wifi!
 Crazy idea, how about we add an option so we can test the entire
 project over wifi, no cables.  Well, we'd still need to wire the NTC's to each esp32, but the esp32 and pis (or x86 linux) would talk over wifi.  Draft up a plan for the entire thing as a TODO item in TODO.org
 
@@ -335,3 +335,29 @@ Use multiple small commits easy to review.  Use the guidelines for simplicity, e
 Make sure SSID/passwd can be set in toml (or somewhere configurable) for both client/server.  Make sure we can test with make file.  Implement the entire wifi client for the esp32 as it would ultimately work...
 
 Can you do this, or is anything not clear?  Don't ask too many questions, but if anything absolutely needs clarification, ask now before you start.
+
+** Notes
+Implemented WiFi as alternative transport to RS-485:
+
+Master side:
+- ~wifi_bus.py~: TCP server that accepts slave connections
+- Slaves send 1-byte address on connect for identification
+- Same binary protocol over TCP instead of serial
+- Config: ~transport = "wifi"~ with ~[wifi]~ section for host/port
+- ~config-wifi.toml~ sample configuration
+
+Slave side:
+- ~handler.c~: Protocol message handler (responds to POLL with REPLY)
+- ~sensors.cpp~: NTC thermistor reading with Steinhart-Hart equation
+- ~main.cpp~: UART transport with inter-byte timeout for frame assembly
+- ~main_wifi.cpp~: WiFi transport with auto-reconnect
+- platformio.ini: ~uart~ and ~wifi~ build environments
+- WiFi config via build flags: ~-DWIFI_SSID=\"...\"~ etc.
+
+Build/test:
+- ~make build-slave~ / ~make build-slave-wifi~
+- ~make flash-slave~ / ~make flash-slave-wifi~
+- ~make check~ runs all tests including WiFi integration tests
+
+Architecture: TCP client-server model where slaves initiate connection
+to master. This avoids NAT/firewall issues and simplifies reconnection.
