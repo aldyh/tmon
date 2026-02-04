@@ -49,6 +49,24 @@ make                  # create master venv + deps, build slave firmware
 make check            # run all tests (no hardware needed)
 #+end_example
 
+*** Flash slaves
+
+#+begin_example
+make flash-slave SLAVE_ADDR=1        # RS-485 transport
+make flash-slave-wifi SLAVE_ADDR=1   # WiFi transport
+#+end_example
+
+WiFi credentials are read from ~master/config-wifi.toml~.
+
+*** Run the daemon
+
+#+begin_example
+make run-master       # RS-485 transport (uses master/config.toml)
+make run-master-wifi  # WiFi transport (uses master/config-wifi.toml)
+#+end_example
+
+Runs in foreground; Ctrl+C to stop.
+
 ** Documentation
 
 - [[file:docs/protocol.org][Protocol Specification]]

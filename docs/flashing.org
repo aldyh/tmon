@@ -15,14 +15,20 @@ pipx install platformio
 ** Build
 
 #+begin_example
-make build-slave
+make build-slave       # RS-485 transport
+make build-slave-wifi  # WiFi transport
 #+end_example
 
 ** Flash
 
 #+begin_example
-make flash-slave
+make flash-slave SLAVE_ADDR=1       # RS-485 transport
+make flash-slave-wifi SLAVE_ADDR=1  # WiFi transport
 #+end_example
+
+~SLAVE_ADDR~ is required and sets the device address (1-254).
+
+For WiFi builds, credentials are read from ~master/config-wifi.toml~.
 
 The device typically appears at ~/dev/ttyACM0~.
 

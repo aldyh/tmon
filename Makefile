@@ -1,4 +1,5 @@
 .PHONY: all build-master build-slave build-slave-wifi flash-slave flash-slave-wifi \
+       run-master run-master-wifi \
        demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
@@ -35,6 +36,12 @@ ifndef SLAVE_ADDR
 	$(error SLAVE_ADDR required, e.g. make flash-slave-wifi SLAVE_ADDR=1)
 endif
 	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e wifi -t upload
+
+run-master: $(MASTER_STAMP)
+	cd master && . .venv/bin/activate && tmon config.toml
+
+run-master-wifi: $(MASTER_STAMP)
+	cd master && . .venv/bin/activate && tmon config-wifi.toml
 
 demo-setup: $(PANEL_STAMP)
 
