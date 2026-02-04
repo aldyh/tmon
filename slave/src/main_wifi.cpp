@@ -74,6 +74,7 @@ ensure_connected (void)
 void
 setup (void)
 {
+  led_init (WATCHDOG_TIMEOUT_MS);  /* Clear LED immediately on boot */
   Serial.begin (115200);
   delay (5000);
 
@@ -82,7 +83,6 @@ setup (void)
   Serial.println (SLAVE_ADDR);
 
   tmon_sensors_init ();
-  led_init (WATCHDOG_TIMEOUT_MS);
   WiFi.begin (WIFI_SSID, WIFI_PASSWORD);
 }
 
@@ -94,9 +94,15 @@ loop (void)
   /* Track WiFi state changes for LED */
   bool wifi_connected = (WiFi.status () == WL_CONNECTED);
   if (wifi_connected && !wifi_was_connected)
-    led_notify_wifi_connected ();
+    {
+      Serial.println ("WiFi connected");
+      led_notify_wifi_connected ();
+    }
   else if (!wifi_connected && wifi_was_connected)
-    led_notify_wifi_disconnected ();
+    {
+      Serial.println ("WiFi disconnected");
+      led_notify_wifi_disconnected ();
+    }
   wifi_was_connected = wifi_connected;
 
   if (!ensure_connected ())
@@ -111,6 +117,11 @@ loop (void)
   if (rx_len < 4)
     return;  /* Timeout or partial read */
 
+  Serial.print ("RX header: cmd=0x");
+  Serial.print (rx_buf[2], HEX);
+  Serial.print (" len=");
+  Serial.println (rx_buf[3]);
+
   /* Read payload + CRC based on LEN field */
   uint8_t payload_len = rx_buf[3];
   size_t remaining = payload_len + 2;  /* payload + CRC */
@@ -118,7 +129,10 @@ loop (void)
     {
       size_t got = client.readBytes (&rx_buf[4], remaining);
       if (got < remaining)
-        return;  /* Incomplete frame, discard */
+        {
+          Serial.println ("Incomplete frame, discarding");
+          return;
+        }
       rx_len += got;
     }
 
@@ -127,8 +141,15 @@ loop (void)
                                         tx_buf, BUF_SIZE);
   if (tx_len > 0)
     {
+      Serial.print ("TX response: ");
+      Serial.print (tx_len);
+      Serial.println (" bytes");
       client.write (tx_buf, tx_len);
       led_notify_poll ();
+    }
+  else
+    {
+      Serial.println ("No response generated");
     }
 
   led_update (now);
