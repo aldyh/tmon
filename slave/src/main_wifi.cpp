@@ -75,7 +75,7 @@ void
 setup (void)
 {
   Serial.begin (115200);
-  delay (1000);
+  delay (5000);
 
   Serial.println ("tmon WiFi slave starting");
   Serial.print ("Address: ");
