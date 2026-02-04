@@ -1,0 +1,37 @@
+#+STARTUP: showall
+
+* Flashing the ESP32-S3
+
+Instructions for building and flashing the slave firmware.
+
+** Prerequisites
+
+PlatformIO Core (CLI) installed via pipx:
+
+#+begin_example
+pipx install platformio
+#+end_example
+
+** Build
+
+#+begin_example
+make build-slave
+#+end_example
+
+** Flash
+
+#+begin_example
+make flash-slave
+#+end_example
+
+The device typically appears at ~/dev/ttyACM0~.
+
+** Bootloader recovery
+
+If the device is unresponsive or flashing fails:
+
+1. Hold the BOOT button
+2. Tap the RST button
+3. Release BOOT
+
+The device is now in bootloader mode and ready for flashing.

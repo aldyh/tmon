@@ -129,6 +129,12 @@ so something simple.
 
 *** ESP32 firmware: sensors + RS-485
 
+**** Blink test (verify toolchain)
+- [ ] Update platformio.ini for ESP32-S3
+- [ ] Blink sketch compiles and uploads
+- [ ] GPIO toggles on real hardware
+
+**** Full firmware
 - [ ] Read NTC thermistors
 - [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
 - [ ] Respond to requests; populate payload with temperature readings

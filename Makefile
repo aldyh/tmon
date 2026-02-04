@@ -1,4 +1,4 @@
-.PHONY: all build-master build-slave demo-setup \
+.PHONY: all build-master build-slave flash-slave demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean clean
@@ -19,6 +19,9 @@ $(MASTER_STAMP): master/.venv master/pyproject.toml
 
 build-slave:
 	cd slave && pio run
+
+flash-slave:
+	cd slave && pio run -t upload
 
 demo-setup: $(PANEL_STAMP)
 
