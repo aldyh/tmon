@@ -361,3 +361,4 @@ Build/test:
 
 Architecture: TCP client-server model where slaves initiate connection
 to master. This avoids NAT/firewall issues and simplifies reconnection.
+* TODO Address the issue of wifi credentials in toml file.
