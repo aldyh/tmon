@@ -16,6 +16,7 @@
 
 #include "handler.h"
 #include "led.h"
+#include "log.h"
 #include "protocol.h"
 #include "sensors.h"
 
@@ -78,6 +79,10 @@ loop (void)
   /* Check for inter-byte timeout (frame boundary) */
   if (rx_len > 0 && (now - last_rx_time) > FRAME_TIMEOUT_MS)
     {
+      Serial.print ("RX frame: ");
+      Serial.print (rx_len);
+      Serial.println (" bytes");
+
       /* Try to process the accumulated bytes */
       size_t tx_len = tmon_handler_process (MY_ADDR, rx_buf, rx_len,
                                             tx_buf, TX_BUF_SIZE);
@@ -91,16 +96,17 @@ loop (void)
 
           led_notify_poll ();
 
-          Serial.print ("POLL from master, sent REPLY (");
+          /* Log temps (reads sensors again, but simple and clear) */
+          int16_t temps[TMON_NUM_CHANNELS];
+          tmon_read_temps (temps);
+          Serial.print ("TX REPLY: ");
           Serial.print (tx_len);
-          Serial.println (" bytes)");
+          Serial.print (" bytes, ");
+          log_temps (temps);
         }
-      else if (rx_len >= TMON_FRAME_OVERHEAD)
+      else
         {
-          /* Had enough bytes for a frame but it wasn't valid */
-          Serial.print ("Invalid frame (");
-          Serial.print (rx_len);
-          Serial.println (" bytes)");
+          Serial.println ("No response generated");
         }
 
       /* Reset receive buffer */

@@ -11,6 +11,7 @@
 
 #include "handler.h"
 #include "led.h"
+#include "log.h"
 #include "protocol.h"
 #include "sensors.h"
 
@@ -117,11 +118,6 @@ loop (void)
   if (rx_len < 4)
     return;  /* Timeout or partial read */
 
-  Serial.print ("RX header: cmd=0x");
-  Serial.print (rx_buf[2], HEX);
-  Serial.print (" len=");
-  Serial.println (rx_buf[3]);
-
   /* Read payload + CRC based on LEN field */
   uint8_t payload_len = rx_buf[3];
   size_t remaining = payload_len + 2;  /* payload + CRC */
@@ -136,14 +132,23 @@ loop (void)
       rx_len += got;
     }
 
+  Serial.print ("RX frame: ");
+  Serial.print (rx_len);
+  Serial.println (" bytes");
+
   /* Process frame and send response */
   size_t tx_len = tmon_handler_process (SLAVE_ADDR, rx_buf, rx_len,
                                         tx_buf, BUF_SIZE);
   if (tx_len > 0)
     {
-      Serial.print ("TX response: ");
+      /* Log temps (reads sensors again, but simple and clear) */
+      int16_t temps[TMON_NUM_CHANNELS];
+      tmon_read_temps (temps);
+      Serial.print ("TX REPLY: ");
       Serial.print (tx_len);
-      Serial.println (" bytes");
+      Serial.print (" bytes, ");
+      log_temps (temps);
+
       client.write (tx_buf, tx_len);
       led_notify_poll ();
     }
