@@ -1,4 +1,5 @@
-.PHONY: all build-master build-slave flash-slave demo-setup \
+.PHONY: all build-master build-slave build-slave-wifi flash-slave flash-slave-wifi \
+       demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean clean
@@ -18,10 +19,22 @@ $(MASTER_STAMP): master/.venv master/pyproject.toml
 	touch $(MASTER_STAMP)
 
 build-slave:
-	cd slave && pio run
+	cd slave && pio run -e uart
+
+build-slave-wifi:
+	cd slave && pio run -e wifi
 
 flash-slave:
-	cd slave && pio run -t upload
+ifndef SLAVE_ADDR
+	$(error SLAVE_ADDR required, e.g. make flash-slave SLAVE_ADDR=1)
+endif
+	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e uart -t upload
+
+flash-slave-wifi:
+ifndef SLAVE_ADDR
+	$(error SLAVE_ADDR required, e.g. make flash-slave-wifi SLAVE_ADDR=1)
+endif
+	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e wifi -t upload
 
 demo-setup: $(PANEL_STAMP)
 

@@ -28,8 +28,8 @@ static const int PIN_DE_RE   = 5;
 /* RS-485 bus parameters per docs/protocol.org */
 static const int UART_BAUD = 9600;
 
-/* This slave's address -- TODO: make configurable */
-static const uint8_t MY_ADDR = 1;
+/* This slave's address (set via -DSLAVE_ADDR=N at build time) */
+static const uint8_t MY_ADDR = SLAVE_ADDR;
 
 /* Receive buffer */
 static const size_t RX_BUF_SIZE = 64;
