@@ -267,7 +267,7 @@ CREATE INDEX idx_readings_addr_ts ON readings(addr, ts);
 
 This is a straightforward change to ~schema/readings.sql~.  Existing
 databases can be migrated with a one-time ~CREATE INDEX~ command.
-* TODO Fragile schema loading path in storage.py
+* DONE Fragile schema loading path in storage.py
 
 ~storage.py~ loads the schema from ~schema/readings.sql~ using relative
 path traversal:

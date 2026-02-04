@@ -19,7 +19,7 @@ master poller.
 
 Stores one row per successful REPLY frame received from a slave.
 
-The authoritative schema is in [[file:../schema/readings.sql][schema/readings.sql]].
+The authoritative schema is embedded in [[file:../master/src/tmon/storage.py][storage.py]].
 
 *** Column details
 

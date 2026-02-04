@@ -1,6 +1,6 @@
 """Generate mock temperature data for the demo dashboard.
 
-Creates tmon_mock.db with the readings table schema from schema/readings.sql.
+Creates tmon_mock.db with the readings table schema from tmon.storage.
 Populates it with 1 year of readings for 3 slaves at 30-second intervals.
 
 Temperature profiles use sinusoidal daily and seasonal cycles plus
@@ -17,14 +17,8 @@ import math
 import os
 import random
 import sqlite3
-from pathlib import Path
 
-_SCHEMA_PATH = Path(__file__).resolve().parents[1] / "schema" / "readings.sql"
-
-
-def _load_schema() -> str:
-    """Read the CREATE TABLE statement from schema/readings.sql."""
-    return _SCHEMA_PATH.read_text()
+from tmon.storage import SCHEMA
 
 # (addr, num_channels, base_temp_tenths, amplitude_tenths)
 _SLAVES = [
@@ -73,7 +67,7 @@ def generate(db_path: str, days: int, seed: int) -> int:
     conn = sqlite3.connect(db_path)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA synchronous=OFF")
-    conn.executescript(_load_schema())
+    conn.executescript(SCHEMA)
 
     total_seconds = days * _SECONDS_PER_DAY
     total_steps = total_seconds // _INTERVAL

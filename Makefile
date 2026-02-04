@@ -28,8 +28,8 @@ demo-setup: $(PANEL_STAMP)
 panel/.venv:
 	python3 -m venv panel/.venv
 
-$(PANEL_STAMP): panel/.venv panel/pyproject.toml
-	. panel/.venv/bin/activate && pip install -e "panel/.[test]"
+$(PANEL_STAMP): panel/.venv panel/pyproject.toml master/pyproject.toml
+	. panel/.venv/bin/activate && pip install -e master -e "panel/.[test]"
 	touch $(PANEL_STAMP)
 
 check: check-master check-slave check-integration check-demo

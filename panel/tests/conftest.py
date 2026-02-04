@@ -3,17 +3,10 @@
 import os
 import sqlite3
 import tempfile
-from pathlib import Path
 
 import pytest
 
-
-_SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schema" / "readings.sql"
-
-
-def _load_schema() -> str:
-    """Read the CREATE TABLE statement from schema/readings.sql."""
-    return _SCHEMA_PATH.read_text()
+from tmon.storage import SCHEMA
 
 
 @pytest.fixture()
@@ -22,7 +15,7 @@ def empty_db():
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     conn = sqlite3.connect(path)
-    conn.executescript(_load_schema())
+    conn.executescript(SCHEMA)
     conn.commit()
     conn.close()
     yield path
@@ -35,7 +28,7 @@ def sample_db():
     fd, path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
     conn = sqlite3.connect(path)
-    conn.executescript(_load_schema())
+    conn.executescript(SCHEMA)
     # Unix timestamps for 2024-06-01 12:00:00Z, 12:00:30Z, 12:01:00Z
     ts_base = 1717243200  # 2024-06-01T12:00:00Z
     rows = [

@@ -1,6 +1,6 @@
 """SQLite storage for temperature readings.
 
-Persists poll data according to the schema in schema/readings.sql.
+Persists poll data according to the readings schema (embedded below).
 One row per successful REPLY frame, storing raw int16 temperatures
 (tenths of a degree Celsius).  Timestamps are stored as Unix epoch
 integers (seconds since 1970-01-01 00:00:00 UTC).
@@ -17,17 +17,21 @@ Example:
 
 import sqlite3
 import time
-from pathlib import Path
 
 
 _NUM_CHANNELS = 4
 
-_SCHEMA_PATH = Path(__file__).resolve().parents[3] / "schema" / "readings.sql"
-
-
-def _load_schema() -> str:
-    """Read the CREATE TABLE statement from schema/readings.sql."""
-    return _SCHEMA_PATH.read_text()
+SCHEMA = """\
+CREATE TABLE IF NOT EXISTS readings (
+    id        INTEGER PRIMARY KEY,
+    ts        INTEGER NOT NULL,  -- Unix timestamp (seconds since epoch, UTC)
+    addr      INTEGER NOT NULL,  -- slave address (1-247)
+    temp_0    INTEGER,           -- channel 0, tenths of deg C
+    temp_1    INTEGER,           -- channel 1, tenths of deg C
+    temp_2    INTEGER,           -- channel 2, tenths of deg C
+    temp_3    INTEGER            -- channel 3, tenths of deg C
+);
+"""
 
 _INSERT = """\
 INSERT INTO readings (ts, addr, temp_0, temp_1, temp_2, temp_3)
@@ -61,7 +65,7 @@ class Storage:
         self._conn = sqlite3.connect(db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
-        self._conn.executescript(_load_schema())
+        self._conn.executescript(SCHEMA)
         self._conn.commit()
 
     def insert(self, addr: int, temps: list[int | None]) -> None:
