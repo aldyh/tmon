@@ -19,7 +19,7 @@ if config_path.exists():
     env.Append(BUILD_FLAGS=[
         f'-DWIFI_SSID=\\"{wifi.get("ssid", "changeme")}\\"',
         f'-DWIFI_PASSWORD=\\"{wifi.get("password", "changeme")}\\"',
-        f'-DMASTER_HOST=\\"{wifi.get("master_ip", "192.168.1.100")}\\"',
+        f'-DMASTER_HOST=\\"{wifi.get("master_host", "192.168.1.100")}\\"',
         f"-DMASTER_PORT={wifi.get('port', 5555)}",
     ])
 

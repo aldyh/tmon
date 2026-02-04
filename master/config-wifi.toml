@@ -15,8 +15,8 @@ timeout = 200
 # Network credentials (used by slave firmware)
 ssid = "changeme"
 password = "changeme"
-# Master's IP address (slave connects to this)
-master_ip = "192.168.1.100"
+# Master's hostname or IP address (slave connects to this)
+master_host = "192.168.1.100"
 # Interface to bind (master daemon)
 host = "0.0.0.0"
 # TCP port for slave connections
