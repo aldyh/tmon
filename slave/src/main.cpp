@@ -96,13 +96,13 @@ loop (void)
 
           led_notify_poll ();
 
-          /* Log temps (reads sensors again, but simple and clear) */
-          int16_t temps[TMON_NUM_CHANNELS];
-          tmon_read_temps (temps);
+          /* Log temps from the actual response payload */
+          struct tmon_reply_payload parsed;
+          tmon_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
           Serial.print ("TX REPLY: ");
           Serial.print (tx_len);
           Serial.print (" bytes, ");
-          log_temps (temps);
+          log_temps (parsed.temps);
         }
       else
         {
