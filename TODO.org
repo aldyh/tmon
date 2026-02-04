@@ -246,8 +246,10 @@ Checklist for the milestone:
 
 ** Notes
 Milestone added to PLAN.org in commit 4848bc5.
-* TODO Missing index on readings table
+* WAITING Missing index on readings table
 
+- State "WAITING"    from "TODO"       [2026-02-04 Wed 11:13] \\
+  This isn't urgent.
 The ~readings~ table (schema/readings.sql) has no indexes beyond the
 primary key.  The panel's ~/api/history~ and ~/api/export~ endpoints
 filter by ~(addr, ts)~ range:
