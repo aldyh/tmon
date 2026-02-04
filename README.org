@@ -6,7 +6,8 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
 
 ** What it is
 
-- *Master (Raspberry Pi):* Python daemon that polls ESP32 slaves over RS-485 (USB adapter) and stores readings in SQLite.
+- *Master (Raspberry Pi):* Python daemon that polls ESP32 slaves and stores readings in SQLite.
+- *Transport:* RS-485 (USB adapter) or WiFi (TCP).
 - *Slaves (ESP32):* Each reads up to *4 NTC thermistors* and replies when polled.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
 - *Scale:* 1-4 slaves; designed to stay small and stable.
