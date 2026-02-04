@@ -17,6 +17,7 @@ Example:
 
 import sqlite3
 import time
+from pathlib import Path
 
 
 _NUM_CHANNELS = 4
@@ -62,6 +63,8 @@ class Storage:
 
     def __init__(self, db_path: str):
         """Open the database and ensure the schema exists."""
+        if db_path != ":memory:":
+            Path(db_path).parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(db_path)
         self._conn.row_factory = sqlite3.Row
         self._conn.execute("PRAGMA journal_mode=WAL")
