@@ -18,6 +18,7 @@ from tmon.bus import Bus
 from tmon.config import load_config
 from tmon.poller import Poller
 from tmon.storage import Storage
+from tmon.wifi_bus import WifiBus
 
 log = logging.getLogger(__name__)
 
@@ -87,13 +88,24 @@ def main() -> None:
     )
 
     cfg = load_config(args.config)
-    log.info(
-        "starting: port=%s baudrate=%d slaves=%s db=%s interval=%ds timeout=%dms",
-        cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"], cfg["interval"],
-        cfg["timeout"],
-    )
 
-    bus = Bus(cfg["port"], cfg["baudrate"], timeout_ms=cfg["timeout"])
+    if cfg["transport"] == "wifi":
+        log.info(
+            "starting: transport=wifi host=%s port=%d slaves=%s db=%s "
+            "interval=%ds timeout=%dms",
+            cfg["wifi_host"], cfg["wifi_port"], cfg["slaves"], cfg["db"],
+            cfg["interval"], cfg["timeout"],
+        )
+        bus = WifiBus(cfg["wifi_host"], cfg["wifi_port"], timeout_ms=cfg["timeout"])
+    else:
+        log.info(
+            "starting: transport=rs485 port=%s baudrate=%d slaves=%s db=%s "
+            "interval=%ds timeout=%dms",
+            cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
+            cfg["interval"], cfg["timeout"],
+        )
+        bus = Bus(cfg["port"], cfg["baudrate"], timeout_ms=cfg["timeout"])
+
     storage = Storage(cfg["db"])
 
     signal.signal(signal.SIGINT, _on_signal)
