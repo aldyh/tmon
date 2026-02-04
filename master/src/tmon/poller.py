@@ -113,6 +113,15 @@ class Poller:
 
         temps = parse_reply(payload)
 
+        def _fmt(t):
+            return f"{t / 10:.1f}" if t is not None else "--.-"
+
+        log.info(
+            "slave %d: temps=[%s, %s, %s, %s]",
+            addr,
+            _fmt(temps[0]), _fmt(temps[1]), _fmt(temps[2]), _fmt(temps[3]),
+        )
+
         return Reading(
             addr=addr,
             temp_0=temps[0],
