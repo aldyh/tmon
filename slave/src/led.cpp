@@ -37,7 +37,7 @@ typedef enum
 
 /* Internal state */
 static Adafruit_NeoPixel led (NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
-static led_state_t current_state = LED_STATE_WAITING;
+static led_state_t current_state = LED_STATE_NO_WIFI;
 static uint32_t watchdog_timeout = 0;
 static uint32_t last_poll_time = 0;
 static uint32_t last_blink_time = 0;
@@ -63,7 +63,7 @@ void
 led_init (uint32_t watchdog_timeout_ms)
 {
   watchdog_timeout = watchdog_timeout_ms;
-  current_state = LED_STATE_WAITING;
+  current_state = LED_STATE_NO_WIFI;
   last_poll_time = 0;
   last_blink_time = 0;
   blink_on = 0;
