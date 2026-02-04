@@ -21,10 +21,44 @@ Add a subsection in the item named "Notes", of anything interesting that came up
 * TODO Update wiring.org for ESP32-S3
 The current wiring doc assumes ESP32-WROOM-32. Update pin assignments
 for ESP32-S3:
-- UART: flexible assignment (pick non-conflicting GPIOs)
-- ADC1: GPIO 1-10 (channels 0-9)
-- DE/RE: pick a free GPIO
+- UART: GPIO 16 (RX), GPIO 17 (TX) - same pins as WROOM-32 but via GPIO matrix
+- DE/RE: GPIO 5 - direction control for MAX485
+- ADC1: GPIO 1-10 (channels 0-9) on S3, not GPIO 32-35
+- Board: esp32-s3-devkitc-1
+
+These pins work for both bare UART test and later MAX485 connection.
 Defer until blink test passes and we confirm hardware works.
+* TODO Add "Bare UART test" milestone to PLAN.org
+Insert between "Blink test" and "Full firmware" in the ESP32 firmware
+section. This milestone validates UART communication before adding
+RS-485 hardware complexity.
+
+Checklist for the milestone:
+- Document Pi UART setup in docs/wiring.org (disable BT, enable UART)
+- ESP32 UART2 wired directly to Pi UART (TX->RX, RX->TX, GND)
+- Firmware: configure UART on GPIO 16/17, toggle DE/RE on GPIO 5
+- Echo test: ESP32 echoes received bytes
+- Protocol test: ESP32 responds to POLL_REQUEST with dummy data
+- Master talks to real ESP32 over /dev/serial0
+* TODO Document Pi UART setup in wiring.org
+Add a section for the Pi side GPIO UART configuration:
+- /boot/firmware/config.txt: enable_uart=1, dtoverlay=disable-bt
+- Disable serial console in /boot/firmware/cmdline.txt
+- Result: /dev/serial0 available on GPIO 14 (TX) / GPIO 15 (RX)
+
+Also document the wiring progression:
+
+Phase 1 - Bare UART test:
+  ESP32 GPIO 17 (TX) -> Pi GPIO 15 (RX)
+  ESP32 GPIO 16 (RX) <- Pi GPIO 14 (TX)
+  GND <-> GND
+  ESP32 GPIO 5 (DE/RE) toggled but not connected
+
+Phase 2 - With MAX485:
+  Move wires from Pi GPIO to MAX485 (DI, RO, DE+RE, GND).
+  Pi uses USB-RS485 adapter (/dev/ttyUSB0) instead of GPIO UART.
+
+ESP32 wiring is identical in both phases - just the Pi side changes.
 * TODO Missing index on readings table
 
 The ~readings~ table (schema/readings.sql) has no indexes beyond the
