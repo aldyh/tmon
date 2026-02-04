@@ -7,7 +7,7 @@
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-master build-slave
+all: build-master build-slave build-slave-wifi
 
 build-master: $(MASTER_STAMP)
 
