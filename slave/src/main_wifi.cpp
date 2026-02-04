@@ -10,6 +10,7 @@
 #include <WiFi.h>
 
 #include "handler.h"
+#include "led.h"
 #include "protocol.h"
 #include "sensors.h"
 
@@ -33,6 +34,12 @@ static const int READ_TIMEOUT_MS = 100;
 /* Reconnect delay (ms) -- avoid hammering on connection failure */
 static const unsigned long RECONNECT_DELAY_MS = 5000;
 static unsigned long last_connect_attempt = 0;
+
+/* Watchdog timeout (ms) -- LED turns red if no POLL received */
+static const uint32_t WATCHDOG_TIMEOUT_MS = 90000;
+
+/* WiFi state tracking for LED */
+static bool wifi_was_connected = false;
 
 static bool
 ensure_connected (void)
@@ -75,14 +82,28 @@ setup (void)
   Serial.println (SLAVE_ADDR);
 
   tmon_sensors_init ();
+  led_init (WATCHDOG_TIMEOUT_MS);
   WiFi.begin (WIFI_SSID, WIFI_PASSWORD);
 }
 
 void
 loop (void)
 {
+  unsigned long now = millis ();
+
+  /* Track WiFi state changes for LED */
+  bool wifi_connected = (WiFi.status () == WL_CONNECTED);
+  if (wifi_connected && !wifi_was_connected)
+    led_notify_wifi_connected ();
+  else if (!wifi_connected && wifi_was_connected)
+    led_notify_wifi_disconnected ();
+  wifi_was_connected = wifi_connected;
+
   if (!ensure_connected ())
-    return;
+    {
+      led_update (now);
+      return;
+    }
 
   /* Read frame header (4 bytes: START, ADDR, CMD, LEN) */
   client.setTimeout (READ_TIMEOUT_MS);
@@ -105,5 +126,10 @@ loop (void)
   size_t tx_len = tmon_handler_process (SLAVE_ADDR, rx_buf, rx_len,
                                         tx_buf, BUF_SIZE);
   if (tx_len > 0)
-    client.write (tx_buf, tx_len);
+    {
+      client.write (tx_buf, tx_len);
+      led_notify_poll ();
+    }
+
+  led_update (now);
 }

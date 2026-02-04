@@ -15,6 +15,7 @@
 #include <Arduino.h>
 
 #include "handler.h"
+#include "led.h"
 #include "protocol.h"
 #include "sensors.h"
 
@@ -42,6 +43,9 @@ static uint8_t tx_buf[TX_BUF_SIZE];
 static const unsigned long FRAME_TIMEOUT_MS = 50;
 static unsigned long last_rx_time = 0;
 
+/* Watchdog timeout (ms) -- LED turns red if no POLL received */
+static const uint32_t WATCHDOG_TIMEOUT_MS = 90000;
+
 void
 setup (void)
 {
@@ -53,6 +57,9 @@ setup (void)
 
   /* Initialize temperature sensors */
   tmon_sensors_init ();
+
+  /* Initialize status LED */
+  led_init (WATCHDOG_TIMEOUT_MS);
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);
@@ -82,6 +89,8 @@ loop (void)
           Serial1.flush ();                /* wait for TX complete */
           digitalWrite (PIN_DE_RE, LOW);   /* back to receive mode */
 
+          led_notify_poll ();
+
           Serial.print ("POLL from master, sent REPLY (");
           Serial.print (tx_len);
           Serial.println (" bytes)");
@@ -104,4 +113,7 @@ loop (void)
       rx_buf[rx_len++] = Serial1.read ();
       last_rx_time = now;
     }
+
+  /* Update status LED */
+  led_update (now);
 }
