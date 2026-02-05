@@ -379,3 +379,166 @@ configure. Hardcode it internally and simplify the Bus/WifiBus APIs.
 ** Notes
 Removed timeout_ms from config files and Bus/WifiBus constructors.
 TIMEOUT_MS=200 is now a constant in config.py.
+* TODO Convert WiFi transport from TCP to UDP push model
+
+Replace the current TCP-based WiFi transport with a simpler UDP push model
+where slaves wake periodically, send readings, and sleep.
+
+** Background
+
+The current WiFi implementation uses TCP with persistent connections:
+- Master runs a TCP server
+- Slaves connect as clients and maintain connection
+- Master polls, slaves reply
+- ~160 lines in wifi_bus.py plus reconnect logic on slave
+
+This works but is more complex than necessary for this use case.
+
+** Proposed design: UDP push with deep sleep
+
+Slaves take control of timing:
+1. Slave wakes from deep sleep on timer
+2. Connects to WiFi
+3. Sends UDP packet with readings to master
+4. Goes back to deep sleep
+
+Master just listens:
+1. Binds UDP socket on known port
+2. Receives readings, stores them
+3. Detects offline slaves by absence of readings
+
+*** Frame format
+
+Same protocol frame as today, but slave-initiated:
+
+#+begin_example
+[START] [ADDR] [CMD=REPLY] [LEN=8] [temps...] [CRC_LO] [CRC_HI]
+#+end_example
+
+No POLL command needed. Slave just sends REPLY frames periodically.
+
+*** No registration needed
+
+The readings frame already contains the slave address (ADDR byte).
+When master receives a UDP packet, ~recvfrom()~ provides the source IP.
+First reading = implicit registration. No separate hello packet needed.
+
+If a slave gets a new DHCP lease, the next reading updates the mapping
+automatically.
+
+*** Configuration
+
+Slave needs:
+- WiFi credentials (already in wifi.toml)
+- Master IP/port (already in wifi.toml)
+- Push interval (new: add to wifi.toml or as build flag)
+
+Master needs:
+- Listen port (already in config-wifi.toml)
+
+** Options considered
+
+*** Option 1: TCP poll (current)
+
+Master polls, slaves reply over persistent TCP connections.
+
+Pros:
+- Master controls timing
+- Readings perfectly synchronized
+
+Cons:
+- Complex connection management (~160 lines)
+- Reconnect logic on both sides
+- Cannot use sleep modes (connection would drop)
+- ~75mW continuous power
+
+*** Option 2: UDP poll
+
+Master polls via UDP, slaves reply.
+
+Pros:
+- Simpler than TCP (no connection state)
+- ~50 lines instead of ~160
+
+Cons:
+- Still master-initiated, so slaves must stay awake to listen
+- Same power as TCP (~75mW)
+- Need slave discovery mechanism
+
+*** Option 3: UDP push with deep sleep (recommended)
+
+Slaves wake on timer, push readings, sleep.
+
+Pros:
+- Simplest protocol (no request/response)
+- No connection state
+- True deep sleep between pushes
+- Significant power savings at longer intervals
+- Slave controls its own schedule (no timing sync issues)
+- ~40-50 lines on master, simpler slave code
+
+Cons:
+- Readings not perfectly synchronized (each slave on own timer)
+- Master cannot request on-demand reading
+- Slave needs interval configured
+
+For temperature monitoring with minute-scale intervals, the cons are
+irrelevant. We don't need synchronized readings or on-demand polls.
+
+** Power analysis
+
+Assumptions:
+- ESP32-S3 at 3.3V
+- Deep sleep: ~0.02mA
+- WiFi wake cycle (connect + send): ~150mA for ~2 seconds
+- Always-on WiFi idle: ~25mA
+
+*** Per-slave power consumption
+
+| Mode        | Interval |  Avg mA |   Power |
+|-------------+----------+---------+---------|
+| Always-on   | -        | 25.0 mA |   75 mW |
+| Deep sleep  | 30s      | 10.0 mA |   33 mW |
+| Deep sleep  | 60s      |  5.0 mA |   17 mW |
+| Deep sleep  | 5min     |  1.0 mA |  3.4 mW |
+
+*** Annual energy (3 slaves)
+
+| Mode        | Interval | kWh/year | EUR/year (Girona) |
+|-------------+----------+----------+-------------------|
+| Always-on   | -        |     1.97 |              0.30 |
+| Deep sleep  | 30s      |     0.87 |              0.13 |
+| Deep sleep  | 60s      |     0.43 |              0.06 |
+| Deep sleep  | 5min     |     0.09 |              0.01 |
+
+Electricity cost: 0.15 EUR/kWh (Girona, Spain average).
+
+At 5-minute intervals: ~22x power reduction, saves 0.29 EUR/year.
+Cost savings are negligible, but simpler code is the real win.
+
+** Implementation plan
+
+*** Phase 1: Master UDP listener
+
+- [ ] Create ~udp_bus.py~ with simple recv loop
+- [ ] Store readings on receipt (no polling logic)
+- [ ] Detect offline slaves by timestamp threshold
+- [ ] Add ~transport = "udp"~ config option
+- [ ] Unit tests with mock UDP
+
+*** Phase 2: Slave UDP push
+
+- [ ] Create ~main_udp.cpp~ with wake/send/sleep cycle
+- [ ] Configure interval via build flag (~-DPUSH_INTERVAL_S=60~)
+- [ ] Deep sleep between pushes
+- [ ] Add ~make flash-slave-udp~ target
+
+*** Phase 3: Cleanup
+
+- [ ] Remove TCP transport (~wifi_bus.py~, ~main_wifi.cpp~)
+- [ ] Update docs/wiring.org WiFi section
+- [ ] Update docs/protocol.org with push model
+
+** Notes
+
+Discussion notes preserved here for future reference.
