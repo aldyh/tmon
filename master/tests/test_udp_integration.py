@@ -130,33 +130,6 @@ class TestUdpIntegration:
             receiver.close()
             storage.close()
 
-    def test_last_seen_updated(self) -> None:
-        """last_seen is updated when reading is received."""
-        port = _find_free_port()
-        receiver = UDPReceiver(port)
-        storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
-
-        try:
-            frame = make_reply(5, 123, 0, 0, 0)
-
-            def push_later():
-                time.sleep(0.05)
-                _send_udp(port, frame)
-
-            t = threading.Thread(target=push_later)
-            t.start()
-
-            assert collector.last_seen(5) is None
-            collector.receive(1.0)
-            t.join()
-
-            ts = collector.last_seen(5)
-            assert ts is not None
-        finally:
-            receiver.close()
-            storage.close()
-
     def test_corrupted_frame_ignored(self) -> None:
         """Corrupted frames are ignored, good frames are processed."""
         port = _find_free_port()

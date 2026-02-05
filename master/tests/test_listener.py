@@ -1,7 +1,5 @@
 """Tests for Listener UDP receiver."""
 
-import time
-
 from tmon.poller import Reading
 from tmon.listener import Listener
 from tmon.protocol import encode_request, PROTO_CMD_REPLY, PROTO_TEMP_INVALID
@@ -110,53 +108,3 @@ class TestReceiveOne:
 
         assert reading.temp_0 == -100
         storage.close()
-
-
-class TestLastSeen:
-    """Tests for last_seen tracking."""
-
-    def test_updates_on_receive(self) -> None:
-        """last_seen is updated when reading is received."""
-        frame = make_reply(5, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        receiver = FakeReceiver([frame])
-        storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
-
-        assert collector.last_seen(5) is None
-
-        collector.receive(1.0)
-
-        ts = collector.last_seen(5)
-        assert ts is not None
-        assert ts <= time.monotonic()
-
-        storage.close()
-
-    def test_stale_slaves_empty_initially(self) -> None:
-        """stale_slaves returns empty list when no readings yet."""
-        receiver = FakeReceiver([])
-        storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
-
-        assert collector.stale_slaves(60.0) == []
-        storage.close()
-
-    def test_stale_slaves_detects_old(self) -> None:
-        """stale_slaves detects slaves not seen recently."""
-        frame = make_reply(3, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        receiver = FakeReceiver([frame])
-        storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
-
-        collector.receive(1.0)
-
-        # Immediately after, not stale
-        assert collector.stale_slaves(60.0) == []
-
-        # With 0 max_age, everything is stale
-        stale = collector.stale_slaves(0.0)
-        assert 3 in stale
-
-        storage.close()
-
-

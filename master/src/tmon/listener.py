@@ -11,7 +11,6 @@ Example:
 """
 
 import logging
-import time
 
 from tmon.poller import Reading
 from tmon.protocol import (
@@ -28,7 +27,7 @@ class Listener:
     """Receives pushed readings from slaves via UDP.
 
     Listens for REPLY frames pushed by slaves, decodes temperatures,
-    and stores them. Tracks last-seen timestamps for offline detection.
+    and stores them.
 
     Args:
         receiver: Object with ``recv(timeout_s)`` method.
@@ -45,7 +44,6 @@ class Listener:
         """Initialize the listener."""
         self._receiver = receiver
         self._storage = storage
-        self._last_seen: dict[int, float] = {}
 
     def receive(self, timeout_s: float) -> Reading | None:
         """Receive and process one pushed frame.
@@ -105,18 +103,5 @@ class Listener:
 
         self._storage.insert(addr, temps)
         self._storage.commit()
-        self._last_seen[addr] = time.monotonic()
 
         return reading
-
-    def last_seen(self, addr: int) -> float | None:
-        """Return monotonic timestamp of last reading from addr, or None."""
-        return self._last_seen.get(addr)
-
-    def stale_slaves(self, max_age_s: float) -> list[int]:
-        """Return list of slave addresses not seen within max_age_s seconds."""
-        now = time.monotonic()
-        return [
-            addr for addr, ts in self._last_seen.items()
-            if now - ts > max_age_s
-        ]
