@@ -1,9 +1,9 @@
-"""Tests for PushCollector UDP receiver."""
+"""Tests for Listener UDP receiver."""
 
 import time
 
-from tmon.collector_poll import Reading
-from tmon.collector_push import PushCollector
+from tmon.poller import Reading
+from tmon.listener import Listener
 from tmon.protocol import encode_request, PROTO_CMD_REPLY, PROTO_TEMP_INVALID
 from tmon.storage import Storage
 
@@ -38,7 +38,7 @@ class TestReceiveOne:
         frame = make_reply(3, 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeUdpBus([frame])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         reading = collector.receive_one()
 
@@ -63,7 +63,7 @@ class TestReceiveOne:
         corrupted = frame[:-1] + bytes([frame[-1] ^ 0xFF])
         bus = FakeUdpBus([corrupted])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         reading = collector.receive_one()
 
@@ -75,7 +75,7 @@ class TestReceiveOne:
         """Empty recv (timeout) returns None."""
         bus = FakeUdpBus([b""])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         reading = collector.receive_one()
 
@@ -88,7 +88,7 @@ class TestReceiveOne:
         frame2 = make_reply(2, 200, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeUdpBus([frame1, frame2])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         r1 = collector.receive_one()
         r2 = collector.receive_one()
@@ -108,7 +108,7 @@ class TestReceiveOne:
         frame = make_reply(1, -100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeUdpBus([frame])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         reading = collector.receive_one()
 
@@ -124,7 +124,7 @@ class TestLastSeen:
         frame = make_reply(5, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeUdpBus([frame])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         assert collector.last_seen(5) is None
 
@@ -140,7 +140,7 @@ class TestLastSeen:
         """stale_slaves returns empty list when no readings yet."""
         bus = FakeUdpBus([])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         assert collector.stale_slaves(60.0) == []
         storage.close()
@@ -150,7 +150,7 @@ class TestLastSeen:
         frame = make_reply(3, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeUdpBus([frame])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         collector.receive_one()
 
@@ -172,7 +172,7 @@ class TestReceiveOneTimeout:
         frame = make_reply(4, 150, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeUdpBus([frame])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         reading = collector.receive_one_timeout(1.0)
 
@@ -184,7 +184,7 @@ class TestReceiveOneTimeout:
         """receive_one_timeout returns None when no frame."""
         bus = FakeUdpBus([b""])
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         reading = collector.receive_one_timeout(0.1)
 

@@ -1,19 +1,19 @@
-"""Push-based collector for receiving slave readings via UDP.
+"""Push-based reading listener for receiving slave readings via UDP.
 
-Slaves push REPLY frames periodically; this collector receives them,
+Slaves push REPLY frames periodically; this listener receives them,
 decodes temperatures, and stores to the database. No polling needed.
 
 Example:
-    >>> from tmon.collector_push import PushCollector
+    >>> from tmon.listener import Listener
     >>> from tmon.udp_bus import UdpBus
-    >>> collector = PushCollector(UdpBus(5555), storage)
-    >>> collector.receive_one()  # Blocks until a reading arrives
+    >>> listener = Listener(UdpBus(5555), storage)
+    >>> listener.receive_one()  # Blocks until a reading arrives
 """
 
 import logging
 import time
 
-from tmon.collector_poll import Reading
+from tmon.poller import Reading
 from tmon.protocol import (
     decode_frame,
     parse_reply,
@@ -24,7 +24,7 @@ from tmon.protocol import (
 log = logging.getLogger(__name__)
 
 
-class PushCollector:
+class Listener:
     """Receives pushed readings from slaves via UDP.
 
     Listens for REPLY frames pushed by slaves, decodes temperatures,
@@ -35,8 +35,8 @@ class PushCollector:
         storage: Object with ``insert(addr, temps)`` and ``commit()``.
 
     Example:
-        >>> collector = PushCollector(bus, storage)
-        >>> reading = collector.receive_one()
+        >>> listener = Listener(bus, storage)
+        >>> reading = listener.receive_one()
         >>> reading.addr
         3
     """

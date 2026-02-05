@@ -545,9 +545,9 @@ Implemented UDP push as replacement for TCP WiFi transport:
 
 Master side:
 - ~udp_bus.py~: Simple UDP socket receiver
-- ~collector_push.py~: Decodes REPLY frames, stores to DB
+- ~listener.py~: Decodes REPLY frames, stores to DB
 - ~daemon.py~: New ~run_push()~ loop for UDP mode
-- Renamed ~poller.py~ to ~collector_poll.py~ for consistency
+- Renamed ~poller.py~ to ~poller.py~ for consistency
 
 Slave side:
 - ~main_udp.cpp~: Wake, connect WiFi, send REPLY, deep sleep
@@ -559,9 +559,9 @@ Removed TCP WiFi transport entirely:
 - Associated tests and Makefile targets
 
 Commits:
-1. Rename Poller to PollCollector
+1. Rename Poller to Poller (poller.py)
 2. Add UdpBus
-3. Add PushCollector
+3. Add Listener (listener.py)
 4. Update config/daemon for UDP
 5. Add UDP integration tests
 6. Add main_udp.cpp with deep sleep
@@ -577,13 +577,13 @@ Comparisons of transport implementations for future reference.
 | Component        | TCP                      | UDP                       |
 |------------------+--------------------------+---------------------------|
 | Python bus       | wifi_bus.py: 166         | udp_bus.py: 79            |
-| Python collector | (reuses PollCollector)   | collector_push.py: 134    |
+| Python collector | (reuses Poller)          | listener.py: 134  |
 | Slave firmware   | main_wifi.cpp: 161       | main_udp.cpp: 169         |
 | Daemon changes   | +10 lines                | baseline                  |
 | TOTAL            | ~337                     | ~382                      |
 
 UDP has ~45 more lines because it needs a separate collector (TCP reused
-PollCollector). However, LOC alone is misleading.
+Poller). However, LOC alone is misleading.
 
 **** Maintainability
 
@@ -608,7 +608,7 @@ TCP:
 
 UDP:
 - ~udp_bus.py~: Bind socket, receive datagrams. Trivial.
-- ~collector_push.py~: Clean separation. Frame decode, store, done.
+- ~listener.py~: Clean separation. Frame decode, store, done.
 - ~main_udp.cpp~: Linear flow: wake -> connect -> build -> send -> sleep
 
 Winner: UDP. Code reads top-to-bottom with no hidden complexity.
@@ -652,7 +652,7 @@ transports. Context: home network with "relatively good" reliability.
 | Slave total      | 408                           | 381                           |
 |------------------+-------------------------------+-------------------------------|
 | Master daemon    | bus.py: 69                    | udp_bus.py: 79                |
-|                  | collector_poll.py: 159        | collector_push.py: 134        |
+|                  | poller.py: 159        | listener.py: 134      |
 |                  | protocol.py: 198 (shared)     | protocol.py: 198 (shared)     |
 |                  | daemon.py: 154 (shared)       | daemon.py: 154 (shared)       |
 |------------------+-------------------------------+-------------------------------|

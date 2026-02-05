@@ -151,7 +151,7 @@ so something simple.
 *** UDP push transport (alternative to RS-485)
 
 - [X] Master: UdpBus receiver implementation
-- [X] Master: PushCollector for decoding/storing
+- [X] Master: Listener for decoding/storing
 - [X] Master: Config transport selection (rs485 or udp)
 - [X] Master: UDP integration tests
 - [X] Slave: NTC thermistor reading (Steinhart-Hart)

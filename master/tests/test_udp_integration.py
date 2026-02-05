@@ -3,7 +3,7 @@
 Tests the full push cycle over localhost UDP:
 - UdpBus listening on localhost
 - Simulated slave pushing REPLY frames
-- PushCollector receives and stores readings
+- Listener receives and stores readings
 """
 
 import socket
@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-from tmon.collector_push import PushCollector
+from tmon.listener import Listener
 from tmon.storage import Storage
 from tmon.udp_bus import UdpBus
 
@@ -42,7 +42,7 @@ class TestUdpIntegration:
         port = _find_free_port()
         bus = UdpBus(port)
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         try:
             # Push a REPLY frame
@@ -78,7 +78,7 @@ class TestUdpIntegration:
         port = _find_free_port()
         bus = UdpBus(port)
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         try:
             frame1 = make_reply(1, 100, 0, 0, 0)
@@ -117,7 +117,7 @@ class TestUdpIntegration:
         port = _find_free_port()
         bus = UdpBus(port)
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         try:
             start = time.time()
@@ -135,7 +135,7 @@ class TestUdpIntegration:
         port = _find_free_port()
         bus = UdpBus(port)
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         try:
             frame = make_reply(5, 123, 0, 0, 0)
@@ -162,7 +162,7 @@ class TestUdpIntegration:
         port = _find_free_port()
         bus = UdpBus(port)
         storage = Storage(":memory:")
-        collector = PushCollector(bus, storage)
+        collector = Listener(bus, storage)
 
         try:
             good_frame = make_reply(1, 100, 0, 0, 0)
