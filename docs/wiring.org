@@ -131,6 +131,40 @@ Pi (USB-RS485)       Slave 1         Slave 2         Slave N
   well within RS-485 limits.
 - At 9600 baud there is generous margin for cable length and noise.
 
+*** Bias resistors (optional)
+
+When the bus is idle (between poll cycles), no device drives the A/B
+lines and they float.  Electrical noise can produce garbage bytes.
+
+Failsafe biasing holds the bus in the UART idle state (mark) by
+pulling the idle-high line toward VCC and the other toward GND with
+560 ohm resistors at the master end.  A/B naming varies between
+manufacturers -- check your transceiver datasheet for which line is
+high at idle.
+
+Shown for MAX485 convention (A high at idle):
+
+#+begin_example
+         VCC (3.3V or 5V)
+          |
+        [560R]  pull-up
+          |
+  A --+---+---+-- bus continues ...
+      |       |
+   [120R]     |
+   (term.)    |
+      |       |
+  B --+---+---+-- bus continues ...
+          |
+        [560R]  pull-down
+          |
+         GND
+#+end_example
+
+For a short home bus you can skip these.  CRC catches any garbage
+and the poll loop self-heals within seconds.  Add them only if you
+see frequent CRC errors.
+
 *** Master side
 
 The master uses a USB-to-RS-485 adapter.  No additional wiring is
