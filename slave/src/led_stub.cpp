@@ -10,57 +10,76 @@
 /* LED states (matches led.cpp) */
 typedef enum
 {
-  LED_STATE_NO_WIFI,        /* Red fast blink (3 Hz) */
-  LED_STATE_WAITING,        /* Yellow slow blink (1 Hz) */
-  LED_STATE_ACTIVE,         /* Green solid */
-  LED_STATE_TIMEOUT         /* Red slow blink (1 Hz) */
+  LED_OFF,    /* LED off (normal) */
+  LED_ERROR,  /* Solid red */
+  LED_TX      /* Blinking green (auto-returns to previous) */
 } led_state_t;
 
 /* Internal state */
-static led_state_t current_state = LED_STATE_WAITING;
+static led_state_t current_state = LED_OFF;
+static led_state_t state_before_tx = LED_OFF;
 static uint32_t watchdog_timeout = 0;
-static uint32_t last_poll_time = 0;
-static int ever_polled = 0;
+static uint32_t last_tx_time = 0;
+static uint32_t tx_blink_start = 0;
+static int tx_pending = 0;
+static int ever_transmitted = 0;
 
 void
-led_init (uint32_t watchdog_timeout_ms)
+led_init (uint32_t timeout_ms)
 {
-  watchdog_timeout = watchdog_timeout_ms;
-  current_state = LED_STATE_WAITING;
-  last_poll_time = 0;
-  ever_polled = 0;
+  watchdog_timeout = timeout_ms;
+  current_state = LED_OFF;
+  state_before_tx = LED_OFF;
+  last_tx_time = 0;
+  tx_blink_start = 0;
+  tx_pending = 0;
+  ever_transmitted = 0;
 }
 
 void
-led_notify_poll (void)
+led_error (void)
 {
-  ever_polled = 1;
-  current_state = LED_STATE_ACTIVE;
+  current_state = LED_ERROR;
+  state_before_tx = LED_ERROR;
 }
 
 void
-led_notify_ready (void)
+led_blink (void)
 {
-  if (current_state == LED_STATE_NO_WIFI)
-    current_state = LED_STATE_WAITING;
-}
-
-void
-led_notify_wifi_disconnected (void)
-{
-  current_state = LED_STATE_NO_WIFI;
+  if (current_state != LED_TX)
+    state_before_tx = current_state;
+  current_state = LED_TX;
+  tx_pending = 1;
 }
 
 void
 led_update (uint32_t now_ms)
 {
-  last_poll_time = now_ms;
-
-  /* Check watchdog timeout (only after we've received at least one poll) */
-  if (current_state == LED_STATE_ACTIVE && watchdog_timeout > 0 && ever_polled)
+  /* Record TX time if blink just started */
+  if (current_state == LED_TX && tx_pending)
     {
-      /* Note: actual impl tracks last_poll_time differently; here we use
-         a simplified model where the test manually advances time */
+      tx_blink_start = now_ms;
+      last_tx_time = now_ms;
+      ever_transmitted = 1;
+      tx_pending = 0;
+    }
+
+  /* Handle TX blink timeout (100ms) */
+  if (current_state == LED_TX)
+    {
+      if ((now_ms - tx_blink_start) >= 100)
+        current_state = state_before_tx;
+      return;
+    }
+
+  /* Check watchdog timeout */
+  if (watchdog_timeout > 0 && ever_transmitted)
+    {
+      if ((now_ms - last_tx_time) >= watchdog_timeout)
+        {
+          current_state = LED_ERROR;
+          state_before_tx = LED_ERROR;
+        }
     }
 }
 
@@ -68,7 +87,7 @@ led_update (uint32_t now_ms)
 
 /*
  * Get current LED state as integer.
- *   0 = NO_WIFI, 1 = WAITING, 2 = ACTIVE, 3 = TIMEOUT
+ *   0 = OFF, 1 = ERROR, 2 = TX
  */
 int
 led_stub_get_state (void)
@@ -77,7 +96,7 @@ led_stub_get_state (void)
 }
 
 /*
- * Set current state directly (for watchdog timeout testing).
+ * Set current state directly (for testing).
  */
 void
 led_stub_set_state (int state)
@@ -86,14 +105,12 @@ led_stub_set_state (int state)
 }
 
 /*
- * Simulate watchdog timeout transition.
- * Call this to test timeout behavior.
+ * Get the state the LED will return to after TX blink.
  */
-void
-led_stub_trigger_timeout (void)
+int
+led_stub_get_state_before_tx (void)
 {
-  if (ever_polled && current_state == LED_STATE_ACTIVE)
-    current_state = LED_STATE_TIMEOUT;
+  return (int) state_before_tx;
 }
 
 /*
@@ -102,8 +119,11 @@ led_stub_trigger_timeout (void)
 void
 led_stub_reset (void)
 {
-  current_state = LED_STATE_WAITING;
+  current_state = LED_OFF;
+  state_before_tx = LED_OFF;
   watchdog_timeout = 0;
-  last_poll_time = 0;
-  ever_polled = 0;
+  last_tx_time = 0;
+  tx_blink_start = 0;
+  tx_pending = 0;
+  ever_transmitted = 0;
 }

@@ -117,7 +117,7 @@ send_and_sleep (void)
   udp.endPacket ();
 
   /* Brief green flash to indicate success */
-  led_notify_poll ();
+  led_blink ();
   led_update (millis ());
   delay (200);
 
@@ -150,13 +150,12 @@ setup (void)
   /* Connect to WiFi */
   if (!connect_wifi ())
     {
+      led_error ();
+      led_update (millis ());
       Serial.println ("Failed to connect, sleeping");
       esp_sleep_enable_timer_wakeup ((uint64_t) PUSH_INTERVAL_S * 1000000ULL);
       esp_deep_sleep_start ();
     }
-
-  led_notify_ready ();
-  led_update (millis ());
 
   /* Send reading and sleep */
   send_and_sleep ();

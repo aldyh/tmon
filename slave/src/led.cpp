@@ -1,7 +1,7 @@
 /*
  * led.cpp -- Status LED driver for tmon slave (ESP32-S3)
  *
- * Uses the built-in WS2812 RGB LED on GPIO 48 to signal connection state.
+ * Uses the built-in WS2812 RGB LED on GPIO 48 to signal state.
  * See led.h for state descriptions.
  */
 
@@ -13,36 +13,33 @@
 static const int LED_PIN = 48;
 static const int NUM_LEDS = 1;
 
-/* Blink periods (ms) */
-static const uint32_t SLOW_BLINK_PERIOD = 1000;  /* 1 Hz */
-static const uint32_t FAST_BLINK_PERIOD = 333;   /* 3 Hz */
+/* TX blink duration (ms) */
+static const uint32_t TX_BLINK_DURATION = 100;
 
 /* LED brightness (0-255) */
 static const uint8_t BRIGHTNESS = 20;
 
-/* Colors (GRB order for WS2812) */
-static const uint32_t COLOR_OFF    = 0x000000;
-static const uint32_t COLOR_GREEN  = 0x00FF00;
-static const uint32_t COLOR_YELLOW = 0xFFFF00;
-static const uint32_t COLOR_RED    = 0xFF0000;
+/* Colors */
+static const uint32_t COLOR_OFF   = 0x000000;
+static const uint32_t COLOR_GREEN = 0x00FF00;
+static const uint32_t COLOR_RED   = 0xFF0000;
 
 /* LED states */
 typedef enum
 {
-  LED_STATE_NO_WIFI,        /* Red fast blink (3 Hz) */
-  LED_STATE_WAITING,        /* Yellow solid */
-  LED_STATE_ACTIVE,         /* Green solid */
-  LED_STATE_TIMEOUT         /* Red slow blink (1 Hz) */
+  LED_OFF,    /* LED off (normal) */
+  LED_ERROR,  /* Solid red */
+  LED_TX      /* Blinking green (auto-returns to previous) */
 } led_state_t;
 
 /* Internal state */
 static Adafruit_NeoPixel led (NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
-static led_state_t current_state = LED_STATE_NO_WIFI;
+static led_state_t current_state = LED_OFF;
+static led_state_t state_before_tx = LED_OFF;
 static uint32_t watchdog_timeout = 0;
-static uint32_t last_poll_time = 0;
-static uint32_t last_blink_time = 0;
-static int blink_on = 0;
-static int ever_polled = 0;
+static uint32_t last_tx_time = 0;
+static uint32_t tx_blink_start = 0;
+static int ever_transmitted = 0;
 
 /*
  * Set LED to a solid color.
@@ -56,114 +53,87 @@ led_set_color (uint32_t color)
 
 /*
  * Initialize the status LED subsystem.
- * watchdog_timeout_ms: time after which LED turns red if no POLL received.
- *                      Set to 0 to disable watchdog.
+ * timeout_ms: watchdog timeout; LED turns red if no TX within this period.
+ *             Set to 0 to disable watchdog.
  */
 void
-led_init (uint32_t watchdog_timeout_ms)
+led_init (uint32_t timeout_ms)
 {
-  watchdog_timeout = watchdog_timeout_ms;
-  current_state = LED_STATE_NO_WIFI;
-  last_poll_time = 0;
-  last_blink_time = 0;
-  blink_on = 0;
-  ever_polled = 0;
+  watchdog_timeout = timeout_ms;
+  current_state = LED_OFF;
+  state_before_tx = LED_OFF;
+  last_tx_time = 0;
+  tx_blink_start = 0;
+  ever_transmitted = 0;
 
   led.begin ();
   led.setBrightness (BRIGHTNESS);
   led_set_color (COLOR_OFF);
 }
 
-/* For watchdog: track when last poll was notified */
-static uint32_t poll_notify_time = 0;
-static int poll_time_valid = 0;
-
 /*
- * Notify that a valid POLL was received.
- * Transitions LED to green (communication active).
+ * Set error state (solid red).
+ * Error state persists until reset.
  */
 void
-led_notify_poll (void)
+led_error (void)
 {
-  ever_polled = 1;
-  current_state = LED_STATE_ACTIVE;
-  poll_time_valid = 1;  /* Mark that next update should record time */
+  current_state = LED_ERROR;
+  state_before_tx = LED_ERROR;
+  led_set_color (COLOR_RED);
 }
 
 /*
- * Notify that transport is ready (WiFi connected, or UART configured).
- * Transitions to yellow (waiting for POLL).
+ * Trigger brief green blink for transmission.
+ * Resets watchdog timer.
  */
 void
-led_notify_ready (void)
+led_blink (void)
 {
-  if (current_state == LED_STATE_NO_WIFI)
-    current_state = LED_STATE_WAITING;
-}
+  /* Save current state to return to after blink */
+  if (current_state != LED_TX)
+    state_before_tx = current_state;
 
-/*
- * Notify that WiFi has disconnected.
- * Transitions to red fast blink (no WiFi).
- */
-void
-led_notify_wifi_disconnected (void)
-{
-  current_state = LED_STATE_NO_WIFI;
+  current_state = LED_TX;
+  tx_blink_start = 0;  /* Will be set on next update */
+  led_set_color (COLOR_GREEN);
 }
 
 /*
  * Update LED state machine and output.
- * now_ms: current time in milliseconds (e.g., millis()).
+ * now_ms: current time in milliseconds.
  * Call every loop iteration. Non-blocking.
  */
 void
 led_update (uint32_t now_ms)
 {
-  /* Record poll time on first update after notify */
-  if (poll_time_valid)
+  /* Record TX time if blink just started */
+  if (current_state == LED_TX && tx_blink_start == 0)
     {
-      last_poll_time = now_ms;
-      poll_time_valid = 0;
+      tx_blink_start = now_ms;
+      last_tx_time = now_ms;
+      ever_transmitted = 1;
     }
 
-  /* Check watchdog timeout (only after first poll) */
-  if (current_state == LED_STATE_ACTIVE && ever_polled && watchdog_timeout > 0)
+  /* Handle TX blink timeout */
+  if (current_state == LED_TX)
     {
-      if ((now_ms - last_poll_time) >= watchdog_timeout)
-        current_state = LED_STATE_TIMEOUT;
+      if ((now_ms - tx_blink_start) >= TX_BLINK_DURATION)
+        {
+          /* Return to previous state */
+          current_state = state_before_tx;
+          if (current_state == LED_ERROR)
+            led_set_color (COLOR_RED);
+          else
+            led_set_color (COLOR_OFF);
+        }
+      return;
     }
 
-  /* Update LED output based on state */
-  switch (current_state)
+  /* Check watchdog timeout (only if enabled and we've transmitted before) */
+  if (watchdog_timeout > 0 && ever_transmitted)
     {
-    case LED_STATE_NO_WIFI:
-      /* Fast red blink (3 Hz) */
-      if ((now_ms - last_blink_time) >= FAST_BLINK_PERIOD)
-        {
-          blink_on = !blink_on;
-          last_blink_time = now_ms;
-          led_set_color (blink_on ? COLOR_RED : COLOR_OFF);
-        }
-      break;
-
-    case LED_STATE_WAITING:
-      /* Solid yellow */
-      led_set_color (COLOR_YELLOW);
-      break;
-
-    case LED_STATE_ACTIVE:
-      /* Solid green */
-      led_set_color (COLOR_GREEN);
-      break;
-
-    case LED_STATE_TIMEOUT:
-      /* Slow red blink (1 Hz) */
-      if ((now_ms - last_blink_time) >= SLOW_BLINK_PERIOD)
-        {
-          blink_on = !blink_on;
-          last_blink_time = now_ms;
-          led_set_color (blink_on ? COLOR_RED : COLOR_OFF);
-        }
-      break;
+      if ((now_ms - last_tx_time) >= watchdog_timeout)
+        led_error ();
     }
 }

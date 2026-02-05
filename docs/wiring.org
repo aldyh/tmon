@@ -69,27 +69,25 @@ can reduce noise on the reading.
 *** Status LED
 
 The ESP32-S3-DevKitC-1 has a built-in RGB LED.  The firmware uses it
-to signal connection state.  No external wiring required.
+to signal communication state.  No external wiring required.
 
-**** UART build (always-on)
+| Color/Pattern | Meaning                                    |
+|---------------+--------------------------------------------|
+| Off           | Normal idle                                |
+| Red solid     | Error (watchdog timeout or no WiFi)        |
+| Green blink   | Transmitting (brief flash, ~100ms)         |
 
-| Color/Pattern  | Meaning                                    |
-|----------------+--------------------------------------------|
-| Green solid    | Communication active (recent POLL)         |
-| Yellow solid   | Waiting for first POLL                     |
-| Red slow blink | Watchdog timeout, no POLL for 90s (1 Hz)   |
-| Red fast blink | No WiFi connection (3 Hz, WiFi build only) |
+**** RS-485 build (always-on)
+
+The LED is normally off.  A brief green flash occurs when responding
+to a POLL.  If no POLL is received for 90 seconds, the LED turns
+solid red to indicate a watchdog timeout.
 
 **** UDP push build (deep sleep)
 
-| Color/Pattern | Meaning                        |
-|---------------+--------------------------------|
-| Yellow        | Connecting to WiFi             |
-| Green flash   | Sent reading (brief, ~200ms)   |
-| Off           | Deep sleep between pushes      |
-
-The UDP build spends most of its time in deep sleep, so the LED is
-usually off.  A brief green flash indicates a successful send.
+The LED is normally off (deep sleep).  On wake:
+- If WiFi fails to connect: solid red, then sleep
+- On successful send: brief green flash, then sleep
 
 ** Transport: RS-485 (default)
 

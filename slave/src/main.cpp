@@ -60,9 +60,8 @@ setup (void)
   /* Initialize temperature sensors */
   tmon_sensors_init ();
 
-  /* Initialize status LED (yellow = waiting for POLL) */
+  /* Initialize status LED with watchdog */
   led_init (WATCHDOG_TIMEOUT_MS);
-  led_notify_ready ();
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);
@@ -96,7 +95,7 @@ loop (void)
           Serial1.flush ();                /* wait for TX complete */
           digitalWrite (PIN_DE_RE, LOW);   /* back to receive mode */
 
-          led_notify_poll ();
+          led_blink ();
 
           /* Log temps from the actual response payload */
           struct tmon_reply_payload parsed;
