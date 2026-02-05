@@ -23,7 +23,7 @@ from tmon.config import load_config
 from tmon.listener import Listener
 from tmon.poller import Poller
 from tmon.storage import Storage
-from tmon.udp_receiver import UdpReceiver
+from tmon.udp_receiver import UDPReceiver
 
 log = logging.getLogger(__name__)
 
@@ -126,7 +126,7 @@ def main() -> None:
             "starting: transport=udp port=%d db=%s",
             cfg["udp_port"], cfg["db"],
         )
-        receiver = UdpReceiver(cfg["udp_port"])
+        receiver = UDPReceiver(cfg["udp_port"])
         try:
             run_push(receiver, storage)
         finally:

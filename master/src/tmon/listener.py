@@ -5,8 +5,8 @@ decodes temperatures, and stores to the database. No polling needed.
 
 Example:
     >>> from tmon.listener import Listener
-    >>> from tmon.udp_receiver import UdpReceiver
-    >>> listener = Listener(UdpReceiver(5555), storage)
+    >>> from tmon.udp_receiver import UDPReceiver
+    >>> listener = Listener(UDPReceiver(5555), storage)
     >>> listener.receive_one(1.0)  # Wait up to 1 second
 """
 

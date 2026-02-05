@@ -560,7 +560,7 @@ Removed TCP WiFi transport entirely:
 
 Commits:
 1. Rename Poller to Poller (poller.py)
-2. Add UdpReceiver
+2. Add UDPReceiver
 3. Add Listener (listener.py)
 4. Update config/daemon for UDP
 5. Add UDP integration tests

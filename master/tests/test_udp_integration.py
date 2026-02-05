@@ -1,7 +1,7 @@
 """Integration tests for UDP push transport.
 
 Tests the full push cycle over localhost UDP:
-- UdpReceiver listening on localhost
+- UDPReceiver listening on localhost
 - Simulated slave pushing REPLY frames
 - Listener receives and stores readings
 """
@@ -14,7 +14,7 @@ import pytest
 
 from tmon.listener import Listener
 from tmon.storage import Storage
-from tmon.udp_receiver import UdpReceiver
+from tmon.udp_receiver import UDPReceiver
 
 from conftest import make_reply
 
@@ -40,7 +40,7 @@ class TestUdpIntegration:
     def test_receive_single_reading(self) -> None:
         """Receive a single pushed reading via UDP."""
         port = _find_free_port()
-        receiver = UdpReceiver(port)
+        receiver = UDPReceiver(port)
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
@@ -76,7 +76,7 @@ class TestUdpIntegration:
     def test_receive_multiple_slaves(self) -> None:
         """Receive pushed readings from multiple slaves."""
         port = _find_free_port()
-        receiver = UdpReceiver(port)
+        receiver = UDPReceiver(port)
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
@@ -115,7 +115,7 @@ class TestUdpIntegration:
     def test_receive_timeout_no_data(self) -> None:
         """receive_one returns None when no data arrives."""
         port = _find_free_port()
-        receiver = UdpReceiver(port)
+        receiver = UDPReceiver(port)
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
@@ -133,7 +133,7 @@ class TestUdpIntegration:
     def test_last_seen_updated(self) -> None:
         """last_seen is updated when reading is received."""
         port = _find_free_port()
-        receiver = UdpReceiver(port)
+        receiver = UDPReceiver(port)
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
@@ -160,7 +160,7 @@ class TestUdpIntegration:
     def test_corrupted_frame_ignored(self) -> None:
         """Corrupted frames are ignored, good frames are processed."""
         port = _find_free_port()
-        receiver = UdpReceiver(port)
+        receiver = UDPReceiver(port)
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 

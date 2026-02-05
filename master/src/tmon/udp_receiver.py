@@ -4,8 +4,8 @@ Slaves push REPLY frames via UDP; master just listens and stores.
 No connection state, no polling -- slaves control timing.
 
 Example:
-    >>> from tmon.udp_receiver import UdpReceiver
-    >>> receiver = UdpReceiver(5555)
+    >>> from tmon.udp_receiver import UDPReceiver
+    >>> receiver = UDPReceiver(5555)
     >>> frame = receiver.recv()  # Blocks until a frame arrives
     >>> receiver.close()
 """
@@ -13,7 +13,7 @@ Example:
 import socket
 
 
-class UdpReceiver:
+class UDPReceiver:
     """UDP socket for receiving slave readings.
 
     Binds to a UDP port and receives frames pushed by slaves.
@@ -24,7 +24,7 @@ class UdpReceiver:
         port: UDP port to listen on.
 
     Example:
-        >>> receiver = UdpReceiver(5555)
+        >>> receiver = UDPReceiver(5555)
         >>> frame = receiver.recv()  # Blocks until frame arrives
         >>> frame[1]  # ADDR byte
         3
