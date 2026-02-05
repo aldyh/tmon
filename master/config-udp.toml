@@ -13,3 +13,5 @@ db = "data/readings.db"
 [udp]
 # UDP port to listen on for incoming readings
 port = 5555
+# How often slaves push readings (seconds)
+push_interval = 5

@@ -2,8 +2,8 @@
 PlatformIO extra script to inject WiFi credentials from wifi.toml.
 
 Reads ../master/wifi.toml and sets build flags for WIFI_SSID,
-WIFI_PASSWORD, and MASTER_HOST.  Also reads wifi.port from
-../master/config.toml for MASTER_PORT.
+WIFI_PASSWORD, and MASTER_HOST.  Also reads [udp].port and
+[udp].push_interval from ../master/config-udp.toml.
 
 Fails with a clear error if wifi.toml is missing.
 """
@@ -30,16 +30,20 @@ if not wifi_path.exists():
 
 wifi = tomllib.loads(wifi_path.read_text())
 
-# Read master port from config.toml [wifi] section
-config_path = master_dir / "config.toml"
+# Read UDP settings from config-udp.toml [udp] section
+config_path = master_dir / "config-udp.toml"
 master_port = 5555
+push_interval = 60
 if config_path.exists():
     cfg = tomllib.loads(config_path.read_text())
-    master_port = cfg.get("wifi", {}).get("port", 5555)
+    udp_cfg = cfg.get("udp", {})
+    master_port = udp_cfg.get("port", 5555)
+    push_interval = udp_cfg.get("push_interval", 60)
 
 env.Append(BUILD_FLAGS=[
     f'-DWIFI_SSID=\\"{wifi.get("ssid", "changeme")}\\"',
     f'-DWIFI_PASSWORD=\\"{wifi.get("password", "changeme")}\\"',
     f'-DMASTER_HOST=\\"{wifi.get("master_host", "192.168.1.100")}\\"',
     f"-DMASTER_PORT={master_port}",
+    f"-DPUSH_INTERVAL_S={push_interval}",
 ])

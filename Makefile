@@ -1,4 +1,5 @@
-.PHONY: all build-master build-slave build-slave-wifi flash-slave flash-slave-wifi \
+.PHONY: all build-master build-slave build-slave-wifi build-slave-udp \
+       flash-slave flash-slave-wifi flash-slave-udp \
        run-master run-master-wifi run-master-udp \
        demo-setup \
        check check-master check-slave check-integration check-demo \
@@ -8,7 +9,7 @@
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-master build-slave build-slave-wifi
+all: build-master build-slave build-slave-wifi build-slave-udp
 
 build-master: $(MASTER_STAMP)
 
@@ -25,6 +26,9 @@ build-slave:
 build-slave-wifi:
 	cd slave && pio run -e wifi
 
+build-slave-udp:
+	cd slave && pio run -e udp
+
 flash-slave:
 ifndef SLAVE_ADDR
 	$(error SLAVE_ADDR required, e.g. make flash-slave SLAVE_ADDR=1)
@@ -36,6 +40,12 @@ ifndef SLAVE_ADDR
 	$(error SLAVE_ADDR required, e.g. make flash-slave-wifi SLAVE_ADDR=1)
 endif
 	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e wifi -t upload
+
+flash-slave-udp:
+ifndef SLAVE_ADDR
+	$(error SLAVE_ADDR required, e.g. make flash-slave-udp SLAVE_ADDR=1)
+endif
+	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e udp -t upload
 
 run-master: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config.toml
