@@ -1,6 +1,9 @@
 #+STARTUP: showall
 * Wiring Reference
 
+This system monitors temperatures across multiple floors using ESP32
+slave nodes connected to a Raspberry Pi master.
+
 This document describes how to wire ESP32-S3 slave nodes with NTC
 thermistors.  Three transport options connect slaves to the master:
 
@@ -184,8 +187,42 @@ serial console.
 The slave firmware can use WiFi instead of RS-485.  In this mode the
 ESP32 connects to the master over TCP, using the same binary protocol.
 
-The UART and MAX485 pins are unused; only the NTC inputs and status
-LED apply.
+WiFi slaves use the following from the common wiring section:
+- Power: 3.3V and GND
+- NTC thermistor inputs (GPIO 1-4) with voltage dividers
+- Status LED (built-in, no wiring needed)
+
+The UART pins (GPIO 16/17) and RS-485 pins (GPIO 5, MAX485 module)
+are unused.
 
 WiFi credentials are read from ~master/wifi.toml~ (copy from
 ~wifi.toml.example~).
+
+** Parts list (reference setup)
+
+This bill of materials covers the reference setup: 3 floors with 4
+thermistors per floor, using RS-485 transport.
+
+*** Slave nodes (3 total, one per floor)
+
+| Qty | Part                      | Notes                          |
+|-----+---------------------------+--------------------------------|
+|   3 | ESP32-S3-DevKitC-1        | 1 per floor                    |
+|   3 | MAX485 module             | 1 per ESP32 (RS-485 only)      |
+|  12 | 10k ohm 1% resistor       | 4 per floor (voltage dividers) |
+|  12 | 10k NTC thermistor        | 4 per floor (B=3950 type)      |
+|  12 | 100nF ceramic capacitor   | 4 per floor (optional, noise)  |
+
+*** Master (Raspberry Pi)
+
+| Qty | Part                | Notes                                  |
+|-----+---------------------+----------------------------------------|
+|   1 | USB-to-RS485 adapter | Most have built-in 120 ohm termination |
+
+*** RS-485 bus
+
+| Qty | Part               | Notes                                   |
+|-----+--------------------+-----------------------------------------|
+|   1 | 120 ohm resistor   | Far-end termination (adapter has one)   |
+|   - | Twisted pair cable | A/B lines, length as needed             |
+|   - | Ground wire        | Run alongside twisted pair              |
