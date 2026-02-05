@@ -2,7 +2,7 @@
  * sensors.cpp -- NTC thermistor temperature reading (ESP32)
  *
  * Reads 4 NTC thermistors on ADC1 channels (GPIO 1-4 on ESP32-S3).
- * Uses Steinhart-Hart equation for temperature conversion.
+ * Uses B parameter equation for temperature conversion.
  *
  * Hardware setup (per docs/wiring.org):
  *   3.3V -> 10k fixed resistor -> ADC input -> NTC 10k -> GND
@@ -47,12 +47,12 @@ tmon_sensors_init (void)
 }
 
 /*
- * Convert ADC reading to temperature using simplified Steinhart-Hart.
+ * Convert ADC reading to temperature using B parameter equation.
  *
  * Voltage divider: V_adc = V_cc * R_ntc / (R_series + R_ntc)
  * Solve for R_ntc: R_ntc = R_series * V_adc / (V_cc - V_adc)
  *
- * Simplified Steinhart-Hart (B parameter equation):
+ * B parameter equation:
  *   1/T = 1/T0 + (1/B) * ln(R/R0)
  *   T = 1 / (1/T0 + ln(R/R0)/B)
  */
@@ -70,7 +70,7 @@ adc_to_temp (int adc_value)
 
   r_ntc = SERIES_R * voltage / (VCC - voltage);
 
-  /* Steinhart-Hart B parameter equation */
+  /* B parameter equation */
   steinhart = logf (r_ntc / NTC_NOMINAL_R) / NTC_BETA;
   steinhart += 1.0f / NTC_NOMINAL_T;
   temp_c = (1.0f / steinhart) - 273.15f;
@@ -88,7 +88,7 @@ adc_to_temp (int adc_value)
 /*
  * tmon_read_temps -- Read temperatures from all 4 channels.
  *
- * Reads ADC values, converts to temperature using Steinhart-Hart.
+ * Reads ADC values, converts to temperature using B parameter equation.
  * Unconnected channels (ADC reads 0 or near-max) report TMON_TEMP_INVALID.
  *
  * Args:
