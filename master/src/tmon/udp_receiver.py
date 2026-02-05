@@ -6,7 +6,7 @@ No connection state, no polling -- slaves control timing.
 Example:
     >>> from tmon.udp_receiver import UDPReceiver
     >>> receiver = UDPReceiver(5555)
-    >>> frame = receiver.recv()  # Blocks until a frame arrives
+    >>> frame = receiver.recv_timeout(1.0)
     >>> receiver.close()
 """
 
@@ -25,7 +25,7 @@ class UDPReceiver:
 
     Example:
         >>> receiver = UDPReceiver(5555)
-        >>> frame = receiver.recv()  # Blocks until frame arrives
+        >>> frame = receiver.recv_timeout(1.0)
         >>> frame[1]  # ADDR byte
         3
         >>> receiver.close()
@@ -38,18 +38,6 @@ class UDPReceiver:
         self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self._sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self._sock.bind(("0.0.0.0", port))
-
-    def recv(self) -> bytes:
-        """Receive a single UDP datagram (blocks).
-
-        Returns:
-            The raw frame bytes, or empty bytes on error.
-        """
-        try:
-            data, _ = self._sock.recvfrom(self._MAX_FRAME)
-            return data
-        except OSError:
-            return b""
 
     def recv_timeout(self, timeout_s: float) -> bytes:
         """Receive with timeout.
