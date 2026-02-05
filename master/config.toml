@@ -8,7 +8,7 @@
 slaves = [1, 2, 3]
 db = "data/readings.db"
 # Polling interval in seconds.
-interval = 30
+interval = 5
 
 # RS-485 settings
 port = "/dev/ttyUSB0"

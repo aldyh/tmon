@@ -9,7 +9,7 @@ transport = "wifi"
 slaves = [1, 2, 3]
 db = "data/readings.db"
 # Polling interval in seconds.
-interval = 30
+interval = 5
 
 [wifi]
 # Interface to bind (master daemon)
