@@ -104,8 +104,7 @@ GPIO  5      ------> DE + RE (tied)
              3.3V --- VCC
 #+end_example
 
-*Bus direction:* HIGH = transmit, LOW = receive.  Switch to receive
-immediately after the last byte is transmitted.
+*DE/RE signal:* HIGH = transmit, LOW = receive.
 
 *** Bus topology
 
@@ -133,6 +132,10 @@ Pi (USB-RS485)       Slave 1         Slave 2         Slave N
 The master uses a USB-to-RS-485 adapter.  No additional wiring is
 needed on the Pi beyond plugging in the adapter and connecting A, B,
 GND to the bus.
+
+Some USB-RS485 adapters have a built-in 120-ohm termination resistor.
+If using such an adapter at one end of the bus, you only need to add
+an external termination resistor at the other end.
 
 The adapter typically appears as ~/dev/ttyUSB0~.
 
