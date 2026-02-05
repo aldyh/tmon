@@ -92,19 +92,19 @@ def main() -> None:
     if cfg["transport"] == "wifi":
         log.info(
             "starting: transport=wifi host=%s port=%d slaves=%s db=%s "
-            "interval=%ds timeout=%dms",
+            "interval=%ds",
             cfg["wifi_host"], cfg["wifi_port"], cfg["slaves"], cfg["db"],
-            cfg["interval"], cfg["timeout"],
+            cfg["interval"],
         )
-        bus = WifiBus(cfg["wifi_host"], cfg["wifi_port"], timeout_ms=cfg["timeout"])
+        bus = WifiBus(cfg["wifi_host"], cfg["wifi_port"])
     else:
         log.info(
             "starting: transport=rs485 port=%s baudrate=%d slaves=%s db=%s "
-            "interval=%ds timeout=%dms",
+            "interval=%ds",
             cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
-            cfg["interval"], cfg["timeout"],
+            cfg["interval"],
         )
-        bus = Bus(cfg["port"], cfg["baudrate"], timeout_ms=cfg["timeout"])
+        bus = Bus(cfg["port"], cfg["baudrate"])
 
     storage = Storage(cfg["db"])
 

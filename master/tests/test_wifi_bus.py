@@ -29,7 +29,7 @@ class TestWifiBusConnect:
     def test_accept_slave_connection(self) -> None:
         """Server accepts slave and registers its address."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=200)
+        bus = WifiBus("127.0.0.1", port)
         try:
             slave = _connect_slave(port, 5)
             time.sleep(0.1)  # Let accept thread process
@@ -49,7 +49,7 @@ class TestWifiBusConnect:
     def test_slave_reconnect_replaces_old(self) -> None:
         """New connection from same address replaces old socket."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=200)
+        bus = WifiBus("127.0.0.1", port)
         try:
             slave1 = _connect_slave(port, 3)
             time.sleep(0.1)
@@ -83,7 +83,7 @@ class TestWifiBusSendReceive:
     def test_send_routes_to_correct_slave(self) -> None:
         """Send routes frame based on ADDR byte."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=200)
+        bus = WifiBus("127.0.0.1", port)
         try:
             slave1 = _connect_slave(port, 1)
             slave2 = _connect_slave(port, 2)
@@ -115,7 +115,7 @@ class TestWifiBusSendReceive:
     def test_receive_complete_frame(self) -> None:
         """Receive assembles complete frame from header + payload."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=500)
+        bus = WifiBus("127.0.0.1", port)
         try:
             slave = _connect_slave(port, 4)
             time.sleep(0.1)
@@ -138,7 +138,7 @@ class TestWifiBusSendReceive:
     def test_receive_timeout_returns_empty(self) -> None:
         """Receive returns empty bytes on timeout."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=100)
+        bus = WifiBus("127.0.0.1", port)
         try:
             slave = _connect_slave(port, 1)
             time.sleep(0.1)
@@ -159,7 +159,7 @@ class TestWifiBusSendReceive:
     def test_receive_partial_frame_returns_empty(self) -> None:
         """Receive returns empty if slave sends incomplete frame."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=100)
+        bus = WifiBus("127.0.0.1", port)
         try:
             slave = _connect_slave(port, 1)
             time.sleep(0.1)
@@ -176,7 +176,7 @@ class TestWifiBusSendReceive:
     def test_send_to_disconnected_slave(self) -> None:
         """Send to non-existent slave is a no-op."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=100)
+        bus = WifiBus("127.0.0.1", port)
         try:
             # No slaves connected, send should not raise
             bus.send(b"\x01\x99\x01\x00\x00\x00")
@@ -193,7 +193,7 @@ class TestWifiBusClose:
     def test_close_stops_accept_thread(self) -> None:
         """Close shuts down cleanly."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=100)
+        bus = WifiBus("127.0.0.1", port)
         slave = _connect_slave(port, 1)
         time.sleep(0.1)
 

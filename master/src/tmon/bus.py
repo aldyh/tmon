@@ -7,12 +7,14 @@ payload length, then reads the remaining payload + CRC bytes.
 
 Example:
     >>> from tmon.bus import Bus
-    >>> bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
+    >>> bus = Bus("/dev/ttyUSB0", 9600)
     >>> bus.send(frame_bytes)
     >>> response = bus.receive()
 """
 
 import serial
+
+from tmon.config import TIMEOUT_MS
 
 
 class Bus:
@@ -25,10 +27,9 @@ class Bus:
     Args:
         port: Serial port device path (e.g. ``"/dev/ttyUSB0"``).
         baudrate: Baud rate for the connection (e.g. ``9600``).
-        timeout_ms: Receive timeout in milliseconds (e.g. ``200``).
 
     Example:
-        >>> bus = Bus("/dev/ttyUSB0", 9600, timeout_ms=200)
+        >>> bus = Bus("/dev/ttyUSB0", 9600)
         >>> bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
         >>> reply = bus.receive()
     """
@@ -38,10 +39,9 @@ class Bus:
     # CRC is 2 bytes appended after the payload.
     _CRC_LEN = 2
 
-    def __init__(self, port: str, baudrate: int, timeout_ms: int):
+    def __init__(self, port: str, baudrate: int):
         """Open the serial port."""
         self._ser = serial.Serial(port, baudrate, timeout=0)
-        self._timeout_ms = timeout_ms
 
     def send(self, data: bytes) -> None:
         """Send raw bytes on the bus, flushing any stale input first."""
@@ -51,7 +51,7 @@ class Bus:
 
     def receive(self) -> bytes:
         """Receive a complete protocol frame, or b"" on timeout."""
-        self._ser.timeout = self._timeout_ms / 1000.0
+        self._ser.timeout = TIMEOUT_MS / 1000.0
         header = self._ser.read(self._HEADER_LEN)
         if len(header) < self._HEADER_LEN:
             return b""

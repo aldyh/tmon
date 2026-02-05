@@ -4,7 +4,7 @@ Central place for tuneable parameters shared across modules.
 Import individual names where needed.
 
 Example:
-    >>> from tmon.config import load_config
+    >>> from tmon.config import load_config, TIMEOUT_MS
     >>> cfg = load_config("config.toml")
     >>> cfg["transport"]
     'rs485'
@@ -12,12 +12,15 @@ Example:
 
 import tomllib
 
+# Receive timeout in milliseconds for bus communication.
+TIMEOUT_MS = 200
+
 
 def load_config(path: str) -> dict:
     """Read a TOML config file and validate required keys.
 
     Common keys: ``transport`` (str, "rs485" or "wifi"), ``slaves`` (list[int]),
-    ``db`` (str), ``interval`` (int), ``timeout`` (int, milliseconds).
+    ``db`` (str), ``interval`` (int).
 
     For rs485: ``port`` (str), ``baudrate`` (int).
     For wifi: ``[wifi]`` section with ``host`` (str), ``port`` (int).
@@ -41,7 +44,6 @@ def load_config(path: str) -> dict:
 
     _require_str(raw, "db")
     _require_int(raw, "interval")
-    _require_int(raw, "timeout")
     _require_slaves(raw)
 
     result = {
@@ -49,7 +51,6 @@ def load_config(path: str) -> dict:
         "slaves": raw["slaves"],
         "db": raw["db"],
         "interval": raw["interval"],
-        "timeout": raw["timeout"],
     }
 
     if transport == "rs485":

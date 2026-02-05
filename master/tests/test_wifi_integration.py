@@ -82,7 +82,7 @@ class TestWifiIntegration:
     def test_poll_single_slave(self) -> None:
         """Poll a single slave over TCP."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=500)
+        bus = WifiBus("127.0.0.1", port)
         storage = Storage(":memory:")
         try:
             slave = SimulatedSlave(port, 1, [250, 255, 0, -100])
@@ -106,7 +106,7 @@ class TestWifiIntegration:
     def test_poll_multiple_slaves(self) -> None:
         """Poll multiple slaves over TCP."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=500)
+        bus = WifiBus("127.0.0.1", port)
         storage = Storage(":memory:")
         try:
             slave1 = SimulatedSlave(port, 1, [100, 0, 0, 0])
@@ -133,7 +133,7 @@ class TestWifiIntegration:
     def test_poll_offline_slave_returns_none(self) -> None:
         """Polling a non-connected slave returns None."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=100)
+        bus = WifiBus("127.0.0.1", port)
         storage = Storage(":memory:")
         try:
             # No slaves connected
@@ -148,7 +148,7 @@ class TestWifiIntegration:
     def test_poll_all_stores_to_db(self) -> None:
         """poll_all stores readings in the database."""
         port = _find_free_port()
-        bus = WifiBus("127.0.0.1", port, timeout_ms=500)
+        bus = WifiBus("127.0.0.1", port)
         storage = Storage(":memory:")
         try:
             slave = SimulatedSlave(port, 5, [123, 456, 789, 0])

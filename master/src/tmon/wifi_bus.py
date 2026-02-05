@@ -6,7 +6,7 @@ The same binary protocol frames travel over TCP instead of serial.
 
 Example:
     >>> from tmon.wifi_bus import WifiBus
-    >>> bus = WifiBus("0.0.0.0", 5555, timeout_ms=200)
+    >>> bus = WifiBus("0.0.0.0", 5555)
     >>> # Slaves connect in background...
     >>> bus.send(poll_frame)   # Routes to slave based on ADDR byte
     >>> response = bus.receive()
@@ -14,6 +14,8 @@ Example:
 
 import socket
 import threading
+
+from tmon.config import TIMEOUT_MS
 
 
 class WifiBus:
@@ -26,10 +28,9 @@ class WifiBus:
     Args:
         host: Interface to bind (e.g. ``"0.0.0.0"`` for all).
         port: TCP port to listen on (e.g. ``5555``).
-        timeout_ms: Receive timeout in milliseconds.
 
     Example:
-        >>> bus = WifiBus("0.0.0.0", 5555, timeout_ms=200)
+        >>> bus = WifiBus("0.0.0.0", 5555)
         >>> bus.send(b"\\x01\\x03\\x01\\x00...")  # Sends to slave 3
         >>> reply = bus.receive()
         >>> bus.close()
@@ -38,9 +39,8 @@ class WifiBus:
     _HEADER_LEN = 4
     _CRC_LEN = 2
 
-    def __init__(self, host: str, port: int, timeout_ms: int):
+    def __init__(self, host: str, port: int):
         """Start the TCP server and accept thread."""
-        self._timeout_ms = timeout_ms
         self._sockets: dict[int, socket.socket] = {}
         self._lock = threading.Lock()
         self._current_addr: int | None = None
@@ -127,7 +127,7 @@ class WifiBus:
             return b""
 
         try:
-            sock.settimeout(self._timeout_ms / 1000.0)
+            sock.settimeout(TIMEOUT_MS / 1000.0)
             header = self._recv_exact(sock, self._HEADER_LEN)
             if len(header) < self._HEADER_LEN:
                 return b""

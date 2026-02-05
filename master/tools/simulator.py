@@ -45,7 +45,7 @@ def run(port: str, baudrate: int) -> None:
     to any address.  Each channel produces a random value between 50
     and 900 (5.0 to 90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
     """
-    bus = Bus(port, baudrate, timeout_ms=200)
+    bus = Bus(port, baudrate)
 
     print("simulator: listening on {}".format(port), flush=True)
 

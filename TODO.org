@@ -372,3 +372,10 @@ file that is gitignored.
 - ~master/config.toml~ is RS-485 only (tracked)
 - ~wifi_config.py~ fails loudly with a helpful message if ~wifi.toml~ is missing
 - ~make run-master~ for RS-485, ~make run-master-wifi~ for WiFi
+* DONE Remove timeout from user config
+The receive timeout is an implementation detail users shouldn't need to
+configure. Hardcode it internally and simplify the Bus/WifiBus APIs.
+
+** Notes
+Removed timeout_ms from config files and Bus/WifiBus constructors.
+TIMEOUT_MS=200 is now a constant in config.py.
