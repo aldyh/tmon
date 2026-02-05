@@ -147,14 +147,13 @@ setup (void)
 
   tmon_sensors_init ();
 
-  /* Connect to WiFi */
-  if (!connect_wifi ())
+  /* Connect to WiFi, retrying until successful */
+  while (!connect_wifi ())
     {
       led_error ();
       led_update (millis ());
-      Serial.println ("Failed to connect, sleeping");
-      esp_sleep_enable_timer_wakeup ((uint64_t) PUSH_INTERVAL_S * 1000000ULL);
-      esp_deep_sleep_start ();
+      Serial.println ("WiFi failed, retrying in 60s");
+      delay (60000);
     }
 
   /* Send reading and sleep */

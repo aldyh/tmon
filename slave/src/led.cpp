@@ -85,14 +85,13 @@ led_error (void)
 
 /*
  * Trigger brief green blink for transmission.
- * Resets watchdog timer.
+ * Resets watchdog timer and clears any error state.
  */
 void
 led_blink (void)
 {
-  /* Save current state to return to after blink */
-  if (current_state != LED_TX)
-    state_before_tx = current_state;
+  /* Successful TX clears error state */
+  state_before_tx = LED_OFF;
 
   current_state = LED_TX;
   tx_blink_start = 0;  /* Will be set on next update */
