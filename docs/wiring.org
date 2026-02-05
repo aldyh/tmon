@@ -137,7 +137,7 @@ The master uses a USB-to-RS-485 adapter.  No additional wiring is
 needed on the Pi beyond plugging in the adapter and connecting A, B,
 GND to the bus.
 
-Some USB-RS485 adapters have a built-in 120-ohm termination resistor.
+Most USB-RS485 adapters have a built-in 120-ohm termination resistor.
 If using such an adapter at one end of the bus, you only need to add
 an external termination resistor at the other end.
 
