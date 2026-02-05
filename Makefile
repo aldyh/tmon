@@ -1,6 +1,6 @@
-.PHONY: all build-master build-slave build-slave-wifi build-slave-udp \
-       flash-slave flash-slave-wifi flash-slave-udp \
-       run-master run-master-wifi run-master-udp \
+.PHONY: all build-master build-slave build-slave-udp \
+       flash-slave flash-slave-udp \
+       run-master run-master-udp \
        demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
@@ -9,7 +9,7 @@
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-master build-slave build-slave-wifi build-slave-udp
+all: build-master build-slave build-slave-udp
 
 build-master: $(MASTER_STAMP)
 
@@ -23,9 +23,6 @@ $(MASTER_STAMP): master/.venv master/pyproject.toml
 build-slave:
 	cd slave && pio run -e uart
 
-build-slave-wifi:
-	cd slave && pio run -e wifi
-
 build-slave-udp:
 	cd slave && pio run -e udp
 
@@ -35,12 +32,6 @@ ifndef SLAVE_ADDR
 endif
 	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e uart -t upload
 
-flash-slave-wifi:
-ifndef SLAVE_ADDR
-	$(error SLAVE_ADDR required, e.g. make flash-slave-wifi SLAVE_ADDR=1)
-endif
-	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e wifi -t upload
-
 flash-slave-udp:
 ifndef SLAVE_ADDR
 	$(error SLAVE_ADDR required, e.g. make flash-slave-udp SLAVE_ADDR=1)
@@ -49,9 +40,6 @@ endif
 
 run-master: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config.toml
-
-run-master-wifi: $(MASTER_STAMP)
-	cd master && . .venv/bin/activate && tmon config-wifi.toml
 
 run-master-udp: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config-udp.toml

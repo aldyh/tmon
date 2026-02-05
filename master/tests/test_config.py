@@ -35,26 +35,6 @@ class TestLoadConfig:
         assert cfg["db"] == "data/readings.db"
         assert cfg["interval"] == 30
 
-    def test_valid_wifi_config(self, tmp_path):
-        """WiFi config with [wifi] section returns expected dict."""
-        path = _write_toml(tmp_path, (
-            'transport = "wifi"\n'
-            'slaves = [1, 2]\n'
-            'db = "data/readings.db"\n'
-            'interval = 30\n'
-            '\n'
-            '[wifi]\n'
-            'host = "0.0.0.0"\n'
-            'port = 5555\n'
-        ))
-        cfg = load_config(path)
-        assert cfg["transport"] == "wifi"
-        assert cfg["wifi_host"] == "0.0.0.0"
-        assert cfg["wifi_port"] == 5555
-        assert cfg["slaves"] == [1, 2]
-        assert "port" not in cfg
-        assert "baudrate" not in cfg
-
     def test_missing_port(self, tmp_path):
         """Missing 'port' key raises ValueError."""
         path = _write_toml(tmp_path, (
@@ -204,60 +184,6 @@ class TestLoadConfig:
             'interval = 10\n'
         ))
         with pytest.raises(ValueError, match="transport"):
-            load_config(path)
-
-    def test_wifi_missing_section(self, tmp_path):
-        """WiFi transport without [wifi] section raises ValueError."""
-        path = _write_toml(tmp_path, (
-            'transport = "wifi"\n'
-            'slaves = [1]\n'
-            'db = "test.db"\n'
-            'interval = 10\n'
-        ))
-        with pytest.raises(ValueError, match="wifi.*section"):
-            load_config(path)
-
-    def test_wifi_missing_host(self, tmp_path):
-        """WiFi section without host raises ValueError."""
-        path = _write_toml(tmp_path, (
-            'transport = "wifi"\n'
-            'slaves = [1]\n'
-            'db = "test.db"\n'
-            'interval = 10\n'
-            '\n'
-            '[wifi]\n'
-            'port = 5555\n'
-        ))
-        with pytest.raises(ValueError, match="wifi.host"):
-            load_config(path)
-
-    def test_wifi_missing_port(self, tmp_path):
-        """WiFi section without port raises ValueError."""
-        path = _write_toml(tmp_path, (
-            'transport = "wifi"\n'
-            'slaves = [1]\n'
-            'db = "test.db"\n'
-            'interval = 10\n'
-            '\n'
-            '[wifi]\n'
-            'host = "0.0.0.0"\n'
-        ))
-        with pytest.raises(ValueError, match="wifi.port"):
-            load_config(path)
-
-    def test_wifi_port_wrong_type(self, tmp_path):
-        """WiFi port as string raises ValueError."""
-        path = _write_toml(tmp_path, (
-            'transport = "wifi"\n'
-            'slaves = [1]\n'
-            'db = "test.db"\n'
-            'interval = 10\n'
-            '\n'
-            '[wifi]\n'
-            'host = "0.0.0.0"\n'
-            'port = "5555"\n'
-        ))
-        with pytest.raises(ValueError, match="wifi.port.*int"):
             load_config(path)
 
     def test_valid_udp_config(self, tmp_path):

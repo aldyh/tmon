@@ -6,9 +6,9 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
 
 ** What it is
 
-- *Master (Raspberry Pi):* Python daemon that polls ESP32 slaves and stores readings in SQLite.
-- *Transport:* RS-485 (USB adapter) or WiFi (TCP).
-- *Slaves (ESP32):* Each reads up to *4 NTC thermistors* and replies when polled.
+- *Master (Raspberry Pi):* Python daemon that collects readings from ESP32 slaves and stores them in SQLite.
+- *Transport:* RS-485 (USB adapter, master polls) or UDP over WiFi (slaves push with deep sleep).
+- *Slaves (ESP32):* Each reads up to *4 NTC thermistors*.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
 - *Scale:* 1-4 slaves; designed to stay small and stable.
 
@@ -53,16 +53,16 @@ make check            # run all tests (no hardware needed)
 
 #+begin_example
 make flash-slave SLAVE_ADDR=1        # RS-485 transport
-make flash-slave-wifi SLAVE_ADDR=1   # WiFi transport
+make flash-slave-udp SLAVE_ADDR=1    # UDP push (WiFi with deep sleep)
 #+end_example
 
-For WiFi builds, copy ~master/wifi.toml.example~ to ~master/wifi.toml~ and fill in your credentials.
+For UDP builds, copy ~master/wifi.toml.example~ to ~master/wifi.toml~ and fill in your WiFi credentials.
 
 *** Run the daemon
 
 #+begin_example
 make run-master       # RS-485 (uses master/config.toml)
-make run-master-wifi  # WiFi (uses master/config-wifi.toml)
+make run-master-udp   # UDP push (uses master/config-udp.toml)
 #+end_example
 
 Runs in foreground; Ctrl+C to stop.

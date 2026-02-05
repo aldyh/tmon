@@ -11,7 +11,7 @@ thermistors.  Three transport options connect slaves to the master:
 |------------+-------------------------+--------------------------|
 | RS-485     | Production (default)    | USB-RS485 adapter        |
 | Bare UART  | Testing without RS-485  | Pi GPIO UART             |
-| WiFi       | Wireless alternative    | TCP over network         |
+| WiFi (UDP) | Wireless alternative    | UDP over network         |
 
 All three use the same binary protocol.  Choose based on your setup.
 
@@ -71,7 +71,7 @@ can reduce noise on the reading.
 The ESP32-S3-DevKitC-1 has a built-in RGB LED.  The firmware uses it
 to signal connection state.  No external wiring required.
 
-**** UART and WiFi TCP builds (always-on)
+**** UART build (always-on)
 
 | Color/Pattern  | Meaning                                    |
 |----------------+--------------------------------------------|
@@ -193,10 +193,10 @@ serial console.
 3. Reboot.  ~/dev/serial0~ is now available on GPIO 14 (TX) / GPIO 15
    (RX).
 
-** Transport: WiFi
+** Transport: WiFi (UDP push)
 
 The slave firmware can use WiFi instead of RS-485.  In this mode the
-ESP32 connects to the master over TCP, using the same binary protocol.
+ESP32 pushes readings to the master over UDP, then enters deep sleep.
 
 WiFi slaves use the following from the common wiring section:
 - Power: 3.3V and GND

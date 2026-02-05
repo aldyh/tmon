@@ -1,12 +1,24 @@
 #+STARTUP: showall
 * Protocol specification
 
-Binary master-slave protocol for RS-485 temperature polling.
+Binary protocol for temperature monitoring.
+
+** Transport modes
+
+*** Poll mode (RS-485)
 
 - *Bus:* RS-485 half-duplex, 9600 baud, 8N1.
 - *Topology:* Single master (Raspberry Pi), 1-247 slaves (ESP32).
-- *Flow:* Master sends a poll; addressed slave replies.  All other
-  slaves stay silent.
+- *Flow:* Master sends a POLL; addressed slave replies with a REPLY.
+  All other slaves stay silent.
+
+*** Push mode (UDP)
+
+- *Transport:* UDP over WiFi.
+- *Topology:* Single master listening on a UDP port, slaves push.
+- *Flow:* Slaves wake periodically, send a REPLY frame via UDP to
+  the master, then return to deep sleep.  No POLL needed.
+- *Addressing:* The ADDR byte in the REPLY identifies the slave.
 
 ** Frame format
 

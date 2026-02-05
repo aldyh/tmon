@@ -1,7 +1,7 @@
 """Master daemon -- collects readings from slaves and stores them.
 
 Supports two modes:
-- Poll mode (RS-485, WiFi TCP): actively polls slaves on a schedule
+- Poll mode (RS-485): actively polls slaves on a schedule
 - Push mode (UDP): passively receives readings pushed by slaves
 
 Foreground loop driven by a TOML config file.  Shuts down cleanly
@@ -24,7 +24,6 @@ from tmon.listener import Listener
 from tmon.poller import Poller
 from tmon.storage import Storage
 from tmon.udp_bus import UdpBus
-from tmon.wifi_bus import WifiBus
 
 log = logging.getLogger(__name__)
 
@@ -135,24 +134,14 @@ def main() -> None:
             storage.close()
             log.info("shutting down")
     else:
-        # Poll-based transports (rs485, wifi)
-        if transport == "wifi":
-            log.info(
-                "starting: transport=wifi host=%s port=%d slaves=%s db=%s "
-                "interval=%ds",
-                cfg["wifi_host"], cfg["wifi_port"], cfg["slaves"], cfg["db"],
-                cfg["interval"],
-            )
-            bus = WifiBus(cfg["wifi_host"], cfg["wifi_port"])
-        else:
-            log.info(
-                "starting: transport=rs485 port=%s baudrate=%d slaves=%s db=%s "
-                "interval=%ds",
-                cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
-                cfg["interval"],
-            )
-            bus = Bus(cfg["port"], cfg["baudrate"])
-
+        # RS-485 poll transport
+        log.info(
+            "starting: transport=rs485 port=%s baudrate=%d slaves=%s db=%s "
+            "interval=%ds",
+            cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
+            cfg["interval"],
+        )
+        bus = Bus(cfg["port"], cfg["baudrate"])
         try:
             run_poll(cfg, bus, storage)
         finally:
