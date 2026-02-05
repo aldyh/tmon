@@ -17,7 +17,7 @@ class FakeReceiver:
         self._frames = list(frames)
         self._index = 0
 
-    def recv_timeout(self, timeout_s: float) -> bytes:
+    def recv(self, timeout_s: float) -> bytes:
         """Return next frame or empty bytes."""
         if self._index < len(self._frames):
             frame = self._frames[self._index]

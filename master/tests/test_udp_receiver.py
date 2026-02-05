@@ -22,15 +22,15 @@ def _send_udp(port: int, data: bytes) -> None:
 
 
 class TestUDPReceiverRecvTimeout:
-    """Tests for recv_timeout."""
+    """Tests for recv."""
 
     def test_timeout_returns_empty(self) -> None:
-        """recv_timeout returns empty bytes on timeout."""
+        """recv returns empty bytes on timeout."""
         port = _find_free_port()
         bus = UDPReceiver(port)
         try:
             start = time.time()
-            result = bus.recv_timeout(0.1)
+            result = bus.recv(0.1)
             elapsed = time.time() - start
 
             assert result == b""
@@ -39,7 +39,7 @@ class TestUDPReceiverRecvTimeout:
             bus.close()
 
     def test_recv_within_timeout(self) -> None:
-        """recv_timeout returns frame if it arrives in time."""
+        """recv returns frame if it arrives in time."""
         port = _find_free_port()
         bus = UDPReceiver(port)
         try:
@@ -52,7 +52,7 @@ class TestUDPReceiverRecvTimeout:
             t = threading.Thread(target=send_later)
             t.start()
 
-            result = bus.recv_timeout(1.0)
+            result = bus.recv(1.0)
             t.join()
 
             assert result == frame

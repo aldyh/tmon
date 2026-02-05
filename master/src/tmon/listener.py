@@ -31,7 +31,7 @@ class Listener:
     and stores them. Tracks last-seen timestamps for offline detection.
 
     Args:
-        receiver: Object with ``recv_timeout(timeout_s)`` method.
+        receiver: Object with ``recv(timeout_s)`` method.
         storage: Object with ``insert(addr, temps)`` and ``commit()``.
 
     Example:
@@ -61,7 +61,7 @@ class Listener:
             >>> reading.temp_0
             235
         """
-        raw = self._receiver.recv_timeout(timeout_s)
+        raw = self._receiver.recv(timeout_s)
         if not raw:
             return None
 
