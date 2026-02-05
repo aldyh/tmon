@@ -1,48 +1,40 @@
 #+STARTUP: showall
 * Wiring Reference
 
-This document describes how to wire each ESP32-S3 slave node to an
-RS-485 bus with up to four NTC thermistors.
+This document describes how to wire ESP32-S3 slave nodes with NTC
+thermistors.  Three transport options connect slaves to the master:
 
-** Pin assignments
+| Transport  | Use case                | Master connection        |
+|------------+-------------------------+--------------------------|
+| RS-485     | Production (default)    | USB-RS485 adapter        |
+| Bare UART  | Testing without RS-485  | Pi GPIO UART             |
+| WiFi       | Wireless alternative    | TCP over network         |
 
-| Function       | ESP32 GPIO | Notes                            |
-|----------------+------------+----------------------------------|
-| UART TX        | GPIO 17    | To MAX485 DI                     |
-| UART RX        | GPIO 16    | From MAX485 RO                   |
-| RS-485 DE/RE   | GPIO 5     | To MAX485 DE and RE (tied)       |
-| NTC channel 0  | GPIO 1     | ADC1_CH0                         |
-| NTC channel 1  | GPIO 2     | ADC1_CH1                         |
-| NTC channel 2  | GPIO 3     | ADC1_CH2                         |
-| NTC channel 3  | GPIO 4     | ADC1_CH3                         |
-| Status LED     | GPIO 48    | Built-in WS2812 RGB LED          |
+All three use the same binary protocol.  Choose based on your setup.
+
+** Common wiring (all transports)
 
 *Board:* esp32-s3-devkitc-1
+
+All nodes must share a common ground.
+
+*** NTC thermistor inputs
+
+| Function       | ESP32 GPIO | Notes    |
+|----------------+------------+----------|
+| NTC channel 0  | GPIO 1     | ADC1_CH0 |
+| NTC channel 1  | GPIO 2     | ADC1_CH1 |
+| NTC channel 2  | GPIO 3     | ADC1_CH2 |
+| NTC channel 3  | GPIO 4     | ADC1_CH3 |
 
 *Why ADC1?*  ADC2 cannot be used while WiFi is active.  All
 thermistor inputs are on ADC1 so WiFi remains available if needed.
 
-** MAX485 wiring
+*Unused channels:* To permanently disable a channel, wire the GPIO
+directly to GND.  The firmware detects this and reports the channel as
+unavailable.
 
-The MAX485 is a half-duplex RS-485 transceiver.  DE and RE are tied
-together so a single GPIO controls bus direction.
-
-#+begin_example
-ESP32                MAX485               RS-485 bus
------                ------               ----------
-GPIO 17 (TX) ------> DI
-GPIO 16 (RX) <------ RO
-GPIO  5      ------> DE + RE (tied)
-                      A  ------------->  A
-                      B  ------------->  B
-             GND ---- GND ------------>  GND
-             3.3V --- VCC
-#+end_example
-
-*Bus direction:* HIGH = transmit, LOW = receive.  Switch to receive
-immediately after the last byte is transmitted.
-
-** NTC thermistor voltage divider
+*** NTC voltage divider
 
 Each NTC thermistor is read through a voltage divider against a
 fixed 10k-ohm reference resistor.
@@ -71,7 +63,51 @@ resistance drops).
 *Optional:* a 100 nF ceramic capacitor from the ADC input to GND
 can reduce noise on the reading.
 
-** RS-485 bus wiring
+*** Status LED
+
+The ESP32-S3-DevKitC-1 has a built-in RGB LED.  The firmware uses it
+to signal connection state:
+
+| Color/Pattern  | Meaning                                    |
+|----------------+--------------------------------------------|
+| Green solid    | Communication active (recent POLL)         |
+| Yellow solid   | Waiting for first POLL (1 Hz)              |
+| Red slow blink | Watchdog timeout, no POLL for 90s (1 Hz)   |
+| Red fast blink | No WiFi connection (3 Hz, WiFi build only) |
+
+No external wiring required; the LED is on the dev board.
+
+** Transport: RS-485 (default)
+
+*** Pin assignments
+
+| Function     | ESP32 GPIO | Notes                      |
+|--------------+------------+----------------------------|
+| UART TX      | GPIO 17    | To MAX485 DI               |
+| UART RX      | GPIO 16    | From MAX485 RO             |
+| RS-485 DE/RE | GPIO 5     | To MAX485 DE and RE (tied) |
+
+*** MAX485 wiring
+
+The MAX485 is a half-duplex RS-485 transceiver.  DE and RE are tied
+together so a single GPIO controls bus direction.
+
+#+begin_example
+ESP32                MAX485               RS-485 bus
+-----                ------               ----------
+GPIO 17 (TX) ------> DI
+GPIO 16 (RX) <------ RO
+GPIO  5      ------> DE + RE (tied)
+                      A  ------------->  A
+                      B  ------------->  B
+             GND ---- GND ------------>  GND
+             3.3V --- VCC
+#+end_example
+
+*Bus direction:* HIGH = transmit, LOW = receive.  Switch to receive
+immediately after the last byte is transmitted.
+
+*** Bus topology
 
 All nodes (master USB adapter + ESP32 slaves) share a single
 twisted pair plus ground.
@@ -92,7 +128,7 @@ Pi (USB-RS485)       Slave 1         Slave 2         Slave N
   well within RS-485 limits.
 - At 9600 baud there is generous margin for cable length and noise.
 
-** Raspberry Pi side
+*** Master side
 
 The master uses a USB-to-RS-485 adapter.  No additional wiring is
 needed on the Pi beyond plugging in the adapter and connecting A, B,
@@ -100,13 +136,33 @@ GND to the bus.
 
 The adapter typically appears as ~/dev/ttyUSB0~.
 
-** Raspberry Pi GPIO UART (bare UART test)
+** Transport: Bare UART (testing)
 
-For initial testing without RS-485 hardware, the ESP32 can connect
-directly to the Pi's GPIO UART pins.  This requires disabling
-Bluetooth (which uses the same UART) and the serial console.
+The slave firmware can be tested without RS-485 transceivers by
+connecting the ESP32 UART directly to the Pi's GPIO UART.  No code
+changes are required.
 
-*Pi configuration:*
+*Why this works:* The DE/RE pin (GPIO 5) is configured as output-only.
+The firmware toggles it, but nothing ever reads it.  When left
+floating, the GPIO simply switches into thin air.  The UART bytes flow
+identically whether they pass through a MAX485 or over a direct wire.
+
+*** Pin assignments
+
+| Function     | ESP32 GPIO | Notes                   |
+|--------------+------------+-------------------------|
+| UART TX      | GPIO 17    | Connect to test UART RX |
+| UART RX      | GPIO 16    | Connect to test UART TX |
+| RS-485 DE/RE | GPIO 5     | Leave floating          |
+
+Once testing passes, move the wires to the MAX485 module
+(GPIO 17 -> DI, GPIO 16 <- RO, GPIO 5 -> DE+RE).
+
+*** Pi GPIO UART
+
+The Pi's GPIO UART can provide a direct serial connection for testing.
+This requires disabling Bluetooth (which uses the same UART) and the
+serial console.
 
 1. Edit ~/boot/firmware/config.txt~:
    #+begin_example
@@ -120,53 +176,13 @@ Bluetooth (which uses the same UART) and the serial console.
 3. Reboot.  ~/dev/serial0~ is now available on GPIO 14 (TX) / GPIO 15
    (RX).
 
-*Bare UART test wiring:*
-
-#+begin_example
-ESP32                         Raspberry Pi
------                         ------------
-GPIO 17 (TX) ----[wire]----> GPIO 15 (RX)
-GPIO 16 (RX) <---[wire]----- GPIO 14 (TX)
-GND          ----[wire]----- GND
-GPIO 5 (DE/RE)               [toggled but not connected]
-#+end_example
-
-The ESP32 firmware still toggles GPIO 5 for DE/RE timing, but since
-there is no MAX485, the signal goes nowhere.  This validates the UART
-and protocol logic before adding RS-485 hardware.
-
-*Transition to MAX485:*
-
-Once the bare UART test passes, move the ESP32 wires from the Pi GPIO
-to the MAX485 module (GPIO 17 -> DI, GPIO 16 <- RO, GPIO 5 -> DE+RE).
-The Pi then uses a USB-RS485 adapter instead of the GPIO UART.
-
-** Status LED
-
-The ESP32-S3-DevKitC-1 has a built-in WS2812 RGB LED on GPIO 48.  The
-firmware uses it to signal connection state:
-
-| Color/Pattern      | Meaning                                    |
-|--------------------+--------------------------------------------|
-| Green solid        | Communication active (recent POLL)         |
-| Yellow slow blink  | Waiting for first POLL (1 Hz)              |
-| Red slow blink     | Watchdog timeout, no POLL for 90s (1 Hz)   |
-| Red fast blink     | No WiFi connection (3 Hz, WiFi build only) |
-
-No external wiring required; the LED is on the dev board.
-
-** WiFi transport (alternative to RS-485)
+** Transport: WiFi
 
 The slave firmware can use WiFi instead of RS-485.  In this mode the
 ESP32 connects to the master over TCP, using the same binary protocol.
 
-WiFi builds use ~main_wifi.cpp~ instead of ~main.cpp~.  The UART and
-MAX485 pins are unused; only the NTC inputs and status LED apply.
+The UART and MAX485 pins are unused; only the NTC inputs and status
+LED apply.
 
-Build with ~make build-slave-wifi~.  WiFi credentials are read from
-~master/wifi.toml~ (copy from ~wifi.toml.example~).
-
-Master-side WiFi settings are in ~master/config-wifi.toml~.
-
-** Power
-- All nodes must share a common ground via the bus GND wire.
+WiFi credentials are read from ~master/wifi.toml~ (copy from
+~wifi.toml.example~).
