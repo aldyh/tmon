@@ -361,4 +361,14 @@ Build/test:
 
 Architecture: TCP client-server model where slaves initiate connection
 to master. This avoids NAT/firewall issues and simplifies reconnection.
-* TODO Address the issue of wifi credentials in toml file.
+* DONE Address the issue of wifi credentials in toml file.
+Moved sensitive WiFi credentials (ssid/password/master_host) to a separate
+file that is gitignored.
+
+** Notes
+- ~master/wifi.toml.example~ is a template for credentials (tracked)
+- ~master/wifi.toml~ is gitignored (actual credentials)
+- ~master/config-wifi.toml~ has WiFi transport settings, no credentials (tracked)
+- ~master/config.toml~ is RS-485 only (tracked)
+- ~wifi_config.py~ fails loudly with a helpful message if ~wifi.toml~ is missing
+- ~make run-master~ for RS-485, ~make run-master-wifi~ for WiFi

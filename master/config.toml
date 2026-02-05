@@ -1,13 +1,17 @@
-# tmon sample configuration
+# tmon sample configuration (RS-485)
 #
 # Copy this file and adjust for your setup.
 # Run with: tmon config.toml
+#
+# For WiFi transport, use config-wifi.toml instead.
 
-port = "/dev/ttyUSB0"
-baudrate = 9600
 slaves = [1, 2, 3]
 db = "data/readings.db"
 # Polling interval in seconds.
 interval = 30
-# Bus receive timeout in milliseconds.  200ms is reasonable for 9600 baud.
+# Receive timeout in milliseconds.
 timeout = 200
+
+# RS-485 settings
+port = "/dev/ttyUSB0"
+baudrate = 9600

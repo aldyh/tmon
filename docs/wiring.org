@@ -163,10 +163,10 @@ ESP32 connects to the master over TCP, using the same binary protocol.
 WiFi builds use ~main_wifi.cpp~ instead of ~main.cpp~.  The UART and
 MAX485 pins are unused; only the NTC inputs and status LED apply.
 
-Build with ~make build-slave-wifi~ and configure SSID/password via
-build flags in ~platformio.ini~ or environment variables.
+Build with ~make build-slave-wifi~.  WiFi credentials are read from
+~master/wifi.toml~ (copy from ~wifi.toml.example~).
 
-See ~master/config-wifi.toml~ for master-side WiFi configuration.
+Master-side WiFi settings are in ~master/config-wifi.toml~.
 
 ** Power
 - All nodes must share a common ground via the bus GND wire.

@@ -2,21 +2,18 @@
 #
 # Use this for WiFi transport instead of RS-485.
 # Run with: tmon config-wifi.toml
+#
+# WiFi credentials are in wifi.toml (copy from wifi.toml.example).
 
 transport = "wifi"
 slaves = [1, 2, 3]
 db = "data/readings.db"
 # Polling interval in seconds.
 interval = 30
-# Socket receive timeout in milliseconds.
+# Receive timeout in milliseconds.
 timeout = 200
 
 [wifi]
-# Network credentials (used by slave firmware)
-ssid = "changeme"
-password = "changeme"
-# Master's hostname or IP address (slave connects to this)
-master_host = "192.168.1.100"
 # Interface to bind (master daemon)
 host = "0.0.0.0"
 # TCP port for slave connections

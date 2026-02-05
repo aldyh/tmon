@@ -16,7 +16,7 @@
 #include "sensors.h"
 
 /*
- * Required build flags (injected by wifi_config.py from master/config-wifi.toml):
+ * Required build flags (injected by wifi_config.py from master/wifi.toml):
  *   WIFI_SSID, WIFI_PASSWORD, MASTER_HOST, MASTER_PORT
  * SLAVE_ADDR is set in platformio.ini (per-device).
  */

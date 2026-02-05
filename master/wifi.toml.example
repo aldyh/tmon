@@ -1,0 +1,9 @@
+# WiFi credentials for slave firmware
+#
+# Copy this file to wifi.toml and fill in your credentials.
+# wifi.toml is gitignored to prevent committing secrets.
+
+ssid = "your_wifi_ssid"
+password = "your_wifi_password"
+# IP address or hostname where the master daemon runs
+master_host = "192.168.1.100"

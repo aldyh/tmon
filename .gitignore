@@ -4,6 +4,9 @@ __pycache__/
 .venv/
 .pytest_cache/
 
+# Config with credentials
+master/wifi.toml
+
 # Data
 data/
 panel/tmon_mock.db

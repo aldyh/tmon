@@ -28,7 +28,8 @@ make flash-slave-wifi SLAVE_ADDR=1  # WiFi transport
 
 ~SLAVE_ADDR~ is required and sets the device address (1-254).
 
-For WiFi builds, credentials are read from ~master/config-wifi.toml~.
+For WiFi builds, copy ~master/wifi.toml.example~ to ~master/wifi.toml~
+and fill in your credentials.
 
 The device typically appears at ~/dev/ttyACM0~.
 
