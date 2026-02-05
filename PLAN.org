@@ -148,16 +148,17 @@ so something simple.
 - [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
 
-*** WiFi transport (alternative to RS-485)
+*** UDP push transport (alternative to RS-485)
 
-- [X] Master: WifiBus TCP server implementation
-- [X] Master: Config transport selection (rs485 or wifi)
-- [X] Master: WiFi integration tests
-- [X] Slave: Full protocol handler (respond to POLL with REPLY)
+- [X] Master: UdpBus receiver implementation
+- [X] Master: PushCollector for decoding/storing
+- [X] Master: Config transport selection (rs485 or udp)
+- [X] Master: UDP integration tests
 - [X] Slave: NTC thermistor reading (Steinhart-Hart)
-- [X] Slave: WiFi client connecting to master
-- [X] Slave: Build environments (uart vs wifi)
-- [X] Makefile targets for WiFi builds
+- [X] Slave: UDP push with deep sleep
+- [X] Slave: Build environments (uart vs udp)
+- [X] Makefile targets for UDP builds
+- [X] Remove obsolete TCP WiFi transport
 
 *** Integration + polish
 

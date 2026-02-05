@@ -379,7 +379,7 @@ configure. Hardcode it internally and simplify the Bus/WifiBus APIs.
 ** Notes
 Removed timeout_ms from config files and Bus/WifiBus constructors.
 TIMEOUT_MS=200 is now a constant in config.py.
-* TODO Convert WiFi transport from TCP to UDP push model
+* DONE Convert WiFi transport from TCP to UDP push model
 
 Replace the current TCP-based WiFi transport with a simpler UDP push model
 where slaves wake periodically, send readings, and sleep.
@@ -520,25 +520,49 @@ Cost savings are negligible, but simpler code is the real win.
 
 *** Phase 1: Master UDP listener
 
-- [ ] Create ~udp_bus.py~ with simple recv loop
-- [ ] Store readings on receipt (no polling logic)
-- [ ] Detect offline slaves by timestamp threshold
-- [ ] Add ~transport = "udp"~ config option
-- [ ] Unit tests with mock UDP
+- [X] Create ~udp_bus.py~ with simple recv loop
+- [X] Store readings on receipt (no polling logic)
+- [X] Detect offline slaves by timestamp threshold
+- [X] Add ~transport = "udp"~ config option
+- [X] Unit tests with mock UDP
 
 *** Phase 2: Slave UDP push
 
-- [ ] Create ~main_udp.cpp~ with wake/send/sleep cycle
-- [ ] Configure interval via build flag (~-DPUSH_INTERVAL_S=60~)
-- [ ] Deep sleep between pushes
-- [ ] Add ~make flash-slave-udp~ target
+- [X] Create ~main_udp.cpp~ with wake/send/sleep cycle
+- [X] Configure interval via build flag (~-DPUSH_INTERVAL_S=60~)
+- [X] Deep sleep between pushes
+- [X] Add ~make flash-slave-udp~ target
 
 *** Phase 3: Cleanup
 
-- [ ] Remove TCP transport (~wifi_bus.py~, ~main_wifi.cpp~)
-- [ ] Update docs/wiring.org WiFi section
-- [ ] Update docs/protocol.org with push model
+- [X] Remove TCP transport (~wifi_bus.py~, ~main_wifi.cpp~)
+- [X] Update docs/wiring.org WiFi section
+- [X] Update docs/protocol.org with push model
 
 ** Notes
 
-Discussion notes preserved here for future reference.
+Implemented UDP push as replacement for TCP WiFi transport:
+
+Master side:
+- ~udp_bus.py~: Simple UDP socket receiver
+- ~collector_push.py~: Decodes REPLY frames, stores to DB
+- ~daemon.py~: New ~run_push()~ loop for UDP mode
+- Renamed ~poller.py~ to ~collector_poll.py~ for consistency
+
+Slave side:
+- ~main_udp.cpp~: Wake, connect WiFi, send REPLY, deep sleep
+- ~PUSH_INTERVAL_S~ build flag (default 60s)
+- LED: Yellow connecting, green flash on send, off during sleep
+
+Removed TCP WiFi transport entirely:
+- ~wifi_bus.py~, ~main_wifi.cpp~, ~config-wifi.toml~
+- Associated tests and Makefile targets
+
+Commits:
+1. Rename Poller to PollCollector
+2. Add UdpBus
+3. Add PushCollector
+4. Update config/daemon for UDP
+5. Add UDP integration tests
+6. Add main_udp.cpp with deep sleep
+7. Remove TCP transport, update docs
