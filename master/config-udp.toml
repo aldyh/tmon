@@ -1,0 +1,15 @@
+# tmon UDP push configuration
+#
+# Use this for UDP push transport. Slaves push readings periodically
+# instead of being polled.
+#
+# Run with: tmon config-udp.toml
+#
+# WiFi credentials for slaves are in wifi.toml (copy from wifi.toml.example).
+
+transport = "udp"
+db = "data/readings.db"
+
+[udp]
+# UDP port to listen on for incoming readings
+port = 5555

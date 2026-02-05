@@ -1,7 +1,7 @@
 """Tests for tmon.daemon."""
 
 from conftest import FakeBus, make_reply
-from tmon.daemon import run, _on_signal
+from tmon.daemon import run_poll, _on_signal
 from tmon.protocol import PROTO_TEMP_INVALID
 from tmon.storage import Storage
 import tmon.daemon as daemon_mod
@@ -31,11 +31,11 @@ class CountingBus:
         pass
 
 
-class TestRun:
-    """Tests for the daemon run() function."""
+class TestRunPoll:
+    """Tests for the daemon run_poll() function."""
 
     def test_polls_and_stores(self):
-        """run() calls poll_all and stores readings before shutdown."""
+        """run_poll() calls poll_all and stores readings before shutdown."""
         daemon_mod._shutdown = False
         reply = make_reply(3, 250, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
@@ -43,7 +43,7 @@ class TestRun:
         storage = Storage(":memory:")
         cfg = {"slaves": [3], "interval": 0}
 
-        cycles = run(cfg, bus, storage)
+        cycles = run_poll(cfg, bus, storage)
 
         assert cycles >= 1
         rows = storage.fetch(10)
@@ -52,7 +52,7 @@ class TestRun:
         storage.close()
 
     def test_shutdown_flag_stops_loop(self):
-        """Setting _shutdown before run() causes immediate return."""
+        """Setting _shutdown before run_poll() causes immediate return."""
         daemon_mod._shutdown = True
         reply = make_reply(1, 100, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
@@ -60,7 +60,7 @@ class TestRun:
         storage = Storage(":memory:")
         cfg = {"slaves": [1], "interval": 0}
 
-        cycles = run(cfg, bus, storage)
+        cycles = run_poll(cfg, bus, storage)
 
         assert cycles == 0
         storage.close()
@@ -72,7 +72,7 @@ class TestRun:
         assert daemon_mod._shutdown is True
 
     def test_multiple_slaves(self):
-        """run() polls all configured slaves each cycle."""
+        """run_poll() polls all configured slaves each cycle."""
         daemon_mod._shutdown = False
         reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
@@ -109,7 +109,7 @@ class TestRun:
         storage = Storage(":memory:")
         cfg = {"slaves": [1, 2], "interval": 0}
 
-        cycles = run(cfg, bus, storage)
+        cycles = run_poll(cfg, bus, storage)
 
         assert cycles >= 1
         rows = storage.fetch(10)

@@ -19,11 +19,12 @@ TIMEOUT_MS = 200
 def load_config(path: str) -> dict:
     """Read a TOML config file and validate required keys.
 
-    Common keys: ``transport`` (str, "rs485" or "wifi"), ``slaves`` (list[int]),
-    ``db`` (str), ``interval`` (int).
+    Common keys: ``transport`` (str, "rs485", "wifi", or "udp"), ``db`` (str).
 
+    For rs485/wifi: ``slaves`` (list[int]), ``interval`` (int).
     For rs485: ``port`` (str), ``baudrate`` (int).
     For wifi: ``[wifi]`` section with ``host`` (str), ``port`` (int).
+    For udp: ``[udp]`` section with ``port`` (int).
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
@@ -39,29 +40,35 @@ def load_config(path: str) -> dict:
     transport = raw.get("transport", "rs485")
     if not isinstance(transport, str):
         raise ValueError("transport must be str, got %s" % type(transport).__name__)
-    if transport not in ("rs485", "wifi"):
-        raise ValueError("transport must be 'rs485' or 'wifi', got '%s'" % transport)
+    if transport not in ("rs485", "wifi", "udp"):
+        raise ValueError("transport must be 'rs485', 'wifi', or 'udp', got '%s'" % transport)
 
     _require_str(raw, "db")
-    _require_int(raw, "interval")
-    _require_slaves(raw)
 
     result = {
         "transport": transport,
-        "slaves": raw["slaves"],
         "db": raw["db"],
-        "interval": raw["interval"],
     }
 
-    if transport == "rs485":
-        _require_str(raw, "port")
-        _require_int(raw, "baudrate")
-        result["port"] = raw["port"]
-        result["baudrate"] = raw["baudrate"]
+    if transport == "udp":
+        _require_udp_section(raw)
+        result["udp_port"] = raw["udp"]["port"]
     else:
-        _require_wifi_section(raw)
-        result["wifi_host"] = raw["wifi"]["host"]
-        result["wifi_port"] = raw["wifi"]["port"]
+        # Poll-based transports need slaves and interval
+        _require_int(raw, "interval")
+        _require_slaves(raw)
+        result["slaves"] = raw["slaves"]
+        result["interval"] = raw["interval"]
+
+        if transport == "rs485":
+            _require_str(raw, "port")
+            _require_int(raw, "baudrate")
+            result["port"] = raw["port"]
+            result["baudrate"] = raw["baudrate"]
+        else:
+            _require_wifi_section(raw)
+            result["wifi_host"] = raw["wifi"]["host"]
+            result["wifi_port"] = raw["wifi"]["port"]
 
     return result
 
@@ -94,6 +101,19 @@ def _require_wifi_section(raw: dict[str, object]) -> None:
         raise ValueError("missing required key: wifi.port")
     if not isinstance(wifi["port"], int):
         raise ValueError("wifi.port must be int, got %s" % type(wifi["port"]).__name__)
+
+
+def _require_udp_section(raw: dict[str, object]) -> None:
+    """Validate [udp] section has port (int)."""
+    if "udp" not in raw:
+        raise ValueError("udp transport requires [udp] section")
+    udp = raw["udp"]
+    if not isinstance(udp, dict):
+        raise ValueError("[udp] must be a table")
+    if "port" not in udp:
+        raise ValueError("missing required key: udp.port")
+    if not isinstance(udp["port"], int):
+        raise ValueError("udp.port must be int, got %s" % type(udp["port"]).__name__)
 
 
 def _require_str(raw: dict[str, object], key: str) -> None:

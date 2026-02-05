@@ -1,5 +1,5 @@
 .PHONY: all build-master build-slave build-slave-wifi flash-slave flash-slave-wifi \
-       run-master run-master-wifi \
+       run-master run-master-wifi run-master-udp \
        demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
@@ -42,6 +42,9 @@ run-master: $(MASTER_STAMP)
 
 run-master-wifi: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config-wifi.toml
+
+run-master-udp: $(MASTER_STAMP)
+	cd master && . .venv/bin/activate && tmon config-udp.toml
 
 demo-setup: $(PANEL_STAMP)
 
