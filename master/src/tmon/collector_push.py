@@ -1,0 +1,134 @@
+"""Push-based collector for receiving slave readings via UDP.
+
+Slaves push REPLY frames periodically; this collector receives them,
+decodes temperatures, and stores to the database. No polling needed.
+
+Example:
+    >>> from tmon.collector_push import PushCollector
+    >>> from tmon.udp_bus import UdpBus
+    >>> collector = PushCollector(UdpBus(5555), storage)
+    >>> collector.receive_one()  # Blocks until a reading arrives
+"""
+
+import logging
+import time
+
+from tmon.collector_poll import Reading
+from tmon.protocol import (
+    decode_frame,
+    parse_reply,
+    PROTO_CMD_REPLY,
+    PROTO_REPLY_PAYLOAD_LEN,
+)
+
+log = logging.getLogger(__name__)
+
+
+class PushCollector:
+    """Receives pushed readings from slaves via UDP.
+
+    Listens for REPLY frames pushed by slaves, decodes temperatures,
+    and stores them. Tracks last-seen timestamps for offline detection.
+
+    Args:
+        bus: Object with ``recv()`` method returning raw frame bytes.
+        storage: Object with ``insert(addr, temps)`` and ``commit()``.
+
+    Example:
+        >>> collector = PushCollector(bus, storage)
+        >>> reading = collector.receive_one()
+        >>> reading.addr
+        3
+    """
+
+    def __init__(self, bus, storage):
+        """Initialize the collector."""
+        self._bus = bus
+        self._storage = storage
+        self._last_seen: dict[int, float] = {}
+
+    def receive_one(self) -> Reading | None:
+        """Receive and process one pushed frame (blocks).
+
+        Waits for a UDP frame, decodes it, stores the reading, and
+        returns a Reading object. Returns None on decode error.
+
+        Example:
+            >>> reading = collector.receive_one()
+            >>> reading.temp_0
+            235
+        """
+        raw = self._bus.recv()
+        if not raw:
+            return None
+
+        return self._process_frame(raw)
+
+    def receive_one_timeout(self, timeout_s: float) -> Reading | None:
+        """Receive with timeout.
+
+        Args:
+            timeout_s: Maximum seconds to wait.
+
+        Returns:
+            Reading on success, None on timeout or error.
+        """
+        raw = self._bus.recv_timeout(timeout_s)
+        if not raw:
+            return None
+
+        return self._process_frame(raw)
+
+    def _process_frame(self, raw: bytes) -> Reading | None:
+        """Decode frame, store reading, update last-seen."""
+        try:
+            frame = decode_frame(raw)
+        except ValueError as exc:
+            log.debug("bad frame: %s", exc)
+            return None
+
+        if frame.cmd != PROTO_CMD_REPLY:
+            log.debug("unexpected cmd: 0x%02X", frame.cmd)
+            return None
+
+        if len(frame.payload) != PROTO_REPLY_PAYLOAD_LEN:
+            log.debug("bad payload length: %d", len(frame.payload))
+            return None
+
+        temps = parse_reply(frame.payload)
+        addr = frame.addr
+
+        def _fmt(t):
+            return f"{t / 10:.1f}" if t is not None else "--.-"
+
+        log.info(
+            "slave %d: temps=[%s, %s, %s, %s]",
+            addr,
+            _fmt(temps[0]), _fmt(temps[1]), _fmt(temps[2]), _fmt(temps[3]),
+        )
+
+        reading = Reading(
+            addr=addr,
+            temp_0=temps[0],
+            temp_1=temps[1],
+            temp_2=temps[2],
+            temp_3=temps[3],
+        )
+
+        self._storage.insert(addr, temps)
+        self._storage.commit()
+        self._last_seen[addr] = time.monotonic()
+
+        return reading
+
+    def last_seen(self, addr: int) -> float | None:
+        """Return monotonic timestamp of last reading from addr, or None."""
+        return self._last_seen.get(addr)
+
+    def stale_slaves(self, max_age_s: float) -> list[int]:
+        """Return list of slave addresses not seen within max_age_s seconds."""
+        now = time.monotonic()
+        return [
+            addr for addr, ts in self._last_seen.items()
+            if now - ts > max_age_s
+        ]
