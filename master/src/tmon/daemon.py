@@ -38,7 +38,7 @@ def _on_signal(signum: int, frame) -> None:
     _shutdown = True
 
 
-def run_poll(cfg: dict, bus, storage) -> int:
+def run_poller(cfg: dict, bus, storage) -> int:
     """Run the poll loop until shutdown is requested.
 
     Polls all slaves, sleeps for ``cfg["interval"]`` seconds, and
@@ -46,7 +46,7 @@ def run_poll(cfg: dict, bus, storage) -> int:
     module-level ``_shutdown`` flag is set.
 
     Example:
-        >>> run_poll({"slaves": [3], "interval": 30}, bus, storage)
+        >>> run_poller({"slaves": [3], "interval": 30}, bus, storage)
         5
     """
     poller = Poller(bus, storage, cfg["slaves"])
@@ -67,14 +67,14 @@ def run_poll(cfg: dict, bus, storage) -> int:
     return cycles
 
 
-def run_push(bus, storage) -> int:
+def run_listener(bus, storage) -> int:
     """Run the push receiver loop until shutdown is requested.
 
     Receives readings pushed by slaves via UDP and stores them.
     Returns the number of readings received when shutdown is signaled.
 
     Example:
-        >>> run_push(bus, storage)
+        >>> run_listener(bus, storage)
         42
     """
     listener = Listener(bus, storage)
@@ -128,7 +128,7 @@ def main() -> None:
         )
         receiver = UDPReceiver(cfg["udp_port"])
         try:
-            run_push(receiver, storage)
+            run_listener(receiver, storage)
         finally:
             receiver.close()
             storage.close()
@@ -143,7 +143,7 @@ def main() -> None:
         )
         bus = Bus(cfg["port"], cfg["baudrate"])
         try:
-            run_poll(cfg, bus, storage)
+            run_poller(cfg, bus, storage)
         finally:
             bus.close()
             storage.close()

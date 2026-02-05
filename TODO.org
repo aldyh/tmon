@@ -546,7 +546,7 @@ Implemented UDP push as replacement for TCP WiFi transport:
 Master side:
 - ~udp_receiver.py~: Simple UDP socket receiver
 - ~listener.py~: Decodes REPLY frames, stores to DB
-- ~daemon.py~: New ~run_push()~ loop for UDP mode
+- ~daemon.py~: New ~run_listener()~ loop for UDP mode
 - Renamed ~poller.py~ to ~poller.py~ for consistency
 
 Slave side:
