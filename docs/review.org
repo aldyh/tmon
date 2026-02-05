@@ -1,6 +1,6 @@
 #+STARTUP: showall
 
-* Design review: tmon project
+* Design review
 
 This document is a critical engineering and design review of the tmon
 codebase, written with "fresh eyes" after the core implementation was
@@ -14,12 +14,11 @@ structure of panel/, as that's just a demo).  Give honest feedback on
 the overall feel, what works and what doesn't.  Be very critical as a
 designer. I want feedback from a design and engineering standpoint.
 
-Write your analysis by filling out the rest of this file.  Add any
-suggested items to TODO.org.
+Add any suggested items in TODO.org.
 
-Work on a branch.  There should be two commits in this branch:
+Write your analysis by informing the user and include a letter grade.
 
-1. TODO.org changes.
+Do not touch this file, and do not commit your changes to TODO.org.
+Just leave the changes in the current tree.
 
-2. Changes to this file.
 #+end_quote
