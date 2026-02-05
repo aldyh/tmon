@@ -27,16 +27,16 @@ class FakeReceiver:
 
 
 class TestReceiveOne:
-    """Tests for receive_one."""
+    """Tests for receive."""
 
     def test_receives_and_stores(self) -> None:
-        """receive_one decodes frame and stores reading."""
+        """receive decodes frame and stores reading."""
         frame = make_reply(3, 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
-        reading = collector.receive_one(1.0)
+        reading = collector.receive(1.0)
 
         assert reading is not None
         assert reading.addr == 3
@@ -61,7 +61,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
-        reading = collector.receive_one(1.0)
+        reading = collector.receive(1.0)
 
         assert reading is None
         assert len(storage.fetch(10)) == 0
@@ -73,7 +73,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
-        reading = collector.receive_one(1.0)
+        reading = collector.receive(1.0)
 
         assert reading is None
         storage.close()
@@ -86,8 +86,8 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
-        r1 = collector.receive_one(1.0)
-        r2 = collector.receive_one(1.0)
+        r1 = collector.receive(1.0)
+        r2 = collector.receive(1.0)
 
         assert r1.addr == 1
         assert r1.temp_0 == 100
@@ -106,7 +106,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
-        reading = collector.receive_one(1.0)
+        reading = collector.receive(1.0)
 
         assert reading.temp_0 == -100
         storage.close()
@@ -124,7 +124,7 @@ class TestLastSeen:
 
         assert collector.last_seen(5) is None
 
-        collector.receive_one(1.0)
+        collector.receive(1.0)
 
         ts = collector.last_seen(5)
         assert ts is not None
@@ -148,7 +148,7 @@ class TestLastSeen:
         storage = Storage(":memory:")
         collector = Listener(receiver, storage)
 
-        collector.receive_one(1.0)
+        collector.receive(1.0)
 
         # Immediately after, not stale
         assert collector.stale_slaves(60.0) == []

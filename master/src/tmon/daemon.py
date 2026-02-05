@@ -82,7 +82,7 @@ def run_push(bus, storage) -> int:
 
     while not _shutdown:
         # Use timeout so we check shutdown flag periodically
-        reading = listener.receive_one(0.5)
+        reading = listener.receive(0.5)
         if reading is not None:
             count += 1
 

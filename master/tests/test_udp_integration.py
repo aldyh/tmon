@@ -55,7 +55,7 @@ class TestUdpIntegration:
             t = threading.Thread(target=push_later)
             t.start()
 
-            reading = collector.receive_one(1.0)
+            reading = collector.receive(1.0)
             t.join()
 
             assert reading is not None
@@ -96,9 +96,9 @@ class TestUdpIntegration:
             t = threading.Thread(target=push_later)
             t.start()
 
-            r1 = collector.receive_one(1.0)
-            r2 = collector.receive_one(1.0)
-            r3 = collector.receive_one(1.0)
+            r1 = collector.receive(1.0)
+            r2 = collector.receive(1.0)
+            r3 = collector.receive(1.0)
             t.join()
 
             temps = {r.addr: r.temp_0 for r in [r1, r2, r3]}
@@ -113,7 +113,7 @@ class TestUdpIntegration:
             storage.close()
 
     def test_receive_timeout_no_data(self) -> None:
-        """receive_one returns None when no data arrives."""
+        """receive returns None when no data arrives."""
         port = _find_free_port()
         receiver = UDPReceiver(port)
         storage = Storage(":memory:")
@@ -121,7 +121,7 @@ class TestUdpIntegration:
 
         try:
             start = time.time()
-            reading = collector.receive_one(0.1)
+            reading = collector.receive(0.1)
             elapsed = time.time() - start
 
             assert reading is None
@@ -148,7 +148,7 @@ class TestUdpIntegration:
             t.start()
 
             assert collector.last_seen(5) is None
-            collector.receive_one(1.0)
+            collector.receive(1.0)
             t.join()
 
             ts = collector.last_seen(5)
@@ -179,9 +179,9 @@ class TestUdpIntegration:
             t.start()
 
             # First receive gets the bad frame (returns None)
-            r1 = collector.receive_one(1.0)
+            r1 = collector.receive(1.0)
             # Second receive gets the good frame
-            r2 = collector.receive_one(1.0)
+            r2 = collector.receive(1.0)
             t.join()
 
             assert r1 is None

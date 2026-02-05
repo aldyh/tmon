@@ -7,7 +7,7 @@ Example:
     >>> from tmon.listener import Listener
     >>> from tmon.udp_receiver import UDPReceiver
     >>> listener = Listener(UDPReceiver(5555), storage)
-    >>> listener.receive_one(1.0)  # Wait up to 1 second
+    >>> listener.receive(1.0)  # Wait up to 1 second
 """
 
 import logging
@@ -36,7 +36,7 @@ class Listener:
 
     Example:
         >>> listener = Listener(receiver, storage)
-        >>> reading = listener.receive_one(1.0)
+        >>> reading = listener.receive(1.0)
         >>> reading.addr
         3
     """
@@ -47,7 +47,7 @@ class Listener:
         self._storage = storage
         self._last_seen: dict[int, float] = {}
 
-    def receive_one(self, timeout_s: float) -> Reading | None:
+    def receive(self, timeout_s: float) -> Reading | None:
         """Receive and process one pushed frame.
 
         Args:
@@ -57,7 +57,7 @@ class Listener:
             Reading on success, None on timeout or error.
 
         Example:
-            >>> reading = listener.receive_one(1.0)
+            >>> reading = listener.receive(1.0)
             >>> reading.temp_0
             235
         """
