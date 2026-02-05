@@ -23,7 +23,7 @@ from tmon.config import load_config
 from tmon.listener import Listener
 from tmon.poller import Poller
 from tmon.storage import Storage
-from tmon.udp_bus import UdpBus
+from tmon.udp_receiver import UdpReceiver
 
 log = logging.getLogger(__name__)
 
@@ -126,11 +126,11 @@ def main() -> None:
             "starting: transport=udp port=%d db=%s",
             cfg["udp_port"], cfg["db"],
         )
-        bus = UdpBus(cfg["udp_port"])
+        receiver = UdpReceiver(cfg["udp_port"])
         try:
-            run_push(bus, storage)
+            run_push(receiver, storage)
         finally:
-            bus.close()
+            receiver.close()
             storage.close()
             log.info("shutting down")
     else:

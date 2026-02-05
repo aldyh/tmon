@@ -5,8 +5,8 @@ decodes temperatures, and stores to the database. No polling needed.
 
 Example:
     >>> from tmon.listener import Listener
-    >>> from tmon.udp_bus import UdpBus
-    >>> listener = Listener(UdpBus(5555), storage)
+    >>> from tmon.udp_receiver import UdpReceiver
+    >>> listener = Listener(UdpReceiver(5555), storage)
     >>> listener.receive_one(1.0)  # Wait up to 1 second
 """
 
@@ -31,19 +31,19 @@ class Listener:
     and stores them. Tracks last-seen timestamps for offline detection.
 
     Args:
-        bus: Object with ``recv()`` method returning raw frame bytes.
+        receiver: Object with ``recv_timeout(timeout_s)`` method.
         storage: Object with ``insert(addr, temps)`` and ``commit()``.
 
     Example:
-        >>> listener = Listener(bus, storage)
+        >>> listener = Listener(receiver, storage)
         >>> reading = listener.receive_one(1.0)
         >>> reading.addr
         3
     """
 
-    def __init__(self, bus, storage):
-        """Initialize the collector."""
-        self._bus = bus
+    def __init__(self, receiver, storage):
+        """Initialize the listener."""
+        self._receiver = receiver
         self._storage = storage
         self._last_seen: dict[int, float] = {}
 
@@ -61,7 +61,7 @@ class Listener:
             >>> reading.temp_0
             235
         """
-        raw = self._bus.recv_timeout(timeout_s)
+        raw = self._receiver.recv_timeout(timeout_s)
         if not raw:
             return None
 

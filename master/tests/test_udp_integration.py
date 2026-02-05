@@ -1,7 +1,7 @@
 """Integration tests for UDP push transport.
 
 Tests the full push cycle over localhost UDP:
-- UdpBus listening on localhost
+- UdpReceiver listening on localhost
 - Simulated slave pushing REPLY frames
 - Listener receives and stores readings
 """
@@ -14,7 +14,7 @@ import pytest
 
 from tmon.listener import Listener
 from tmon.storage import Storage
-from tmon.udp_bus import UdpBus
+from tmon.udp_receiver import UdpReceiver
 
 from conftest import make_reply
 
@@ -40,9 +40,9 @@ class TestUdpIntegration:
     def test_receive_single_reading(self) -> None:
         """Receive a single pushed reading via UDP."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        receiver = UdpReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         try:
             # Push a REPLY frame
@@ -70,15 +70,15 @@ class TestUdpIntegration:
             assert len(rows) == 1
             assert rows[0]["addr"] == 1
         finally:
-            bus.close()
+            receiver.close()
             storage.close()
 
     def test_receive_multiple_slaves(self) -> None:
         """Receive pushed readings from multiple slaves."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        receiver = UdpReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         try:
             frame1 = make_reply(1, 100, 0, 0, 0)
@@ -109,15 +109,15 @@ class TestUdpIntegration:
             rows = storage.fetch(10)
             assert len(rows) == 3
         finally:
-            bus.close()
+            receiver.close()
             storage.close()
 
     def test_receive_timeout_no_data(self) -> None:
         """receive_one returns None when no data arrives."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        receiver = UdpReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         try:
             start = time.time()
@@ -127,15 +127,15 @@ class TestUdpIntegration:
             assert reading is None
             assert elapsed < 0.3
         finally:
-            bus.close()
+            receiver.close()
             storage.close()
 
     def test_last_seen_updated(self) -> None:
         """last_seen is updated when reading is received."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        receiver = UdpReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         try:
             frame = make_reply(5, 123, 0, 0, 0)
@@ -154,15 +154,15 @@ class TestUdpIntegration:
             ts = collector.last_seen(5)
             assert ts is not None
         finally:
-            bus.close()
+            receiver.close()
             storage.close()
 
     def test_corrupted_frame_ignored(self) -> None:
         """Corrupted frames are ignored, good frames are processed."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        receiver = UdpReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         try:
             good_frame = make_reply(1, 100, 0, 0, 0)
@@ -191,5 +191,5 @@ class TestUdpIntegration:
             rows = storage.fetch(10)
             assert len(rows) == 1
         finally:
-            bus.close()
+            receiver.close()
             storage.close()

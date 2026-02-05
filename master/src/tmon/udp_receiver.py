@@ -1,19 +1,19 @@
-"""UDP bus abstraction for receiving pushed readings.
+"""UDP receiver for pushed readings.
 
 Slaves push REPLY frames via UDP; master just listens and stores.
 No connection state, no polling -- slaves control timing.
 
 Example:
-    >>> from tmon.udp_bus import UdpBus
-    >>> bus = UdpBus(5555)
-    >>> frame = bus.recv()  # Blocks until a frame arrives
-    >>> bus.close()
+    >>> from tmon.udp_receiver import UdpReceiver
+    >>> receiver = UdpReceiver(5555)
+    >>> frame = receiver.recv()  # Blocks until a frame arrives
+    >>> receiver.close()
 """
 
 import socket
 
 
-class UdpBus:
+class UdpReceiver:
     """UDP socket for receiving slave readings.
 
     Binds to a UDP port and receives frames pushed by slaves.
@@ -24,11 +24,11 @@ class UdpBus:
         port: UDP port to listen on.
 
     Example:
-        >>> bus = UdpBus(5555)
-        >>> frame = bus.recv()  # Blocks until frame arrives
+        >>> receiver = UdpReceiver(5555)
+        >>> frame = receiver.recv()  # Blocks until frame arrives
         >>> frame[1]  # ADDR byte
         3
-        >>> bus.close()
+        >>> receiver.close()
     """
 
     _MAX_FRAME = 64

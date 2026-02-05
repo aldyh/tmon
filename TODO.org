@@ -520,7 +520,7 @@ Cost savings are negligible, but simpler code is the real win.
 
 *** Phase 1: Master UDP listener
 
-- [X] Create ~udp_bus.py~ with simple recv loop
+- [X] Create ~udp_receiver.py~ with simple recv loop
 - [X] Store readings on receipt (no polling logic)
 - [X] Detect offline slaves by timestamp threshold
 - [X] Add ~transport = "udp"~ config option
@@ -544,7 +544,7 @@ Cost savings are negligible, but simpler code is the real win.
 Implemented UDP push as replacement for TCP WiFi transport:
 
 Master side:
-- ~udp_bus.py~: Simple UDP socket receiver
+- ~udp_receiver.py~: Simple UDP socket receiver
 - ~listener.py~: Decodes REPLY frames, stores to DB
 - ~daemon.py~: New ~run_push()~ loop for UDP mode
 - Renamed ~poller.py~ to ~poller.py~ for consistency
@@ -560,7 +560,7 @@ Removed TCP WiFi transport entirely:
 
 Commits:
 1. Rename Poller to Poller (poller.py)
-2. Add UdpBus
+2. Add UdpReceiver
 3. Add Listener (listener.py)
 4. Update config/daemon for UDP
 5. Add UDP integration tests
@@ -576,7 +576,7 @@ Comparisons of transport implementations for future reference.
 
 | Component        | TCP                      | UDP                       |
 |------------------+--------------------------+---------------------------|
-| Python bus       | wifi_bus.py: 166         | udp_bus.py: 79            |
+| Python bus       | wifi_bus.py: 166         | udp_receiver.py: 79            |
 | Python collector | (reuses Poller)          | listener.py: 134  |
 | Slave firmware   | main_wifi.cpp: 161       | main_udp.cpp: 169         |
 | Daemon changes   | +10 lines                | baseline                  |
@@ -594,7 +594,7 @@ TCP was harder to maintain:
 - Slave address-to-socket routing
 
 UDP is easier:
-- ~udp_bus.py~ is 79 lines of stateless socket code
+- ~udp_receiver.py~ is 79 lines of stateless socket code
 - No threading, no connection state, no address routing
 - Each component has a single responsibility
 
@@ -607,7 +607,7 @@ TCP:
 - ~main_wifi.cpp~: Connection management and frame reassembly add noise
 
 UDP:
-- ~udp_bus.py~: Bind socket, receive datagrams. Trivial.
+- ~udp_receiver.py~: Bind socket, receive datagrams. Trivial.
 - ~listener.py~: Clean separation. Frame decode, store, done.
 - ~main_udp.cpp~: Linear flow: wake -> connect -> build -> send -> sleep
 
@@ -651,7 +651,7 @@ transports. Context: home network with "relatively good" reliability.
 |------------------+-------------------------------+-------------------------------|
 | Slave total      | 408                           | 381                           |
 |------------------+-------------------------------+-------------------------------|
-| Master daemon    | bus.py: 69                    | udp_bus.py: 79                |
+| Master daemon    | bus.py: 69                    | udp_receiver.py: 79                |
 |                  | poller.py: 159        | listener.py: 134      |
 |                  | protocol.py: 198 (shared)     | protocol.py: 198 (shared)     |
 |                  | daemon.py: 154 (shared)       | daemon.py: 154 (shared)       |

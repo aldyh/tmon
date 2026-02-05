@@ -10,8 +10,8 @@ from tmon.storage import Storage
 from conftest import make_reply
 
 
-class FakeUdpBus:
-    """Fake UDP bus that returns pre-configured frames."""
+class FakeReceiver:
+    """Fake receiver that returns pre-configured frames."""
 
     def __init__(self, frames: list[bytes]):
         self._frames = list(frames)
@@ -32,9 +32,9 @@ class TestReceiveOne:
     def test_receives_and_stores(self) -> None:
         """receive_one decodes frame and stores reading."""
         frame = make_reply(3, 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        bus = FakeUdpBus([frame])
+        receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         reading = collector.receive_one(1.0)
 
@@ -57,9 +57,9 @@ class TestReceiveOne:
         """Corrupted frame returns None."""
         frame = make_reply(3, 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         corrupted = frame[:-1] + bytes([frame[-1] ^ 0xFF])
-        bus = FakeUdpBus([corrupted])
+        receiver = FakeReceiver([corrupted])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         reading = collector.receive_one(1.0)
 
@@ -69,9 +69,9 @@ class TestReceiveOne:
 
     def test_empty_recv_returns_none(self) -> None:
         """Empty recv (timeout) returns None."""
-        bus = FakeUdpBus([b""])
+        receiver = FakeReceiver([b""])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         reading = collector.receive_one(1.0)
 
@@ -82,9 +82,9 @@ class TestReceiveOne:
         """Multiple readings from different slaves."""
         frame1 = make_reply(1, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         frame2 = make_reply(2, 200, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        bus = FakeUdpBus([frame1, frame2])
+        receiver = FakeReceiver([frame1, frame2])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         r1 = collector.receive_one(1.0)
         r2 = collector.receive_one(1.0)
@@ -102,9 +102,9 @@ class TestReceiveOne:
     def test_negative_temps(self) -> None:
         """Negative temperatures are decoded correctly."""
         frame = make_reply(1, -100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        bus = FakeUdpBus([frame])
+        receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         reading = collector.receive_one(1.0)
 
@@ -118,9 +118,9 @@ class TestLastSeen:
     def test_updates_on_receive(self) -> None:
         """last_seen is updated when reading is received."""
         frame = make_reply(5, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        bus = FakeUdpBus([frame])
+        receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         assert collector.last_seen(5) is None
 
@@ -134,9 +134,9 @@ class TestLastSeen:
 
     def test_stale_slaves_empty_initially(self) -> None:
         """stale_slaves returns empty list when no readings yet."""
-        bus = FakeUdpBus([])
+        receiver = FakeReceiver([])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         assert collector.stale_slaves(60.0) == []
         storage.close()
@@ -144,9 +144,9 @@ class TestLastSeen:
     def test_stale_slaves_detects_old(self) -> None:
         """stale_slaves detects slaves not seen recently."""
         frame = make_reply(3, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        bus = FakeUdpBus([frame])
+        receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
-        collector = Listener(bus, storage)
+        collector = Listener(receiver, storage)
 
         collector.receive_one(1.0)
 

@@ -1,10 +1,10 @@
-"""Tests for UdpBus UDP receiver."""
+"""Tests for UdpReceiver."""
 
 import socket
 import threading
 import time
 
-from tmon.udp_bus import UdpBus
+from tmon.udp_receiver import UdpReceiver
 
 
 def _find_free_port() -> int:
@@ -21,13 +21,13 @@ def _send_udp(port: int, data: bytes) -> None:
     sock.close()
 
 
-class TestUdpBusRecv:
+class TestUdpReceiverRecv:
     """Tests for recv."""
 
     def test_recv_single_frame(self) -> None:
         """recv returns a complete frame."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        bus = UdpReceiver(port)
         try:
             # Send a REPLY frame: START=0x01, ADDR=3, CMD=0x02, LEN=8, payload, CRC
             frame = b"\x01\x03\x02\x08\xe8\x03\xf4\x01\x00\x00\xff\x7f\xdb\x5a"
@@ -49,7 +49,7 @@ class TestUdpBusRecv:
     def test_recv_extracts_addr(self) -> None:
         """Frame ADDR byte is at index 1."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        bus = UdpReceiver(port)
         try:
             # Frame with ADDR=5
             frame = b"\x01\x05\x02\x08\xe8\x03\xf4\x01\x00\x00\xff\x7f\x5a\x5b"
@@ -71,7 +71,7 @@ class TestUdpBusRecv:
     def test_recv_multiple_frames(self) -> None:
         """recv returns frames one at a time."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        bus = UdpReceiver(port)
         try:
             frame1 = b"\x01\x01\x02\x08\x64\x00\x00\x00\x00\x00\xff\x7f\xaa\xbb"
             frame2 = b"\x01\x02\x02\x08\xc8\x00\x00\x00\x00\x00\xff\x7f\xcc\xdd"
@@ -95,13 +95,13 @@ class TestUdpBusRecv:
             bus.close()
 
 
-class TestUdpBusRecvTimeout:
+class TestUdpReceiverRecvTimeout:
     """Tests for recv_timeout."""
 
     def test_timeout_returns_empty(self) -> None:
         """recv_timeout returns empty bytes on timeout."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        bus = UdpReceiver(port)
         try:
             start = time.time()
             result = bus.recv_timeout(0.1)
@@ -115,7 +115,7 @@ class TestUdpBusRecvTimeout:
     def test_recv_within_timeout(self) -> None:
         """recv_timeout returns frame if it arrives in time."""
         port = _find_free_port()
-        bus = UdpBus(port)
+        bus = UdpReceiver(port)
         try:
             frame = b"\x01\x03\x02\x08\xe8\x03\xf4\x01\x00\x00\xff\x7f\xdb\x5a"
 
@@ -134,15 +134,15 @@ class TestUdpBusRecvTimeout:
             bus.close()
 
 
-class TestUdpBusClose:
+class TestUdpReceiverClose:
     """Tests for close."""
 
     def test_close_releases_port(self) -> None:
         """After close, port can be reused."""
         port = _find_free_port()
-        bus1 = UdpBus(port)
+        bus1 = UdpReceiver(port)
         bus1.close()
 
         # Should be able to bind again
-        bus2 = UdpBus(port)
+        bus2 = UdpReceiver(port)
         bus2.close()

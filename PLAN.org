@@ -150,7 +150,7 @@ so something simple.
 
 *** UDP push transport (alternative to RS-485)
 
-- [X] Master: UdpBus receiver implementation
+- [X] Master: UdpReceiver implementation
 - [X] Master: Listener for decoding/storing
 - [X] Master: Config transport selection (rs485 or udp)
 - [X] Master: UDP integration tests
