@@ -7,7 +7,7 @@ Example:
     >>> from tmon.listener import Listener
     >>> from tmon.udp_bus import UdpBus
     >>> listener = Listener(UdpBus(5555), storage)
-    >>> listener.receive_one()  # Blocks until a reading arrives
+    >>> listener.receive_one(1.0)  # Wait up to 1 second
 """
 
 import logging
@@ -36,7 +36,7 @@ class Listener:
 
     Example:
         >>> listener = Listener(bus, storage)
-        >>> reading = listener.receive_one()
+        >>> reading = listener.receive_one(1.0)
         >>> reading.addr
         3
     """
@@ -47,31 +47,19 @@ class Listener:
         self._storage = storage
         self._last_seen: dict[int, float] = {}
 
-    def receive_one(self) -> Reading | None:
-        """Receive and process one pushed frame (blocks).
-
-        Waits for a UDP frame, decodes it, stores the reading, and
-        returns a Reading object. Returns None on decode error.
-
-        Example:
-            >>> reading = collector.receive_one()
-            >>> reading.temp_0
-            235
-        """
-        raw = self._bus.recv()
-        if not raw:
-            return None
-
-        return self._process_frame(raw)
-
-    def receive_one_timeout(self, timeout_s: float) -> Reading | None:
-        """Receive with timeout.
+    def receive_one(self, timeout_s: float) -> Reading | None:
+        """Receive and process one pushed frame.
 
         Args:
             timeout_s: Maximum seconds to wait.
 
         Returns:
             Reading on success, None on timeout or error.
+
+        Example:
+            >>> reading = listener.receive_one(1.0)
+            >>> reading.temp_0
+            235
         """
         raw = self._bus.recv_timeout(timeout_s)
         if not raw:

@@ -17,17 +17,13 @@ class FakeUdpBus:
         self._frames = list(frames)
         self._index = 0
 
-    def recv(self) -> bytes:
+    def recv_timeout(self, timeout_s: float) -> bytes:
         """Return next frame or empty bytes."""
         if self._index < len(self._frames):
             frame = self._frames[self._index]
             self._index += 1
             return frame
         return b""
-
-    def recv_timeout(self, timeout_s: float) -> bytes:
-        """Same as recv for testing."""
-        return self.recv()
 
 
 class TestReceiveOne:
@@ -40,7 +36,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(bus, storage)
 
-        reading = collector.receive_one()
+        reading = collector.receive_one(1.0)
 
         assert reading is not None
         assert reading.addr == 3
@@ -65,7 +61,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(bus, storage)
 
-        reading = collector.receive_one()
+        reading = collector.receive_one(1.0)
 
         assert reading is None
         assert len(storage.fetch(10)) == 0
@@ -77,7 +73,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(bus, storage)
 
-        reading = collector.receive_one()
+        reading = collector.receive_one(1.0)
 
         assert reading is None
         storage.close()
@@ -90,8 +86,8 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(bus, storage)
 
-        r1 = collector.receive_one()
-        r2 = collector.receive_one()
+        r1 = collector.receive_one(1.0)
+        r2 = collector.receive_one(1.0)
 
         assert r1.addr == 1
         assert r1.temp_0 == 100
@@ -110,7 +106,7 @@ class TestReceiveOne:
         storage = Storage(":memory:")
         collector = Listener(bus, storage)
 
-        reading = collector.receive_one()
+        reading = collector.receive_one(1.0)
 
         assert reading.temp_0 == -100
         storage.close()
@@ -128,7 +124,7 @@ class TestLastSeen:
 
         assert collector.last_seen(5) is None
 
-        collector.receive_one()
+        collector.receive_one(1.0)
 
         ts = collector.last_seen(5)
         assert ts is not None
@@ -152,7 +148,7 @@ class TestLastSeen:
         storage = Storage(":memory:")
         collector = Listener(bus, storage)
 
-        collector.receive_one()
+        collector.receive_one(1.0)
 
         # Immediately after, not stale
         assert collector.stale_slaves(60.0) == []
@@ -164,29 +160,3 @@ class TestLastSeen:
         storage.close()
 
 
-class TestReceiveOneTimeout:
-    """Tests for receive_one_timeout."""
-
-    def test_returns_reading_if_available(self) -> None:
-        """receive_one_timeout returns reading if frame arrives."""
-        frame = make_reply(4, 150, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        bus = FakeUdpBus([frame])
-        storage = Storage(":memory:")
-        collector = Listener(bus, storage)
-
-        reading = collector.receive_one_timeout(1.0)
-
-        assert reading is not None
-        assert reading.addr == 4
-        storage.close()
-
-    def test_returns_none_on_timeout(self) -> None:
-        """receive_one_timeout returns None when no frame."""
-        bus = FakeUdpBus([b""])
-        storage = Storage(":memory:")
-        collector = Listener(bus, storage)
-
-        reading = collector.receive_one_timeout(0.1)
-
-        assert reading is None
-        storage.close()
