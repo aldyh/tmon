@@ -566,3 +566,146 @@ Commits:
 5. Add UDP integration tests
 6. Add main_udp.cpp with deep sleep
 7. Remove TCP transport, update docs
+
+** Post Mortem
+
+Comparisons of transport implementations for future reference.
+
+*** TCP vs UDP
+**** Lines of Code (excluding tests)
+
+| Component        | TCP                      | UDP                       |
+|------------------+--------------------------+---------------------------|
+| Python bus       | wifi_bus.py: 166         | udp_bus.py: 79            |
+| Python collector | (reuses PollCollector)   | collector_push.py: 134    |
+| Slave firmware   | main_wifi.cpp: 161       | main_udp.cpp: 169         |
+| Daemon changes   | +10 lines                | baseline                  |
+| TOTAL            | ~337                     | ~382                      |
+
+UDP has ~45 more lines because it needs a separate collector (TCP reused
+PollCollector). However, LOC alone is misleading.
+
+**** Maintainability
+
+TCP was harder to maintain:
+- Background thread for accepting connections (~_accept_loop~)
+- Connection state per slave (socket map with locking)
+- Reconnection logic, socket lifecycle management
+- Slave address-to-socket routing
+
+UDP is easier:
+- ~udp_bus.py~ is 79 lines of stateless socket code
+- No threading, no connection state, no address routing
+- Each component has a single responsibility
+
+Winner: UDP, despite more total LOC.
+
+**** Readability
+
+TCP:
+- ~wifi_bus.py~: Threading and socket map add cognitive load
+- ~main_wifi.cpp~: Connection management and frame reassembly add noise
+
+UDP:
+- ~udp_bus.py~: Bind socket, receive datagrams. Trivial.
+- ~collector_push.py~: Clean separation. Frame decode, store, done.
+- ~main_udp.cpp~: Linear flow: wake -> connect -> build -> send -> sleep
+
+Winner: UDP. Code reads top-to-bottom with no hidden complexity.
+
+**** Efficiency
+
+Power:
+- TCP: Slave stays awake for TCP connection and master polls
+- UDP: Wake, send one packet, deep sleep
+- Winner: UDP (dramatically better for battery-powered ESP32s)
+
+Network:
+- Roughly equivalent for periodic temperature readings
+
+Reliability:
+- TCP: Guaranteed delivery, but connection management fragile on home WiFi
+- UDP: Fire and forget. Acceptable for periodic non-critical readings.
+- TCP slightly better in theory, negligible in practice
+
+Winner: UDP for power efficiency.
+
+**** Conclusion
+
+Keep UDP. The ~45 extra lines are a fair trade for dramatically simpler
+code and better power efficiency. TCP had more hidden complexity despite
+fewer lines.
+
+*** RS-485 vs UDP
+
+Comparison for choosing between wired (RS-485) and wireless (UDP push)
+transports. Context: home network with "relatively good" reliability.
+
+**** Lines of Code (excluding tests)
+
+| Component        | RS-485                        | UDP                           |
+|------------------+-------------------------------+-------------------------------|
+| Slave firmware   | main.cpp: 127                 | main_udp.cpp: 169             |
+|                  | handler.cpp: 69               | (no handler needed)           |
+|                  | protocol.cpp: 212 (shared)    | protocol.cpp: 212 (shared)    |
+|------------------+-------------------------------+-------------------------------|
+| Slave total      | 408                           | 381                           |
+|------------------+-------------------------------+-------------------------------|
+| Master daemon    | bus.py: 69                    | udp_bus.py: 79                |
+|                  | collector_poll.py: 159        | collector_push.py: 134        |
+|                  | protocol.py: 198 (shared)     | protocol.py: 198 (shared)     |
+|                  | daemon.py: 154 (shared)       | daemon.py: 154 (shared)       |
+|------------------+-------------------------------+-------------------------------|
+| Master total     | 580                           | 565                           |
+|------------------+-------------------------------+-------------------------------|
+| TOTAL            | 988                           | 946                           |
+
+Nearly identical. The difference is noise.
+
+**** Maintainability
+
+RS-485 wins.
+
+- Fewer moving parts: no WiFi, DHCP, DNS, or network infrastructure
+- Simpler debugging: logic analyzer on the bus shows every byte
+- Less configuration: just slave address, no credentials or IP
+- Immediate failure detection: poll fails instantly vs stale timeout
+- Silent failures: UDP fire-and-forget hides problems longer
+
+**** Readability
+
+RS-485 wins slightly.
+
+- ~main.cpp~: Classic embedded pattern (setup/loop, accumulate bytes,
+  timeout-based frame detection, respond). Any embedded dev recognizes it.
+- ~main_udp.cpp~: "setup does everything, loop is dead code" is less
+  intuitive for those unfamiliar with ESP32 deep sleep.
+- Python collectors: Both equally readable.
+
+**** Efficiency
+
+Power: UDP wins dramatically (deep sleep between pushes).
+Latency: RS-485 wins (sub-second response vs minutes between pushes).
+
+For wall-powered sensors, power efficiency is irrelevant.
+
+**** Reliability on home network
+
+UDP is acceptable. Occasional lost packet at 5-minute intervals is
+harmless. ~stale_slaves()~ handles detection.
+
+However, "relatively good" WiFi can degrade: router reboots, DHCP lease
+changes, 2.4GHz congestion. RS-485 is a wire and just works.
+
+**** Recommendation
+
+For set-and-forget home monitoring with wired power: RS-485.
+- Simpler debugging when something breaks
+- No WiFi infrastructure dependency
+- Immediate failure detection
+- Comparable code complexity
+
+UDP makes sense when:
+- Battery-powered sensors (deep sleep matters)
+- Running wire is impractical
+- Multiple buildings/structures
