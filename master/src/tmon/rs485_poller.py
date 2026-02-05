@@ -4,7 +4,7 @@ Sends POLL requests to each configured slave, decodes REPLY frames,
 and stores raw int16 temperature readings in Storage.
 
 Example:
-    >>> from tmon.poller import Poller
+    >>> from tmon.rs485_poller import Poller
     >>> poller = Poller(bus, storage, [1, 2])
     >>> readings = poller.poll_all()
     >>> readings[0].addr

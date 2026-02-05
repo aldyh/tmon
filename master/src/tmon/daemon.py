@@ -18,11 +18,11 @@ import logging
 import signal
 import time
 
-from tmon.bus import Bus
 from tmon.config import load_config
-from tmon.listener import Listener
-from tmon.poller import Poller
+from tmon.rs485_bus import RS485Bus
+from tmon.rs485_poller import Poller
 from tmon.storage import Storage
+from tmon.udp_listener import Listener
 from tmon.udp_receiver import UDPReceiver
 
 log = logging.getLogger(__name__)
@@ -141,7 +141,7 @@ def main() -> None:
             cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
             cfg["interval"],
         )
-        bus = Bus(cfg["port"], cfg["baudrate"])
+        bus = RS485Bus(cfg["port"], cfg["baudrate"])
         try:
             run_poller(cfg, bus, storage)
         finally:

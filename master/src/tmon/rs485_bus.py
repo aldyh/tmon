@@ -6,8 +6,8 @@ reads the 4-byte header (START, ADDR, CMD, LEN) to learn the
 payload length, then reads the remaining payload + CRC bytes.
 
 Example:
-    >>> from tmon.bus import Bus
-    >>> bus = Bus("/dev/ttyUSB0", 9600)
+    >>> from tmon.rs485_bus import RS485Bus
+    >>> bus = RS485Bus("/dev/ttyUSB0", 9600)
     >>> bus.send(frame_bytes)
     >>> response = bus.receive()
 """
@@ -17,7 +17,7 @@ import serial
 from tmon.config import TIMEOUT_MS
 
 
-class Bus:
+class RS485Bus:
     """Half-duplex RS-485 serial bus.
 
     Wraps ``serial.Serial`` with frame-aware send/receive.
@@ -29,7 +29,7 @@ class Bus:
         baudrate: Baud rate for the connection (e.g. ``9600``).
 
     Example:
-        >>> bus = Bus("/dev/ttyUSB0", 9600)
+        >>> bus = RS485Bus("/dev/ttyUSB0", 9600)
         >>> bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
         >>> reply = bus.receive()
     """

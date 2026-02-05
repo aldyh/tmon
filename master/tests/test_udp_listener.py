@@ -1,7 +1,7 @@
-"""Tests for Listener UDP receiver."""
+"""Tests for tmon.udp_listener."""
 
-from tmon.poller import Reading
-from tmon.listener import Listener
+from tmon.rs485_poller import Reading
+from tmon.udp_listener import Listener
 from tmon.protocol import encode_request, PROTO_CMD_REPLY, PROTO_TEMP_INVALID
 from tmon.storage import Storage
 

@@ -1,7 +1,7 @@
-"""Tests for tmon.poller."""
+"""Tests for tmon.rs485_poller."""
 
 from conftest import FakeBus, make_reply
-from tmon.poller import Poller, Reading
+from tmon.rs485_poller import Poller, Reading
 from tmon.storage import Storage
 from tmon.protocol import PROTO_TEMP_INVALID
 

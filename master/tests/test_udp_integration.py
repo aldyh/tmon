@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-from tmon.listener import Listener
+from tmon.udp_listener import Listener
 from tmon.storage import Storage
 from tmon.udp_receiver import UDPReceiver
 

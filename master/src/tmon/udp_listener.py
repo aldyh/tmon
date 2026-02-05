@@ -4,7 +4,7 @@ Slaves push REPLY frames periodically; this listener receives them,
 decodes temperatures, and stores to the database. No polling needed.
 
 Example:
-    >>> from tmon.listener import Listener
+    >>> from tmon.udp_listener import Listener
     >>> from tmon.udp_receiver import UDPReceiver
     >>> listener = Listener(UDPReceiver(5555), storage)
     >>> listener.receive(1.0)  # Wait up to 1 second
@@ -12,7 +12,7 @@ Example:
 
 import logging
 
-from tmon.poller import Reading
+from tmon.rs485_poller import Reading
 from tmon.protocol import (
     decode_frame,
     parse_reply,
