@@ -718,6 +718,48 @@ notice Udp awkwardness.  Fix any other places in the code base.
 Only one instance in code: TestUdpIntegration -> TestUDPIntegration in
 test_udp_integration.py.  The WiFiUdp.h include is an Arduino library,
 not ours.
+* TODO Move ~Reading~ dataclass out of ~rs485_poller.py~
+~Reading~ is defined in ~rs485_poller.py:29-40~ but imported by
+~udp_listener.py:15~.  A transport-neutral data type shouldn't live in a
+transport-specific module.  Move to its own module (e.g. ~reading.py~)
+or to ~protocol.py~.
+* TODO Extract duplicated ~_fmt()~ temperature formatter
+Identical function in ~rs485_poller.py:116-117~ and
+~udp_listener.py:87-88~:
+
+#+begin_example
+def _fmt(t):
+    return f"{t / 10:.1f}" if t is not None else "--.-"
+#+end_example
+
+Extract to a shared location (e.g. ~protocol.py~ or wherever ~Reading~
+lands).
+* TODO Fix ~bus~ parameter name in ~daemon.py:run_listener()~
+~daemon.py:70~: ~run_listener(bus, storage)~ -- but receives a
+~UDPReceiver~, not a bus.  Should be ~receiver~ to match what it
+actually is.
+* TODO Rename ~encode_request~ to ~encode_frame~
+~protocol.py:75~: function encodes any frame (POLL or REPLY), not just
+requests.  Its own docstring says "Build a complete protocol frame".
+Used for REPLY encoding in ~serial_simulator.py:75~, ~conftest.py:11~,
+~test_rs485_bus.py:51~.
+
+C side: ~tmon_encode_request~ -> ~tmon_encode_frame~ too.
+* TODO Harmonize wifi/udp naming across build and code
+Python: ~udp_receiver.py~, ~udp_listener.py~, ~UDPReceiver~,
+~transport = "udp"~, ~config-udp.toml~.
+
+Makefile/PlatformIO: ~flash-slave-wifi~, ~run-master-wifi~,
+~build-slave-wifi~, ~env:wifi~.
+
+These diverged when TCP was replaced by UDP but build targets weren't
+renamed.  Pick one convention: either rename build targets to ~-udp~ or
+accept the split and add a comment explaining why.
+* TODO Inconsistent UDP class naming
+~UDPReceiver~ (prefixed) vs ~Listener~ (not prefixed).  Both live in
+~udp_*.py~ modules, but only one carries the ~UDP~ prefix in the class
+name.  Either both should be prefixed (~UDPReceiver~, ~UDPListener~) or
+neither should (~Receiver~, ~Listener~).
 * DONE Implement UDP simulator if needed
 We have a simulator for the RS485 slaves, but we have two modes of operation, RS485 and UDP.
 We should factor out the 485 bits, such that we have a file with the 485 bits, another one with UDP simulator bits, and a serial_simulator.py for the overall general simulator interface-- probably dispatching to either one depending on how its being run.
