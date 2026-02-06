@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Virtual slave simulator for tmon.
+"""Virtual serial slave simulator for tmon.
 
 Listens on a serial port (typically a socat PTY) and responds to
 POLL frames with REPLY frames containing synthetic temperatures.
@@ -10,14 +10,14 @@ The simulator responds to any address (promiscuous mode), echoing
 the address from the incoming frame in the reply.
 
 Usage:
-    python simulator.py <port> <baudrate>
+    python serial_simulator.py <port> <baudrate>
 
 Args:
     port: Serial port path (e.g. /tmp/tmon-slave).
     baudrate: Baud rate (e.g. 9600).
 
 Example:
-    python simulator.py /tmp/tmon-slave 9600
+    python serial_simulator.py /tmp/tmon-slave 9600
 """
 
 import random
@@ -47,7 +47,7 @@ def run(port: str, baudrate: int) -> None:
     """
     bus = RS485Bus(port, baudrate)
 
-    print("simulator: listening on {}".format(port), flush=True)
+    print("serial_simulator: listening on {}".format(port), flush=True)
 
     try:
         while True:
@@ -82,6 +82,6 @@ def run(port: str, baudrate: int) -> None:
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        print("usage: simulator.py <port> <baudrate>", file=sys.stderr)
+        print("usage: serial_simulator.py <port> <baudrate>", file=sys.stderr)
         sys.exit(1)
     run(sys.argv[1], int(sys.argv[2]))

@@ -715,7 +715,7 @@ class TestUdpIntegration:
 notice Udp awkwardness.  Fix any other places in the code base.
 * DONE Implement UDP simulator if needed
 We have a simulator for the RS485 slaves, but we have two modes of operation, RS485 and UDP.
-We should factor out the 485 bits, such that we have a file with the 485 bits, another one with UDP simulator bits, and a simulator.py for the overall general simulator interface-- probably dispatching to either one depending on how its being run.
+We should factor out the 485 bits, such that we have a file with the 485 bits, another one with UDP simulator bits, and a serial_simulator.py for the overall general simulator interface-- probably dispatching to either one depending on how its being run.
 
 I'm not sure whether integration tests already cover UDP, and if so, this work is probably not needed.  Heck, if we already test UDP testing as a unit test, then perhaps we could do the same for the simulator, and avoid the simulator altogether.
 

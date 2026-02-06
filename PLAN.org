@@ -17,7 +17,7 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 - *Config:* ~config.toml~ (stdlib ~tomllib~ in Python 3.11).
 - *Testing:*
   - Unit tests: ~pytest~ with fakes/mocks (no hardware).
-  - Integration tests: ~socat~ + simulator (~master/tools~).
+  - Integration tests: ~socat~ + serial simulator (~master/tools~).
 - *Firmware (slave):* PlatformIO + Arduino framework; keep firmware straightforward.
 
 ** Milestones

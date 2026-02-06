@@ -65,7 +65,7 @@ def pty_pair():
         time.sleep(0.05)
 
     sim = subprocess.Popen(
-        [sys.executable, os.path.join(TOOLS_DIR, "simulator.py"),
+        [sys.executable, os.path.join(TOOLS_DIR, "serial_simulator.py"),
          SLAVE_PTY, "9600"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,

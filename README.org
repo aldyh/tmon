@@ -17,7 +17,7 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
 - ~master/~ -- Python 3.11+ polling daemon
   - ~src/tmon/~ -- protocol, bus, poller, storage, config
   - ~tests/~ -- pytest unit tests (no hardware)
-  - ~tools/~ -- x86 simulator + ~socat~ harness (integration tests)
+  - ~tools/~ -- x86 serial simulator + ~socat~ harness (integration tests)
 - ~slave/~ -- ESP32 firmware (PlatformIO, Arduino framework)
 - ~panel/~ -- demo dashboard (Flask + Chart.js)
 - ~docs/~ -- documentation (see links below)
