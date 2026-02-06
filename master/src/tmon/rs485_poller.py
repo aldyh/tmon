@@ -21,7 +21,7 @@ from tmon.protocol import (
     PROTO_CMD_REPLY,
     PROTO_REPLY_PAYLOAD_LEN,
 )
-from tmon.reading import Reading
+from tmon.reading import Reading, fmt_temp
 
 log = logging.getLogger(__name__)
 
@@ -99,13 +99,11 @@ class Poller:
 
         temps = parse_reply(payload)
 
-        def _fmt(t):
-            return f"{t / 10:.1f}" if t is not None else "--.-"
-
         log.info(
             "slave %d: temps=[%s, %s, %s, %s]",
             addr,
-            _fmt(temps[0]), _fmt(temps[1]), _fmt(temps[2]), _fmt(temps[3]),
+            fmt_temp(temps[0]), fmt_temp(temps[1]),
+            fmt_temp(temps[2]), fmt_temp(temps[3]),
         )
 
         return Reading(

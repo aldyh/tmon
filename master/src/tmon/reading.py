@@ -25,3 +25,15 @@ class Reading:
     temp_1: int | None
     temp_2: int | None
     temp_3: int | None
+
+
+def fmt_temp(t: int | None) -> str:
+    """Format a raw int16 temperature for display.
+
+    Example:
+        >>> fmt_temp(235)
+        '23.5'
+        >>> fmt_temp(None)
+        '--.-'
+    """
+    return f"{t / 10:.1f}" if t is not None else "--.-"
