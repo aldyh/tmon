@@ -709,3 +709,7 @@ UDP makes sense when:
 - Battery-powered sensors (deep sleep matters)
 - Running wire is impractical
 - Multiple buildings/structures
+* TODO Rename Udp to UDP
+There are still instances of:
+class TestUdpIntegration:
+notice Udp awkwardness.  Fix any other places in the code base.
