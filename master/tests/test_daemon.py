@@ -1,7 +1,7 @@
 """Tests for tmon.daemon."""
 
 from conftest import FakeBus, make_reply
-from tmon.daemon import run_poller, _on_signal
+from tmon.daemon import run_poller, run_listener, _on_signal
 from tmon.protocol import PROTO_TEMP_INVALID
 from tmon.storage import Storage
 import tmon.daemon as daemon_mod
@@ -29,6 +29,23 @@ class CountingBus:
     def close(self) -> None:
         """No-op for test compatibility."""
         pass
+
+
+class CountingReceiver:
+    """Test double: returns canned frames via recv(), triggers shutdown at limit."""
+
+    def __init__(self, frame: bytes, max_recvs: int):
+        """Initialize with canned frame and receive limit."""
+        self._frame = frame
+        self._max_recvs = max_recvs
+        self.recv_count = 0
+
+    def recv(self, timeout_s: float) -> bytes:
+        """Return the canned frame; trigger shutdown when limit reached."""
+        self.recv_count += 1
+        if self.recv_count >= self._max_recvs:
+            daemon_mod._shutdown = True
+        return self._frame
 
 
 class TestRunPoller:
@@ -114,4 +131,37 @@ class TestRunPoller:
         assert cycles >= 1
         rows = storage.fetch(10)
         assert len(rows) >= 2
+        storage.close()
+
+
+class TestRunListener:
+    """Tests for the daemon run_listener() function."""
+
+    def test_receives_and_stores(self):
+        """run_listener() receives frames and stores readings."""
+        daemon_mod._shutdown = False
+        frame = make_reply(3, 250, PROTO_TEMP_INVALID,
+                           PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
+        receiver = CountingReceiver(frame, 2)
+        storage = Storage(":memory:")
+
+        count = run_listener(receiver, storage)
+
+        assert count >= 1
+        rows = storage.fetch(10)
+        assert len(rows) >= 1
+        assert rows[0]["addr"] == 3
+        storage.close()
+
+    def test_shutdown_flag_stops_listener(self):
+        """Setting _shutdown before run_listener() causes immediate return."""
+        daemon_mod._shutdown = True
+        frame = make_reply(1, 100, PROTO_TEMP_INVALID,
+                           PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
+        receiver = CountingReceiver(frame, 1)
+        storage = Storage(":memory:")
+
+        count = run_listener(receiver, storage)
+
+        assert count == 0
         storage.close()
