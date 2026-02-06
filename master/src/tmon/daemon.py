@@ -22,7 +22,7 @@ from tmon.config import load_config
 from tmon.rs485_bus import RS485Bus
 from tmon.rs485_poller import Poller
 from tmon.storage import Storage
-from tmon.udp_listener import Listener
+from tmon.udp_listener import UDPListener
 from tmon.udp_receiver import UDPReceiver
 
 log = logging.getLogger(__name__)
@@ -77,7 +77,7 @@ def run_listener(receiver, storage) -> int:
         >>> run_listener(receiver, storage)
         42
     """
-    listener = Listener(receiver, storage)
+    listener = UDPListener(receiver, storage)
     count = 0
 
     while not _shutdown:

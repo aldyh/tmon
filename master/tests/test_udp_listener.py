@@ -1,7 +1,7 @@
 """Tests for tmon.udp_listener."""
 
 from tmon.reading import Reading
-from tmon.udp_listener import Listener
+from tmon.udp_listener import UDPListener
 from tmon.protocol import encode_frame, PROTO_CMD_REPLY, PROTO_TEMP_INVALID
 from tmon.storage import Storage
 
@@ -32,7 +32,7 @@ class TestReceiveOne:
         frame = make_reply(3, 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         reading = collector.receive(1.0)
 
@@ -57,7 +57,7 @@ class TestReceiveOne:
         corrupted = frame[:-1] + bytes([frame[-1] ^ 0xFF])
         receiver = FakeReceiver([corrupted])
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         reading = collector.receive(1.0)
 
@@ -69,7 +69,7 @@ class TestReceiveOne:
         """Empty recv (timeout) returns None."""
         receiver = FakeReceiver([b""])
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         reading = collector.receive(1.0)
 
@@ -82,7 +82,7 @@ class TestReceiveOne:
         frame2 = make_reply(2, 200, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = FakeReceiver([frame1, frame2])
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         r1 = collector.receive(1.0)
         r2 = collector.receive(1.0)
@@ -102,7 +102,7 @@ class TestReceiveOne:
         frame = make_reply(1, -100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = FakeReceiver([frame])
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         reading = collector.receive(1.0)
 

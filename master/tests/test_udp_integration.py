@@ -3,7 +3,7 @@
 Tests the full push cycle over localhost UDP:
 - UDPReceiver listening on localhost
 - Simulated slave pushing REPLY frames
-- Listener receives and stores readings
+- UDPListener receives and stores readings
 """
 
 import socket
@@ -12,7 +12,7 @@ import time
 
 import pytest
 
-from tmon.udp_listener import Listener
+from tmon.udp_listener import UDPListener
 from tmon.storage import Storage
 from tmon.udp_receiver import UDPReceiver
 
@@ -42,7 +42,7 @@ class TestUDPIntegration:
         port = _find_free_port()
         receiver = UDPReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         try:
             # Push a REPLY frame
@@ -78,7 +78,7 @@ class TestUDPIntegration:
         port = _find_free_port()
         receiver = UDPReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         try:
             frame1 = make_reply(1, 100, 0, 0, 0)
@@ -117,7 +117,7 @@ class TestUDPIntegration:
         port = _find_free_port()
         receiver = UDPReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         try:
             start = time.time()
@@ -135,7 +135,7 @@ class TestUDPIntegration:
         port = _find_free_port()
         receiver = UDPReceiver(port)
         storage = Storage(":memory:")
-        collector = Listener(receiver, storage)
+        collector = UDPListener(receiver, storage)
 
         try:
             good_frame = make_reply(1, 100, 0, 0, 0)

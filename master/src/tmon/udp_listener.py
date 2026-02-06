@@ -4,9 +4,9 @@ Slaves push REPLY frames periodically; this listener receives them,
 decodes temperatures, and stores to the database. No polling needed.
 
 Example:
-    >>> from tmon.udp_listener import Listener
+    >>> from tmon.udp_listener import UDPListener
     >>> from tmon.udp_receiver import UDPReceiver
-    >>> listener = Listener(UDPReceiver(5555), storage)
+    >>> listener = UDPListener(UDPReceiver(5555), storage)
     >>> listener.receive(1.0)  # Wait up to 1 second
 """
 
@@ -23,7 +23,7 @@ from tmon.protocol import (
 log = logging.getLogger(__name__)
 
 
-class Listener:
+class UDPListener:
     """Receives pushed readings from slaves via UDP.
 
     Listens for REPLY frames pushed by slaves, decodes temperatures,
@@ -34,7 +34,7 @@ class Listener:
         storage: Object with ``insert(addr, temps)`` and ``commit()``.
 
     Example:
-        >>> listener = Listener(receiver, storage)
+        >>> listener = UDPListener(receiver, storage)
         >>> reading = listener.receive(1.0)
         >>> reading.addr
         3
