@@ -17,8 +17,8 @@ import time
 
 import pytest
 
-from tmon.rs485_bus import RS485Bus
-from tmon.rs485_poller import Poller
+from tmon.serial_bus import SerialBus
+from tmon.serial_poller import Poller
 from tmon.storage import Storage
 
 pytestmark = pytest.mark.integration
@@ -91,7 +91,7 @@ class TestIntegration:
 
     def test_poll_single_slave(self, pty_pair):
         """Poller.poll_all polls the simulator and gets a reading."""
-        bus = RS485Bus(pty_pair, 9600)
+        bus = SerialBus(pty_pair, 9600)
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [SIM_ADDR])
 
@@ -114,7 +114,7 @@ class TestIntegration:
 
     def test_multiple_polls(self, pty_pair):
         """Multiple poll_all calls accumulate readings in storage."""
-        bus = RS485Bus(pty_pair, 9600)
+        bus = SerialBus(pty_pair, 9600)
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [SIM_ADDR])
 
@@ -130,7 +130,7 @@ class TestIntegration:
 
     def test_temp_values_in_range(self, pty_pair):
         """Simulator produces temperatures in the 50-900 range."""
-        bus = RS485Bus(pty_pair, 9600)
+        bus = SerialBus(pty_pair, 9600)
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [SIM_ADDR])
 

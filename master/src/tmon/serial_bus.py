@@ -1,13 +1,13 @@
-"""Serial bus abstraction for RS-485 communication.
+"""Serial bus abstraction for tmon protocol frames.
 
 Wraps pyserial to send and receive tmon protocol frames over a
-half-duplex RS-485 link.  The receive method is frame-aware: it
-reads the 4-byte header (START, ADDR, CMD, LEN) to learn the
-payload length, then reads the remaining payload + CRC bytes.
+serial link.  The receive method is frame-aware: it reads the
+4-byte header (START, ADDR, CMD, LEN) to learn the payload
+length, then reads the remaining payload + CRC bytes.
 
 Example:
-    >>> from tmon.rs485_bus import RS485Bus
-    >>> bus = RS485Bus("/dev/ttyUSB0", 9600)
+    >>> from tmon.serial_bus import SerialBus
+    >>> bus = SerialBus("/dev/ttyUSB0", 9600)
     >>> bus.send(frame_bytes)
     >>> response = bus.receive()
 """
@@ -17,8 +17,8 @@ import serial
 from tmon.config import TIMEOUT_MS
 
 
-class RS485Bus:
-    """Half-duplex RS-485 serial bus.
+class SerialBus:
+    """Frame-aware serial bus.
 
     Wraps ``serial.Serial`` with frame-aware send/receive.
     Duck-typed -- tests can substitute any object with matching
@@ -29,7 +29,7 @@ class RS485Bus:
         baudrate: Baud rate for the connection (e.g. ``9600``).
 
     Example:
-        >>> bus = RS485Bus("/dev/ttyUSB0", 9600)
+        >>> bus = SerialBus("/dev/ttyUSB0", 9600)
         >>> bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
         >>> reply = bus.receive()
     """

@@ -27,7 +27,7 @@ import sys
 # Add parent src to path so we can import tmon
 sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1] / "src"))
 
-from tmon.rs485_bus import RS485Bus
+from tmon.serial_bus import SerialBus
 from tmon.protocol import (
     encode_frame,
     decode_frame,
@@ -45,7 +45,7 @@ def run(port: str, baudrate: int) -> None:
     to any address.  Each channel produces a random value between 50
     and 900 (5.0 to 90.0 C) with a ~10% chance of being PROTO_TEMP_INVALID.
     """
-    bus = RS485Bus(port, baudrate)
+    bus = SerialBus(port, baudrate)
 
     print("serial_simulator: listening on {}".format(port), flush=True)
 

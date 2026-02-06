@@ -19,8 +19,8 @@ import signal
 import time
 
 from tmon.config import load_config
-from tmon.rs485_bus import RS485Bus
-from tmon.rs485_poller import Poller
+from tmon.serial_bus import SerialBus
+from tmon.serial_poller import Poller
 from tmon.storage import Storage
 from tmon.udp_listener import UDPListener
 from tmon.udp_receiver import UDPReceiver
@@ -141,7 +141,7 @@ def main() -> None:
             cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
             cfg["interval"],
         )
-        bus = RS485Bus(cfg["port"], cfg["baudrate"])
+        bus = SerialBus(cfg["port"], cfg["baudrate"])
         try:
             run_poller(cfg, bus, storage)
         finally:

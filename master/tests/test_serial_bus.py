@@ -1,31 +1,31 @@
-"""Tests for tmon.rs485_bus."""
+"""Tests for tmon.serial_bus."""
 
 import struct
 from unittest.mock import MagicMock, patch
 
-from tmon.rs485_bus import RS485Bus
+from tmon.serial_bus import SerialBus
 from tmon.protocol import encode_frame, PROTO_CMD_POLL, PROTO_CMD_REPLY
 
 
-class TestRS485BusSend:
-    """Tests for RS485Bus.send."""
+class TestSerialBusSend:
+    """Tests for SerialBus.send."""
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_send_writes_data(self, mock_serial_cls):
         """send() writes data to the serial port."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         data = b"\x01\x03\x01\x00\x80\x50"
         bus.send(data)
         mock_ser.write.assert_called_once_with(data)
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_send_flushes_input_then_output(self, mock_serial_cls):
         """send() flushes input buffer before write, output after."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         bus.send(b"\x01")
         calls = [c[0] for c in mock_ser.method_calls]
         assert "reset_input_buffer" in calls
@@ -37,10 +37,10 @@ class TestRS485BusSend:
         assert ri_idx < w_idx < f_idx
 
 
-class TestRS485BusReceive:
-    """Tests for RS485Bus.receive."""
+class TestSerialBusReceive:
+    """Tests for SerialBus.receive."""
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_receive_assembles_frame(self, mock_serial_cls):
         """receive() reads header then payload+CRC."""
         mock_ser = MagicMock()
@@ -53,33 +53,33 @@ class TestRS485BusReceive:
         # Simulate: first read returns header, second returns rest
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         result = bus.receive()
         assert result == frame
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_receive_timeout_no_header(self, mock_serial_cls):
         """receive() returns b'' when no header bytes arrive."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"")
 
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         result = bus.receive()
         assert result == b""
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_receive_timeout_partial_header(self, mock_serial_cls):
         """receive() returns b'' on partial header."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"\x01\x03")
 
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         result = bus.receive()
         assert result == b""
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_receive_timeout_partial_payload(self, mock_serial_cls):
         """receive() returns b'' when payload is incomplete."""
         mock_ser = MagicMock()
@@ -88,22 +88,22 @@ class TestRS485BusReceive:
         header = b"\x01\x03\x02\x09"
         mock_ser.read = MagicMock(side_effect=[header, b"\x03\xEB\x00"])
 
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         result = bus.receive()
         assert result == b""
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_receive_sets_timeout_from_constant(self, mock_serial_cls):
         """receive() sets serial timeout from TIMEOUT_MS constant."""
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
         mock_ser.read = MagicMock(return_value=b"")
 
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         bus.receive()
         assert mock_ser.timeout == 200 / 1000.0
 
-    @patch("tmon.rs485_bus.serial.Serial")
+    @patch("tmon.serial_bus.serial.Serial")
     def test_receive_poll_frame(self, mock_serial_cls):
         """receive() handles a zero-payload POLL frame."""
         mock_ser = MagicMock()
@@ -112,6 +112,6 @@ class TestRS485BusReceive:
         frame = encode_frame(3, PROTO_CMD_POLL, b"")
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
-        bus = RS485Bus("/dev/ttyUSB0", 9600)
+        bus = SerialBus("/dev/ttyUSB0", 9600)
         result = bus.receive()
         assert result == frame
