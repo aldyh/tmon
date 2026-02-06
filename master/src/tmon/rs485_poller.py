@@ -12,7 +12,6 @@ Example:
 """
 
 import logging
-from dataclasses import dataclass
 
 from tmon.protocol import (
     encode_request,
@@ -22,22 +21,9 @@ from tmon.protocol import (
     PROTO_CMD_REPLY,
     PROTO_REPLY_PAYLOAD_LEN,
 )
+from tmon.reading import Reading
 
 log = logging.getLogger(__name__)
-
-
-@dataclass
-class Reading:
-    """A single temperature reading from a slave device.
-
-    Temperatures are in tenths of a degree C, or None if invalid.
-    """
-
-    addr: int
-    temp_0: int | None
-    temp_1: int | None
-    temp_2: int | None
-    temp_3: int | None
 
 
 class Poller:

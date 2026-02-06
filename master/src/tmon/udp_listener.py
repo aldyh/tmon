@@ -12,7 +12,7 @@ Example:
 
 import logging
 
-from tmon.rs485_poller import Reading
+from tmon.reading import Reading
 from tmon.protocol import (
     decode_frame,
     parse_reply,

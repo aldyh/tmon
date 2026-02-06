@@ -718,11 +718,15 @@ notice Udp awkwardness.  Fix any other places in the code base.
 Only one instance in code: TestUdpIntegration -> TestUDPIntegration in
 test_udp_integration.py.  The WiFiUdp.h include is an Arduino library,
 not ours.
-* TODO Move ~Reading~ dataclass out of ~rs485_poller.py~
+* DONE Move ~Reading~ dataclass out of ~rs485_poller.py~
 ~Reading~ is defined in ~rs485_poller.py:29-40~ but imported by
 ~udp_listener.py:15~.  A transport-neutral data type shouldn't live in a
 transport-specific module.  Move to its own module (e.g. ~reading.py~)
 or to ~protocol.py~.
+
+** Notes
+Moved to ~reading.py~. Updated imports in ~rs485_poller.py~,
+~udp_listener.py~, ~test_rs485_poller.py~, and ~test_udp_listener.py~.
 * TODO Extract duplicated ~_fmt()~ temperature formatter
 Identical function in ~rs485_poller.py:116-117~ and
 ~udp_listener.py:87-88~:
