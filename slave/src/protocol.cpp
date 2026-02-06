@@ -48,7 +48,7 @@ tmon_crc16 (const uint8_t *data, size_t len)
 }
 
 /*
- * tmon_encode_request -- Build a complete protocol frame into buf.
+ * tmon_encode_frame -- Build a complete protocol frame into buf.
  *
  * Constructs: START + ADDR + CMD + LEN + PAYLOAD + CRC_LO + CRC_HI.
  * CRC is computed over ADDR + CMD + LEN + PAYLOAD.
@@ -66,13 +66,13 @@ tmon_crc16 (const uint8_t *data, size_t len)
  *
  * Example:
  *   uint8_t buf[64];
- *   size_t n = tmon_encode_request (buf, sizeof (buf), 3, TMON_CMD_POLL,
+ *   size_t n = tmon_encode_frame (buf, sizeof (buf), 3, TMON_CMD_POLL,
  *                                   NULL, 0);
  *   // buf[0..5] = {0x01, 0x03, 0x01, 0x00, 0x80, 0x50}, n = 6
  */
 
 size_t
-tmon_encode_request (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
+tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
                      const uint8_t *payload, uint8_t payload_len)
 {
   size_t frame_len;

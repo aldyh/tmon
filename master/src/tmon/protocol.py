@@ -4,8 +4,8 @@ Handles the binary framing format described in docs/protocol.org:
 START, ADDR, CMD, LEN, PAYLOAD, CRC_LO, CRC_HI.
 
 Example:
-    >>> from tmon.protocol import encode_request, decode_frame, PROTO_CMD_POLL
-    >>> raw = encode_request(3, PROTO_CMD_POLL, b"")
+    >>> from tmon.protocol import encode_frame, decode_frame, PROTO_CMD_POLL
+    >>> raw = encode_frame(3, PROTO_CMD_POLL, b"")
     >>> raw.hex(' ')
     '01 03 01 00 80 50'
     >>> frame = decode_frame(raw)
@@ -72,7 +72,7 @@ def crc16_modbus(data: bytes) -> int:
 # -- Encoding ----------------------------------------------------------------
 
 
-def encode_request(addr: int, cmd: int, payload: bytes) -> bytes:
+def encode_frame(addr: int, cmd: int, payload: bytes) -> bytes:
     """Build a complete protocol frame.
 
     Constructs the frame: START + ADDR + CMD + LEN + PAYLOAD + CRC_LO + CRC_HI.
@@ -82,11 +82,11 @@ def encode_request(addr: int, cmd: int, payload: bytes) -> bytes:
         ValueError: If addr is outside the valid range 1-247.
 
     Example:
-        >>> encode_request(3, PROTO_CMD_POLL, b"").hex(' ')
+        >>> encode_frame(3, PROTO_CMD_POLL, b"").hex(' ')
         '01 03 01 00 80 50'
         >>> import struct
         >>> payload = struct.pack("<hhhh", 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        >>> encode_request(3, PROTO_CMD_REPLY, payload).hex(' ')
+        >>> encode_frame(3, PROTO_CMD_REPLY, payload).hex(' ')
         '01 03 02 08 eb 00 c6 00 ff 7f ff 7f 90 eb'
     """
     if not is_valid_address(addr):

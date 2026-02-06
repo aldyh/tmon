@@ -58,7 +58,7 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
     }
 
   /* Encode the REPLY frame */
-  return tmon_encode_request (buf, buf_len, SLAVE_ADDR, TMON_CMD_REPLY,
+  return tmon_encode_frame (buf, buf_len, SLAVE_ADDR, TMON_CMD_REPLY,
                               payload, TMON_REPLY_PAYLOAD_LEN);
 }
 

@@ -4,7 +4,7 @@ import struct
 from unittest.mock import MagicMock, patch
 
 from tmon.rs485_bus import RS485Bus
-from tmon.protocol import encode_request, PROTO_CMD_POLL, PROTO_CMD_REPLY
+from tmon.protocol import encode_frame, PROTO_CMD_POLL, PROTO_CMD_REPLY
 
 
 class TestRS485BusSend:
@@ -48,7 +48,7 @@ class TestRS485BusReceive:
 
         # Build a valid REPLY frame for slave 3
         payload = struct.pack("<Bhhhh", 0x03, 235, 198, 0x7FFF, 0x7FFF)
-        frame = encode_request(3, PROTO_CMD_REPLY, payload)
+        frame = encode_frame(3, PROTO_CMD_REPLY, payload)
 
         # Simulate: first read returns header, second returns rest
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
@@ -109,7 +109,7 @@ class TestRS485BusReceive:
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
 
-        frame = encode_request(3, PROTO_CMD_POLL, b"")
+        frame = encode_frame(3, PROTO_CMD_POLL, b"")
         mock_ser.read = MagicMock(side_effect=[frame[:4], frame[4:]])
 
         bus = RS485Bus("/dev/ttyUSB0", 9600)

@@ -45,7 +45,7 @@ struct tmon_reply_payload
 
 uint16_t tmon_crc16 (const uint8_t *data, size_t len);
 
-size_t tmon_encode_request (uint8_t *buf, size_t buf_len, uint8_t addr,
+size_t tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr,
                             uint8_t cmd, const uint8_t *payload,
                             uint8_t payload_len);
 

@@ -749,13 +749,17 @@ actually is.
 
 ** Notes
 Renamed parameter from ~bus~ to ~receiver~. Updated docstring example.
-* TODO Rename ~encode_request~ to ~encode_frame~
+* DONE Rename ~encode_request~ to ~encode_frame~
 ~protocol.py:75~: function encodes any frame (POLL or REPLY), not just
 requests.  Its own docstring says "Build a complete protocol frame".
 Used for REPLY encoding in ~serial_simulator.py:75~, ~conftest.py:11~,
 ~test_rs485_bus.py:51~.
 
 C side: ~tmon_encode_request~ -> ~tmon_encode_frame~ too.
+
+** Notes
+Renamed in 13 files across Python and C. All tests pass (97 Python,
+51 C via Unity).
 * TODO Harmonize wifi/udp naming across build and code
 Python: ~udp_receiver.py~, ~udp_listener.py~, ~UDPReceiver~,
 ~transport = "udp"~, ~config-udp.toml~.

@@ -15,7 +15,7 @@ from tmon.protocol import (
     PROTO_TEMP_INVALID,
     crc16_modbus,
     decode_frame,
-    encode_request,
+    encode_frame,
     is_valid_address,
     parse_reply,
 )
@@ -81,7 +81,7 @@ class TestCrc16Modbus:
         assert 0 <= result <= 0xFFFF
 
 
-# -- encode_request ----------------------------------------------------------
+# -- encode_frame ----------------------------------------------------------
 
 
 class TestEncodeRequest:
@@ -90,15 +90,15 @@ class TestEncodeRequest:
     def test_example1_poll_slave3(self):
         """POLL for slave 3 should produce the Example 1 frame."""
         expected = bytes([0x01, 0x03, 0x01, 0x00, 0x80, 0x50])
-        assert encode_request(3, PROTO_CMD_POLL, b"") == expected
+        assert encode_frame(3, PROTO_CMD_POLL, b"") == expected
 
     def test_poll_length_is_6(self):
         """POLL frame with no payload is always 6 bytes."""
-        assert len(encode_request(1, PROTO_CMD_POLL, b"")) == 6
-        assert len(encode_request(247, PROTO_CMD_POLL, b"")) == 6
+        assert len(encode_frame(1, PROTO_CMD_POLL, b"")) == 6
+        assert len(encode_frame(247, PROTO_CMD_POLL, b"")) == 6
 
     def test_example2_reply_frame(self):
-        """encode_request should produce the Example 2 frame."""
+        """encode_frame should produce the Example 2 frame."""
         payload = bytes([
             0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
         ])
@@ -107,37 +107,37 @@ class TestEncodeRequest:
             0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
             0x90, 0xEB,
         ])
-        assert encode_request(3, PROTO_CMD_REPLY, payload) == expected
+        assert encode_frame(3, PROTO_CMD_REPLY, payload) == expected
 
     def test_start_byte(self):
         """First byte of any frame is PROTO_START."""
-        frame = encode_request(1, PROTO_CMD_POLL, b"")
+        frame = encode_frame(1, PROTO_CMD_POLL, b"")
         assert frame[0] == PROTO_START
 
     def test_addr_in_frame(self):
         """Address appears at offset 1."""
-        frame = encode_request(42, PROTO_CMD_POLL, b"")
+        frame = encode_frame(42, PROTO_CMD_POLL, b"")
         assert frame[1] == 42
 
     def test_cmd_in_frame(self):
         """Command byte appears at offset 2."""
-        frame = encode_request(1, 0xAB, b"")
+        frame = encode_frame(1, 0xAB, b"")
         assert frame[2] == 0xAB
 
     def test_len_field(self):
         """LEN field at offset 3 reflects actual payload length."""
-        frame = encode_request(1, PROTO_CMD_POLL, b"\x01\x02\x03")
+        frame = encode_frame(1, PROTO_CMD_POLL, b"\x01\x02\x03")
         assert frame[3] == 3
 
     def test_addr_boundary_low(self):
         """Address 0 should be rejected."""
         with pytest.raises(ValueError):
-            encode_request(0, PROTO_CMD_POLL, b"")
+            encode_frame(0, PROTO_CMD_POLL, b"")
 
     def test_addr_boundary_high(self):
         """Address 248 should be rejected."""
         with pytest.raises(ValueError):
-            encode_request(248, PROTO_CMD_POLL, b"")
+            encode_frame(248, PROTO_CMD_POLL, b"")
 
 
 # -- decode_frame ------------------------------------------------------------
@@ -148,7 +148,7 @@ class TestDecodeFrame:
 
     def test_roundtrip_poll(self):
         """encode then decode should recover the original fields."""
-        raw = encode_request(5, PROTO_CMD_POLL, b"")
+        raw = encode_frame(5, PROTO_CMD_POLL, b"")
         frame = decode_frame(raw)
         assert frame.addr == 5
         assert frame.cmd == PROTO_CMD_POLL
@@ -157,7 +157,7 @@ class TestDecodeFrame:
     def test_roundtrip_reply(self):
         """Round-trip with a non-empty payload."""
         payload = bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F])
-        raw = encode_request(10, PROTO_CMD_REPLY, payload)
+        raw = encode_frame(10, PROTO_CMD_REPLY, payload)
         frame = decode_frame(raw)
         assert frame.addr == 10
         assert frame.cmd == PROTO_CMD_REPLY
@@ -185,7 +185,7 @@ class TestDecodeFrame:
 
     def test_returns_frame_dataclass(self):
         """decode_frame returns a Frame dataclass instance."""
-        raw = encode_request(1, PROTO_CMD_POLL, b"")
+        raw = encode_frame(1, PROTO_CMD_POLL, b"")
         frame = decode_frame(raw)
         assert isinstance(frame, Frame)
 
@@ -196,27 +196,27 @@ class TestDecodeFrame:
 
     def test_error_bad_start(self):
         """Non-0x01 START byte should be rejected."""
-        raw = bytearray(encode_request(1, PROTO_CMD_POLL, b""))
+        raw = bytearray(encode_frame(1, PROTO_CMD_POLL, b""))
         raw[0] = 0xFF
         with pytest.raises(ValueError, match="bad START"):
             decode_frame(bytes(raw))
 
     def test_error_bad_crc(self):
         """Corrupted CRC should be detected."""
-        raw = bytearray(encode_request(1, PROTO_CMD_POLL, b""))
+        raw = bytearray(encode_frame(1, PROTO_CMD_POLL, b""))
         raw[-1] ^= 0xFF
         with pytest.raises(ValueError, match="CRC mismatch"):
             decode_frame(bytes(raw))
 
     def test_error_length_mismatch_too_long(self):
         """Extra bytes beyond what LEN declares should be rejected."""
-        raw = encode_request(1, PROTO_CMD_POLL, b"") + b"\x00"
+        raw = encode_frame(1, PROTO_CMD_POLL, b"") + b"\x00"
         with pytest.raises(ValueError, match="length mismatch"):
             decode_frame(raw)
 
     def test_error_length_mismatch_too_short(self):
         """Frame truncated relative to LEN should be rejected."""
-        raw = bytearray(encode_request(1, PROTO_CMD_REPLY, b"\x01\x02\x03"))
+        raw = bytearray(encode_frame(1, PROTO_CMD_REPLY, b"\x01\x02\x03"))
         # Truncate one payload byte but keep original LEN
         truncated = bytes(raw[:6])
         with pytest.raises(ValueError):

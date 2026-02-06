@@ -29,7 +29,7 @@ sys.path.insert(0, str(__import__("pathlib").Path(__file__).resolve().parents[1]
 
 from tmon.rs485_bus import RS485Bus
 from tmon.protocol import (
-    encode_request,
+    encode_frame,
     decode_frame,
     PROTO_CMD_POLL,
     PROTO_CMD_REPLY,
@@ -72,7 +72,7 @@ def run(port: str, baudrate: int) -> None:
 
             payload = struct.pack("<hhhh", temps[0], temps[1],
                                   temps[2], temps[3])
-            reply = encode_request(frame.addr, PROTO_CMD_REPLY, payload)
+            reply = encode_frame(frame.addr, PROTO_CMD_REPLY, payload)
             bus.send(reply)
     except KeyboardInterrupt:
         pass

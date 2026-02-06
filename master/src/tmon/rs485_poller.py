@@ -14,7 +14,7 @@ Example:
 import logging
 
 from tmon.protocol import (
-    encode_request,
+    encode_frame,
     decode_frame,
     parse_reply,
     PROTO_CMD_POLL,
@@ -62,7 +62,7 @@ class Poller:
             >>> reading.temp_0
             235
         """
-        frame = encode_request(addr, PROTO_CMD_POLL, b"")
+        frame = encode_frame(addr, PROTO_CMD_POLL, b"")
         self._bus.send(frame)
         raw = self._bus.receive()
 

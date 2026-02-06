@@ -64,6 +64,6 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
     }
 
   /* Encode the REPLY frame */
-  return tmon_encode_request (out, out_len, my_addr, TMON_CMD_REPLY,
+  return tmon_encode_frame (out, out_len, my_addr, TMON_CMD_REPLY,
                               reply_payload, TMON_REPLY_PAYLOAD_LEN);
 }

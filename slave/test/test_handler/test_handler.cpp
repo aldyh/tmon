@@ -27,7 +27,7 @@ test_handler_responds_to_poll (void)
 
   tmon_sensors_stub_set (235, 198, TMON_TEMP_INVALID, TMON_TEMP_INVALID);
 
-  poll_len = tmon_encode_request (poll, sizeof (poll), 3, TMON_CMD_POLL,
+  poll_len = tmon_encode_frame (poll, sizeof (poll), 3, TMON_CMD_POLL,
                                   NULL, 0);
   reply_len = tmon_handler_process (3, poll, poll_len, reply, sizeof (reply));
 
@@ -60,7 +60,7 @@ test_handler_ignores_wrong_address (void)
   uint8_t reply[64];
   size_t poll_len, reply_len;
 
-  poll_len = tmon_encode_request (poll, sizeof (poll), 5, TMON_CMD_POLL,
+  poll_len = tmon_encode_frame (poll, sizeof (poll), 5, TMON_CMD_POLL,
                                   NULL, 0);
   reply_len = tmon_handler_process (3, poll, poll_len, reply, sizeof (reply));
 
@@ -76,7 +76,7 @@ test_handler_ignores_non_poll (void)
   uint8_t payload[] = {0, 0, 0, 0, 0, 0, 0, 0};
   size_t frame_len, reply_len;
 
-  frame_len = tmon_encode_request (frame, sizeof (frame), 3, TMON_CMD_REPLY,
+  frame_len = tmon_encode_frame (frame, sizeof (frame), 3, TMON_CMD_REPLY,
                                    payload, sizeof (payload));
   reply_len = tmon_handler_process (3, frame, frame_len, reply, sizeof (reply));
 
@@ -119,7 +119,7 @@ test_handler_ignores_bad_crc (void)
   uint8_t reply[64];
   size_t poll_len, reply_len;
 
-  poll_len = tmon_encode_request (poll, sizeof (poll), 3, TMON_CMD_POLL,
+  poll_len = tmon_encode_frame (poll, sizeof (poll), 3, TMON_CMD_POLL,
                                   NULL, 0);
   poll[5] ^= 0xFF;  /* Corrupt CRC */
 
@@ -138,7 +138,7 @@ test_handler_different_temps (void)
 
   tmon_sensors_stub_set (100, -50, 0, 325);
 
-  poll_len = tmon_encode_request (poll, sizeof (poll), 1, TMON_CMD_POLL,
+  poll_len = tmon_encode_frame (poll, sizeof (poll), 1, TMON_CMD_POLL,
                                   NULL, 0);
   reply_len = tmon_handler_process (1, poll, poll_len, reply, sizeof (reply));
 

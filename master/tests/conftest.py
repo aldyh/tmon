@@ -2,13 +2,13 @@
 
 import struct
 
-from tmon.protocol import encode_request, PROTO_CMD_REPLY
+from tmon.protocol import encode_frame, PROTO_CMD_REPLY
 
 
 def make_reply(addr: int, t0: int, t1: int, t2: int, t3: int) -> bytes:
     """Build a valid REPLY frame for testing."""
     payload = struct.pack("<hhhh", t0, t1, t2, t3)
-    return encode_request(addr, PROTO_CMD_REPLY, payload)
+    return encode_frame(addr, PROTO_CMD_REPLY, payload)
 
 
 class FakeBus:
