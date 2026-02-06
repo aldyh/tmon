@@ -34,7 +34,7 @@ def _send_udp(port: int, data: bytes) -> None:
 
 
 @pytest.mark.integration
-class TestUdpIntegration:
+class TestUDPIntegration:
     """Integration tests for UDP push transport."""
 
     def test_receive_single_reading(self) -> None:
