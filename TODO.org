@@ -742,10 +742,13 @@ lands).
 ** Notes
 Extracted as ~fmt_temp()~ in ~reading.py~. Both ~rs485_poller.py~ and
 ~udp_listener.py~ now import it from there.
-* TODO Fix ~bus~ parameter name in ~daemon.py:run_listener()~
+* DONE Fix ~bus~ parameter name in ~daemon.py:run_listener()~
 ~daemon.py:70~: ~run_listener(bus, storage)~ -- but receives a
 ~UDPReceiver~, not a bus.  Should be ~receiver~ to match what it
 actually is.
+
+** Notes
+Renamed parameter from ~bus~ to ~receiver~. Updated docstring example.
 * TODO Rename ~encode_request~ to ~encode_frame~
 ~protocol.py:75~: function encodes any frame (POLL or REPLY), not just
 requests.  Its own docstring says "Build a complete protocol frame".

@@ -67,17 +67,17 @@ def run_poller(cfg: dict, bus, storage) -> int:
     return cycles
 
 
-def run_listener(bus, storage) -> int:
+def run_listener(receiver, storage) -> int:
     """Run the push receiver loop until shutdown is requested.
 
     Receives readings pushed by slaves via UDP and stores them.
     Returns the number of readings received when shutdown is signaled.
 
     Example:
-        >>> run_listener(bus, storage)
+        >>> run_listener(receiver, storage)
         42
     """
-    listener = Listener(bus, storage)
+    listener = Listener(receiver, storage)
     count = 0
 
     while not _shutdown:
