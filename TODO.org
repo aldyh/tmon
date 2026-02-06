@@ -760,7 +760,7 @@ C side: ~tmon_encode_request~ -> ~tmon_encode_frame~ too.
 ** Notes
 Renamed in 13 files across Python and C. All tests pass (97 Python,
 51 C via Unity).
-* TODO Harmonize wifi/udp naming across build and code
+* DONE Harmonize wifi/udp naming across build and code
 Python: ~udp_receiver.py~, ~udp_listener.py~, ~UDPReceiver~,
 ~transport = "udp"~, ~config-udp.toml~.
 
@@ -770,6 +770,11 @@ Makefile/PlatformIO: ~flash-slave-wifi~, ~run-master-wifi~,
 These diverged when TCP was replaced by UDP but build targets weren't
 renamed.  Pick one convention: either rename build targets to ~-udp~ or
 accept the split and add a comment explaining why.
+
+** Notes
+Renamed all build targets and PlatformIO env from ~wifi~ to ~udp~:
+~build-slave-udp~, ~flash-slave-udp~, ~run-master-udp~, ~[env:udp]~.
+Updated ~README.org~ references.
 * TODO Inconsistent UDP class naming
 ~UDPReceiver~ (prefixed) vs ~Listener~ (not prefixed).  Both live in
 ~udp_*.py~ modules, but only one carries the ~UDP~ prefix in the class

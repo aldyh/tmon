@@ -53,7 +53,7 @@ make check            # run all tests (no hardware needed)
 
 #+begin_example
 make flash-slave SLAVE_ADDR=1        # RS-485 transport
-make flash-slave-wifi SLAVE_ADDR=1   # UDP push (WiFi with deep sleep)
+make flash-slave-udp SLAVE_ADDR=1   # UDP push (WiFi with deep sleep)
 #+end_example
 
 For UDP builds, copy ~master/wifi.toml.example~ to ~master/wifi.toml~ and fill in your WiFi credentials.
@@ -62,7 +62,7 @@ For UDP builds, copy ~master/wifi.toml.example~ to ~master/wifi.toml~ and fill i
 
 #+begin_example
 make run-master       # RS-485 (uses master/config.toml)
-make run-master-wifi  # UDP push (uses master/config-udp.toml)
+make run-master-udp  # UDP push (uses master/config-udp.toml)
 #+end_example
 
 Runs in foreground; Ctrl+C to stop.
