@@ -1,10 +1,10 @@
 """Tests for tmon.daemon."""
 
+import tmon.daemon as daemon_mod
 from conftest import FakeBus, make_reply
 from tmon.daemon import run_poller, run_listener, _on_signal
 from tmon.protocol import PROTO_TEMP_INVALID
 from tmon.storage import Storage
-import tmon.daemon as daemon_mod
 
 
 class CountingBus:
@@ -20,7 +20,7 @@ class CountingBus:
         """Record send; trigger shutdown when limit reached."""
         self.send_count += 1
         if self.send_count >= self._max_polls:
-            daemon_mod._shutdown = True
+            daemon_mod._shutdown.set()
 
     def receive(self) -> bytes:
         """Return the canned reply."""
@@ -44,7 +44,7 @@ class CountingReceiver:
         """Return the canned frame; trigger shutdown when limit reached."""
         self.recv_count += 1
         if self.recv_count >= self._max_recvs:
-            daemon_mod._shutdown = True
+            daemon_mod._shutdown.set()
         return self._frame
 
 
@@ -53,7 +53,7 @@ class TestRunPoller:
 
     def test_polls_and_stores(self):
         """run_poller() calls poll_all and stores readings before shutdown."""
-        daemon_mod._shutdown = False
+        daemon_mod._shutdown.clear()
         reply = make_reply(3, 250, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = CountingBus(reply, 2)
@@ -69,8 +69,8 @@ class TestRunPoller:
         storage.close()
 
     def test_shutdown_flag_stops_loop(self):
-        """Setting _shutdown before run_poller() causes immediate return."""
-        daemon_mod._shutdown = True
+        """Setting shutdown before run_poller() causes immediate return."""
+        daemon_mod._shutdown.set()
         reply = make_reply(1, 100, PROTO_TEMP_INVALID,
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
@@ -83,14 +83,14 @@ class TestRunPoller:
         storage.close()
 
     def test_on_signal_sets_shutdown(self):
-        """_on_signal sets the _shutdown flag."""
-        daemon_mod._shutdown = False
+        """_on_signal sets the module-level shutdown event."""
+        daemon_mod._shutdown.clear()
         _on_signal(2, None)
-        assert daemon_mod._shutdown is True
+        assert daemon_mod._shutdown.is_set()
 
     def test_multiple_slaves(self):
         """run_poller() polls all configured slaves each cycle."""
-        daemon_mod._shutdown = False
+        daemon_mod._shutdown.clear()
         reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         reply2 = make_reply(2, 200, PROTO_TEMP_INVALID,
@@ -110,7 +110,7 @@ class TestRunPoller:
                 """Record send; trigger shutdown at limit."""
                 self._sends += 1
                 if self._sends >= self._max:
-                    daemon_mod._shutdown = True
+                    daemon_mod._shutdown.set()
 
             def receive(self) -> bytes:
                 """Return next reply in rotation."""
@@ -139,7 +139,7 @@ class TestRunListener:
 
     def test_receives_and_stores(self):
         """run_listener() receives frames and stores readings."""
-        daemon_mod._shutdown = False
+        daemon_mod._shutdown.clear()
         frame = make_reply(3, 250, PROTO_TEMP_INVALID,
                            PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = CountingReceiver(frame, 2)
@@ -154,8 +154,8 @@ class TestRunListener:
         storage.close()
 
     def test_shutdown_flag_stops_listener(self):
-        """Setting _shutdown before run_listener() causes immediate return."""
-        daemon_mod._shutdown = True
+        """Setting shutdown before run_listener() causes immediate return."""
+        daemon_mod._shutdown.set()
         frame = make_reply(1, 100, PROTO_TEMP_INVALID,
                            PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = CountingReceiver(frame, 1)

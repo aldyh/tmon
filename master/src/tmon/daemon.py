@@ -16,7 +16,7 @@ Example:
 import argparse
 import logging
 import signal
-import time
+import threading
 
 from tmon.config import load_config
 from tmon.serial_bus import SerialBus
@@ -27,23 +27,20 @@ from tmon.udp_receiver import UDPReceiver
 
 log = logging.getLogger(__name__)
 
-# Module-level shutdown flag set by signal handler.  This is the classic
-# Unix daemon pattern -- simple and correct for a single-threaded poll loop.
-_shutdown = False
+_shutdown = threading.Event()
 
 
 def _on_signal(signum: int, frame) -> None:
-    """Signal handler that sets the shutdown flag."""
-    global _shutdown
-    _shutdown = True
+    """Set the module-level shutdown event on SIGINT/SIGTERM."""
+    _shutdown.set()
 
 
 def run_poller(cfg: dict, bus, storage) -> int:
     """Run the poll loop until shutdown is requested.
 
     Polls all slaves, sleeps for ``cfg["interval"]`` seconds, and
-    repeats.  Returns the number of completed cycles when the
-    module-level ``_shutdown`` flag is set.
+    repeats.  Returns the number of completed cycles when *_shutdown*
+    is set.
 
     Example:
         >>> run_poller({"slaves": [3], "interval": 30}, bus, storage)
@@ -52,17 +49,16 @@ def run_poller(cfg: dict, bus, storage) -> int:
     poller = Poller(bus, storage, cfg["slaves"])
     cycles = 0
 
-    while not _shutdown:
+    while not _shutdown.is_set():
         results = poller.poll_all()
         cycles += 1
         log.info(
             "cycle %d: %d/%d slaves responded",
             cycles, len(results), len(cfg["slaves"]),
         )
-        # Sleep in short increments so we notice shutdown quickly.
-        deadline = time.monotonic() + cfg["interval"]
-        while not _shutdown and time.monotonic() < deadline:
-            time.sleep(0.25)
+        remaining = cfg["interval"]
+        if remaining > 0:
+            _shutdown.wait(remaining)
 
     return cycles
 
@@ -71,7 +67,7 @@ def run_listener(receiver, storage) -> int:
     """Run the push receiver loop until shutdown is requested.
 
     Receives readings pushed by slaves via UDP and stores them.
-    Returns the number of readings received when shutdown is signaled.
+    Returns the number of readings received when *_shutdown* is set.
 
     Example:
         >>> run_listener(receiver, storage)
@@ -80,7 +76,7 @@ def run_listener(receiver, storage) -> int:
     listener = UDPListener(receiver, storage)
     count = 0
 
-    while not _shutdown:
+    while not _shutdown.is_set():
         # Use timeout so we check shutdown flag periodically
         reading = listener.receive(0.5)
         if reading is not None:
@@ -98,8 +94,7 @@ def main() -> None:
             tmon config.toml
             tmon config.toml -v
     """
-    global _shutdown
-    _shutdown = False
+    _shutdown.clear()
 
     parser = argparse.ArgumentParser(description="tmon temperature monitor")
     parser.add_argument("config", help="path to TOML config file")
