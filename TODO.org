@@ -849,7 +849,7 @@ For consistency and reduced I/O, the listener should batch commits too.
 One approach: have ~run_listener()~ in daemon.py call ~storage.commit()~
 periodically (e.g. every N readings or every M seconds) rather than
 per-frame.
-* TODO Remove unused TMON_MAX_PAYLOAD constant
+* DONE Remove unused TMON_MAX_PAYLOAD constant
 ~slave/include/protocol.h~ defines ~TMON_MAX_PAYLOAD = 255~ but nothing
 references it.  Either use it for validation in ~tmon_decode_frame()~ or
 remove the dead definition.

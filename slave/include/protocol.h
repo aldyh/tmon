@@ -18,9 +18,6 @@
 #define TMON_CMD_POLL   0x01
 #define TMON_CMD_REPLY  0x02
 
-/* Maximum payload length */
-#define TMON_MAX_PAYLOAD  255
-
 /* REPLY payload is exactly 8 bytes (4 x int16_t) */
 #define TMON_REPLY_PAYLOAD_LEN  8
 
