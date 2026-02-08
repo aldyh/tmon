@@ -898,7 +898,9 @@ Added ~shutdown~ parameter to ~run_poller()~ and ~run_listener()~.
 Test doubles now accept a local ~threading.Event~ instead of reaching
 into ~daemon_mod._shutdown~. ~test_on_signal_sets_shutdown~ unchanged
 (tests the signal handler which uses the module-level event).
-* TODO Rename leftover "steinhart" variable in sensors.cpp
+* DONE Rename leftover "steinhart" variable in sensors.cpp
 ~sensors.cpp:62~: local variable ~steinhart~ was named when the code
 used the Steinhart-Hart equation.  Now it uses the B parameter equation.
 Rename to ~inv_temp~ or ~temp_inv~ to match the actual semantics.
+** Notes
+Renamed ~steinhart~ to ~inv_temp~ on lines 62, 74, 75, 76 of sensors.cpp.

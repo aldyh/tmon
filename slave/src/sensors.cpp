@@ -59,7 +59,7 @@ tmon_sensors_init (void)
 static int16_t
 adc_to_temp (int adc_value)
 {
-  float voltage, r_ntc, steinhart, temp_c;
+  float voltage, r_ntc, inv_temp, temp_c;
 
   /* Convert ADC to voltage */
   voltage = (adc_value * VCC) / ADC_MAX;
@@ -71,9 +71,9 @@ adc_to_temp (int adc_value)
   r_ntc = SERIES_R * voltage / (VCC - voltage);
 
   /* B parameter equation */
-  steinhart = logf (r_ntc / NTC_NOMINAL_R) / NTC_BETA;
-  steinhart += 1.0f / NTC_NOMINAL_T;
-  temp_c = (1.0f / steinhart) - 273.15f;
+  inv_temp = logf (r_ntc / NTC_NOMINAL_R) / NTC_BETA;
+  inv_temp += 1.0f / NTC_NOMINAL_T;
+  temp_c = (1.0f / inv_temp) - 273.15f;
 
   /* Convert to tenths of degree and clamp to valid range */
   int temp_tenths = (int)(temp_c * 10.0f + 0.5f);
