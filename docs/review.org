@@ -16,7 +16,7 @@ designer. I want feedback from a design and engineering standpoint.
 
 Add any suggested items in TODO.org.
 
-Write your analysis by informing the user and include a letter grade.
+Write your analysis by informing the user and include a 1-10 grade.
 
 Do not touch this file, and do not commit your changes to TODO.org.
 Just leave the changes in the current tree.
