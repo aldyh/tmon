@@ -804,7 +804,7 @@ infrastructure; UDP has no such constraint.
 The one testing gap found was that test_daemon.py tested run_poller
 (RS-485 daemon loop) but had no test for run_listener (UDP daemon loop).
 Added CountingReceiver test double and TestRunListener with two tests.
-* TODO LED stub diverges from real hardware behavior
+* DONE LED stub diverges from real hardware behavior
 ~led.cpp:led_blink()~ unconditionally sets ~state_before_tx = LED_OFF~,
 meaning any successful TX clears error state.  ~led_stub.cpp:led_blink()~
 conditionally preserves ~state_before_tx~ if already in TX state:

@@ -46,8 +46,7 @@ led_error (void)
 void
 led_blink (void)
 {
-  if (current_state != LED_TX)
-    state_before_tx = current_state;
+  state_before_tx = LED_OFF;
   current_state = LED_TX;
   tx_pending = 1;
 }

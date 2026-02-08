@@ -89,18 +89,18 @@ test_blink_tx_returns_to_off (void)
 }
 
 void
-test_blink_tx_returns_to_error (void)
+test_blink_tx_clears_error (void)
 {
-  /* TX blink should return to ERROR if that was previous state. */
+  /* TX blink should clear error state (successful TX = no error). */
   led_init (90000);
   led_error ();
   led_blink ();
   led_update (0);
   TEST_ASSERT_EQUAL (LED_TX, led_stub_get_state ());
-  TEST_ASSERT_EQUAL (LED_ERROR, led_stub_get_state_before_tx ());
+  TEST_ASSERT_EQUAL (LED_OFF, led_stub_get_state_before_tx ());
 
   led_update (100);
-  TEST_ASSERT_EQUAL (LED_ERROR, led_stub_get_state ());
+  TEST_ASSERT_EQUAL (LED_OFF, led_stub_get_state ());
 }
 
 void
@@ -203,8 +203,8 @@ test_tx_recovers_from_watchdog_error (void)
   TEST_ASSERT_EQUAL (LED_TX, led_stub_get_state ());
   led_update (1001);
   led_update (1101);
-  /* Returns to ERROR since that was state_before_tx */
-  TEST_ASSERT_EQUAL (LED_ERROR, led_stub_get_state ());
+  /* Returns to OFF since TX clears error */
+  TEST_ASSERT_EQUAL (LED_OFF, led_stub_get_state ());
 }
 
 /* -- Update tests ---------------------------------------------------------- */
@@ -246,7 +246,7 @@ main (void)
 
   RUN_TEST (test_blink_tx_sets_tx_state);
   RUN_TEST (test_blink_tx_returns_to_off);
-  RUN_TEST (test_blink_tx_returns_to_error);
+  RUN_TEST (test_blink_tx_clears_error);
   RUN_TEST (test_multiple_tx_blinks);
 
   RUN_TEST (test_watchdog_triggers_error);
