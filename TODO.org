@@ -826,7 +826,7 @@ void led_blink (void) {
 
 The test ~test_blink_tx_returns_to_error~ passes against the stub but
 would fail on real hardware.  Pick one behavior and make both match.
-* TODO Stale config.toml comment references config-wifi.toml
+* DONE Stale config.toml comment references config-wifi.toml
 ~master/config.toml~ line 6 says:
 
 #+begin_example
@@ -835,6 +835,9 @@ would fail on real hardware.  Pick one behavior and make both match.
 
 The file was renamed to ~config-udp.toml~ during the TCP-to-UDP migration.
 One-line fix.
+
+** Notes
+Updated comment in ~master/config.toml~ from ~config-wifi.toml~ to ~config-udp.toml~.
 * WAITING UDP listener commits per reading, RS-485 poller batches per cycle
 - State "WAITING"    from "TODO"       [2026-02-08 Sun 22:29] \\
   I'm not sure we should fix this.  UDP connections can come sporadically, and waiting until N numbers would mean waiting an indeterminate amount of time.

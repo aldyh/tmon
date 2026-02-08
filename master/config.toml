@@ -3,7 +3,7 @@
 # Copy this file and adjust for your setup.
 # Run with: tmon config.toml
 #
-# For WiFi transport, use config-wifi.toml instead.
+# For WiFi transport, use config-udp.toml instead.
 
 slaves = [1, 2, 3]
 db = "data/readings.db"
