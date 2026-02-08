@@ -875,8 +875,11 @@ division yields zero (values -9 to -1, i.e. -0.9 C to -0.1 C), prepend
 a minus sign before printing.  No test added because log_temps depends
 on Arduino Serial and cannot run in the native test environment without
 mocking infrastructure.
-* TODO Fix sensors.h header comment (Steinhart-Hart vs B parameter)
+* DONE Fix sensors.h header comment (Steinhart-Hart vs B parameter)
 ~slave/include/sensors.h:6~ says "Uses Steinhart-Hart equation" but the
 code uses the B parameter equation (a simplified single-coefficient form).
 ~sensors.cpp~ correctly describes it as "B parameter equation" internally.
 The header comment should match what the code actually does.
+** Notes
+One-line fix: changed "Steinhart-Hart equation" to "B parameter equation"
+in sensors.h to match the actual implementation in sensors.cpp.

@@ -2,7 +2,7 @@
  * sensors.h -- NTC thermistor temperature reading
  *
  * Reads 4 temperature channels from NTC thermistors connected to ADC.
- * Uses Steinhart-Hart equation for temperature conversion.
+ * Uses B parameter equation for temperature conversion.
  */
 
 #ifndef TMON_SENSORS_H
