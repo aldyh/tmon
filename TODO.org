@@ -804,3 +804,59 @@ infrastructure; UDP has no such constraint.
 The one testing gap found was that test_daemon.py tested run_poller
 (RS-485 daemon loop) but had no test for run_listener (UDP daemon loop).
 Added CountingReceiver test double and TestRunListener with two tests.
+* TODO LED stub diverges from real hardware behavior
+~led.cpp:led_blink()~ unconditionally sets ~state_before_tx = LED_OFF~,
+meaning any successful TX clears error state.  ~led_stub.cpp:led_blink()~
+conditionally preserves ~state_before_tx~ if already in TX state:
+
+#+begin_example
+// led.cpp (real hardware)
+void led_blink (void) {
+  state_before_tx = LED_OFF;  // always clears error
+  ...
+}
+
+// led_stub.cpp (test double)
+void led_blink (void) {
+  if (current_state != LED_TX)
+    state_before_tx = current_state;  // preserves error if in TX
+  ...
+}
+#+end_example
+
+The test ~test_blink_tx_returns_to_error~ passes against the stub but
+would fail on real hardware.  Pick one behavior and make both match.
+* TODO Stale config.toml comment references config-wifi.toml
+~master/config.toml~ line 6 says:
+
+#+begin_example
+# For WiFi transport, use config-wifi.toml instead.
+#+end_example
+
+The file was renamed to ~config-udp.toml~ during the TCP-to-UDP migration.
+One-line fix.
+* WAITING UDP listener commits per reading, RS-485 poller batches per cycle
+- State "WAITING"    from "TODO"       [2026-02-08 Sun 22:29] \\
+  I'm not sure we should fix this.  UDP connections can come sporadically, and waiting until N numbers would mean waiting an indeterminate amount of time.
+~serial_poller.py:poll_all()~ calls ~storage.commit()~ once after all
+inserts (batched).  ~udp_listener.py:_process_frame()~ calls
+~storage.commit()~ after every single reading.
+
+For consistency and reduced I/O, the listener should batch commits too.
+One approach: have ~run_listener()~ in daemon.py call ~storage.commit()~
+periodically (e.g. every N readings or every M seconds) rather than
+per-frame.
+* TODO Remove unused TMON_MAX_PAYLOAD constant
+~slave/include/protocol.h~ defines ~TMON_MAX_PAYLOAD = 255~ but nothing
+references it.  Either use it for validation in ~tmon_decode_frame()~ or
+remove the dead definition.
+* TODO Add context managers to Storage and UDPReceiver
+~Storage~, ~SerialBus~, and ~UDPReceiver~ all require explicit
+~close()~ calls.  Adding ~__enter__~ / ~__exit__~ methods would allow
+~with~ usage and prevent resource leaks.  Low priority since the daemon
+handles cleanup via ~try/finally~ already.
+* TODO Validate SLAVE_ADDR range at build time
+~slave_addr.py~ injects ~SLAVE_ADDR~ from the environment variable with
+default "1" but no range check.  A typo like ~SLAVE_ADDR=0~ or
+~SLAVE_ADDR=300~ compiles fine but produces frames the master rejects.
+Add a range check (1-247) in ~slave_addr.py~.
