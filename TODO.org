@@ -883,3 +883,13 @@ The header comment should match what the code actually does.
 ** Notes
 One-line fix: changed "Steinhart-Hart equation" to "B parameter equation"
 in sensors.h to match the actual implementation in sensors.cpp.
+* TODO Pass shutdown event into daemon functions instead of module global
+~daemon.py~ uses a module-level ~threading.Event~ (~_shutdown~) that
+signal handlers set.  Tests must reach into ~daemon_mod._shutdown~
+directly.  Pass the event as a parameter to ~run_poller~ and
+~run_listener~ so tests can inject their own event cleanly and parallel
+test execution cannot interfere.
+* TODO Rename leftover "steinhart" variable in sensors.cpp
+~sensors.cpp:62~: local variable ~steinhart~ was named when the code
+used the Steinhart-Hart equation.  Now it uses the B parameter equation.
+Rename to ~inv_temp~ or ~temp_inv~ to match the actual semantics.
