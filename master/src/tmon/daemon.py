@@ -35,21 +35,20 @@ def _on_signal(signum: int, frame) -> None:
     _shutdown.set()
 
 
-def run_poller(cfg: dict, bus, storage) -> int:
-    """Run the poll loop until shutdown is requested.
+def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
+    """Run the poll loop until *shutdown* is set.
 
     Polls all slaves, sleeps for ``cfg["interval"]`` seconds, and
-    repeats.  Returns the number of completed cycles when *_shutdown*
-    is set.
+    repeats.  Returns the number of completed cycles.
 
     Example:
-        >>> run_poller({"slaves": [3], "interval": 30}, bus, storage)
+        >>> run_poller({"slaves": [3], "interval": 30}, bus, storage, ev)
         5
     """
     poller = Poller(bus, storage, cfg["slaves"])
     cycles = 0
 
-    while not _shutdown.is_set():
+    while not shutdown.is_set():
         results = poller.poll_all()
         cycles += 1
         log.info(
@@ -58,25 +57,25 @@ def run_poller(cfg: dict, bus, storage) -> int:
         )
         remaining = cfg["interval"]
         if remaining > 0:
-            _shutdown.wait(remaining)
+            shutdown.wait(remaining)
 
     return cycles
 
 
-def run_listener(receiver, storage) -> int:
-    """Run the push receiver loop until shutdown is requested.
+def run_listener(receiver, storage, shutdown: threading.Event) -> int:
+    """Run the push receiver loop until *shutdown* is set.
 
     Receives readings pushed by slaves via UDP and stores them.
-    Returns the number of readings received when *_shutdown* is set.
+    Returns the number of readings received.
 
     Example:
-        >>> run_listener(receiver, storage)
+        >>> run_listener(receiver, storage, ev)
         42
     """
     listener = UDPListener(receiver, storage)
     count = 0
 
-    while not _shutdown.is_set():
+    while not shutdown.is_set():
         # Use timeout so we check shutdown flag periodically
         reading = listener.receive(0.5)
         if reading is not None:
@@ -123,7 +122,7 @@ def main() -> None:
         )
         receiver = UDPReceiver(cfg["udp_port"])
         try:
-            run_listener(receiver, storage)
+            run_listener(receiver, storage, _shutdown)
         finally:
             receiver.close()
             storage.close()
@@ -138,7 +137,7 @@ def main() -> None:
         )
         bus = SerialBus(cfg["port"], cfg["baudrate"])
         try:
-            run_poller(cfg, bus, storage)
+            run_poller(cfg, bus, storage, _shutdown)
         finally:
             bus.close()
             storage.close()
