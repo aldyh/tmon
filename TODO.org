@@ -863,3 +863,14 @@ handles cleanup via ~try/finally~ already.
 default "1" but no range check.  A typo like ~SLAVE_ADDR=0~ or
 ~SLAVE_ADDR=300~ compiles fine but produces frames the master rejects.
 Add a range check (1-247) in ~slave_addr.py~.
+* TODO Fix negative temperature display bug in log.h
+~slave/include/log.h:30-33~: for temperatures between -0.9 C and 0.0 C
+(raw int16 values -9 to -1), the sign is lost.  C integer division
+truncates toward zero: ~-5 / 10 = 0~, so ~-0.5 C~ displays as ~0.5~
+instead of ~-0.5~.  Need to check for negative values where the integer
+part is zero and prepend a minus sign.
+* TODO Fix sensors.h header comment (Steinhart-Hart vs B parameter)
+~slave/include/sensors.h:6~ says "Uses Steinhart-Hart equation" but the
+code uses the B parameter equation (a simplified single-coefficient form).
+~sensors.cpp~ correctly describes it as "B parameter equation" internally.
+The header comment should match what the code actually does.
