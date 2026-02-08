@@ -858,11 +858,14 @@ remove the dead definition.
 ~close()~ calls.  Adding ~__enter__~ / ~__exit__~ methods would allow
 ~with~ usage and prevent resource leaks.  Low priority since the daemon
 handles cleanup via ~try/finally~ already.
-* TODO Validate SLAVE_ADDR range at build time
+* DONE Validate SLAVE_ADDR range at build time
 ~slave_addr.py~ injects ~SLAVE_ADDR~ from the environment variable with
 default "1" but no range check.  A typo like ~SLAVE_ADDR=0~ or
 ~SLAVE_ADDR=300~ compiles fine but produces frames the master rejects.
 Add a range check (1-247) in ~slave_addr.py~.
+** Notes
+Added integer parsing and range validation (1-247) in slave_addr.py.
+Invalid or out-of-range values cause env.Exit(1) with a clear message.
 * DONE Fix negative temperature display bug in log.h
 ~slave/include/log.h:30-33~: for temperatures between -0.9 C and 0.0 C
 (raw int16 values -9 to -1), the sign is lost.  C integer division
