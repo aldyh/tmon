@@ -5,9 +5,8 @@ No connection state, no polling -- slaves control timing.
 
 Example:
     >>> from tmon.udp_receiver import UDPReceiver
-    >>> receiver = UDPReceiver(5555)
-    >>> frame = receiver.recv(1.0)
-    >>> receiver.close()
+    >>> with UDPReceiver(5555) as receiver:
+    ...     frame = receiver.recv(1.0)
 """
 
 import socket
@@ -24,11 +23,10 @@ class UDPReceiver:
         port: UDP port to listen on.
 
     Example:
-        >>> receiver = UDPReceiver(5555)
-        >>> frame = receiver.recv(1.0)
-        >>> frame[1]  # ADDR byte
+        >>> with UDPReceiver(5555) as receiver:
+        ...     frame = receiver.recv(1.0)
+        ...     frame[1]  # ADDR byte
         3
-        >>> receiver.close()
     """
 
     _MAX_FRAME = 64
@@ -58,6 +56,12 @@ class UDPReceiver:
             return b""
         finally:
             self._sock.settimeout(None)
+
+    def __enter__(self) -> "UDPReceiver":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
     def close(self) -> None:
         """Close the socket."""

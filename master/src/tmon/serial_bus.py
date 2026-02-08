@@ -7,9 +7,9 @@ length, then reads the remaining payload + CRC bytes.
 
 Example:
     >>> from tmon.serial_bus import SerialBus
-    >>> bus = SerialBus("/dev/ttyUSB0", 9600)
-    >>> bus.send(frame_bytes)
-    >>> response = bus.receive()
+    >>> with SerialBus("/dev/ttyUSB0", 9600) as bus:
+    ...     bus.send(frame_bytes)
+    ...     response = bus.receive()
 """
 
 import serial
@@ -29,9 +29,9 @@ class SerialBus:
         baudrate: Baud rate for the connection (e.g. ``9600``).
 
     Example:
-        >>> bus = SerialBus("/dev/ttyUSB0", 9600)
-        >>> bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
-        >>> reply = bus.receive()
+        >>> with SerialBus("/dev/ttyUSB0", 9600) as bus:
+        ...     bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
+        ...     reply = bus.receive()
     """
 
     # Header is START + ADDR + CMD + LEN (4 bytes).
@@ -63,6 +63,12 @@ class SerialBus:
             return b""
 
         return header + tail
+
+    def __enter__(self) -> "SerialBus":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
     def close(self) -> None:
         """Close the underlying serial port."""

@@ -7,12 +7,11 @@ integers (seconds since 1970-01-01 00:00:00 UTC).
 
 Example:
     >>> from tmon.storage import Storage
-    >>> store = Storage(":memory:")
-    >>> store.insert(1, [235, 198, None, None])
-    >>> rows = store.fetch(1)
-    >>> rows[0]["addr"]
+    >>> with Storage(":memory:") as store:
+    ...     store.insert(1, [235, 198, None, None])
+    ...     rows = store.fetch(1)
+    ...     rows[0]["addr"]
     1
-    >>> store.close()
 """
 
 import sqlite3
@@ -54,11 +53,10 @@ class Storage:
         db_path: Path to the SQLite database file, or ``":memory:"``.
 
     Example:
-        >>> store = Storage(":memory:")
-        >>> store.insert(2, [100, 200, 300, 400])
-        >>> store.fetch(1)[0]["addr"]
+        >>> with Storage(":memory:") as store:
+        ...     store.insert(2, [100, 200, 300, 400])
+        ...     store.fetch(1)[0]["addr"]
         2
-        >>> store.close()
     """
 
     def __init__(self, db_path: str):
@@ -109,6 +107,12 @@ class Storage:
     def commit(self) -> None:
         """Commit the current transaction."""
         self._conn.commit()
+
+    def __enter__(self) -> "Storage":
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> None:
+        self.close()
 
     def close(self) -> None:
         """Close the database connection."""

@@ -115,3 +115,25 @@ class TestSerialBusReceive:
         bus = SerialBus("/dev/ttyUSB0", 9600)
         result = bus.receive()
         assert result == frame
+
+
+class TestSerialBusContextManager:
+    """Tests for SerialBus context manager protocol."""
+
+    @patch("tmon.serial_bus.serial.Serial")
+    def test_with_block_closes_port(self, mock_serial_cls):
+        """Exiting a with block closes the serial port."""
+        mock_ser = MagicMock()
+        mock_serial_cls.return_value = mock_ser
+        with SerialBus("/dev/ttyUSB0", 9600) as bus:
+            bus.send(b"\x01")
+        mock_ser.close.assert_called_once()
+
+    @patch("tmon.serial_bus.serial.Serial")
+    def test_enter_returns_self(self, mock_serial_cls):
+        """__enter__ returns the SerialBus instance."""
+        mock_ser = MagicMock()
+        mock_serial_cls.return_value = mock_ser
+        bus = SerialBus("/dev/ttyUSB0", 9600)
+        assert bus.__enter__() is bus
+        bus.close()

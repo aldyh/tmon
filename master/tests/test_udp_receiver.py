@@ -72,3 +72,24 @@ class TestUDPReceiverClose:
         # Should be able to bind again
         bus2 = UDPReceiver(port)
         bus2.close()
+
+
+class TestUDPReceiverContextManager:
+    """Tests for UDPReceiver context manager protocol."""
+
+    def test_with_block_closes_socket(self) -> None:
+        """Exiting a with block closes the socket."""
+        port = _find_free_port()
+        with UDPReceiver(port) as receiver:
+            result = receiver.recv(0.05)
+            assert result == b""
+        # Port is released; rebinding succeeds
+        bus2 = UDPReceiver(port)
+        bus2.close()
+
+    def test_enter_returns_self(self) -> None:
+        """__enter__ returns the UDPReceiver instance."""
+        port = _find_free_port()
+        receiver = UDPReceiver(port)
+        assert receiver.__enter__() is receiver
+        receiver.close()

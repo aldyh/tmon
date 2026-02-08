@@ -120,3 +120,24 @@ class TestStorage:
         with pytest.raises(ValueError):
             store.insert(1, [100, 200, 300, 400, 500])
         store.close()
+
+
+class TestStorageContextManager:
+    """Tests for Storage context manager protocol."""
+
+    def test_with_block_closes_connection(self):
+        """Exiting a with block closes the database connection."""
+        with Storage(":memory:") as store:
+            store.insert(1, [100, 200, 300, 400])
+            store.commit()
+            rows = store.fetch(1)
+            assert rows[0]["addr"] == 1
+        # Connection is closed after the with block
+        with pytest.raises(Exception):
+            store.fetch(1)
+
+    def test_enter_returns_self(self):
+        """__enter__ returns the Storage instance."""
+        store = Storage(":memory:")
+        assert store.__enter__() is store
+        store.close()

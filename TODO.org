@@ -853,7 +853,7 @@ per-frame.
 ~slave/include/protocol.h~ defines ~TMON_MAX_PAYLOAD = 255~ but nothing
 references it.  Either use it for validation in ~tmon_decode_frame()~ or
 remove the dead definition.
-* TODO Add context managers to Storage and UDPReceiver
+* DONE Add context managers to Storage and UDPReceiver
 ~Storage~, ~SerialBus~, and ~UDPReceiver~ all require explicit
 ~close()~ calls.  Adding ~__enter__~ / ~__exit__~ methods would allow
 ~with~ usage and prevent resource leaks.  Low priority since the daemon
