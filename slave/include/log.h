@@ -27,6 +27,10 @@ log_temps (const int16_t *temps)
         Serial.print ("--.-");
       else
         {
+          /* -9..-1 represent -0.9..-0.1 C; division truncates to 0,
+             losing the sign.  Print it explicitly. */
+          if (temps[i] < 0 && temps[i] > -10)
+            Serial.print ("-");
           Serial.print (temps[i] / 10);
           Serial.print (".");
           Serial.print (abs (temps[i]) % 10);
