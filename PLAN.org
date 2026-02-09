@@ -139,11 +139,6 @@ so something simple.
 - [X] Firmware: configure UART on GPIO 16/17, toggle DE/RE on GPIO 5
 - [X] Superseded by UDP transport; hardware validation moved to "Hardware bring-up" milestone
 
-**** Full firmware (RS-485)
-- [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
-- [ ] Respond to requests; populate payload with temperature readings
-- [ ] Real device responds reliably on a physical RS-485 bus
-
 *** UDP push transport (alternative to RS-485)
 
 - [X] Master: UDPReceiver implementation
@@ -165,6 +160,15 @@ config and data in both dev and production contexts.
 - [ ] Config path resolution: check repo-local first, fall back to ~/etc/tmon/~
 - [ ] Database path: repo-local ~tmon.db~ for dev, ~/var/lib/tmon/tmon.db~ for production
 - [ ] Panel reads DB from same resolved path (no separate config needed)
+
+*** Hardware bring-up (NTC + UDP smoke test)
+
+First real hardware validation.  Do this over UDP since it avoids
+RS-485 wiring complexity.
+
+- [ ] Wire NTC to breadboard on one ESP32
+- [ ] Flash UDP firmware, verify readings arrive at master
+- [ ] Verify daemon stores readings correctly in SQLite
 
 *** Deployment and installation
 
@@ -188,23 +192,20 @@ Convenience script for flashing ESP32s from the Pi.
 - [ ] Invokes esptool with correct firmware from ~/var/lib/tmon/firmware/~
 - [ ] Installed by ~install.sh~
 
-*** Hardware bring-up (NTC + UDP smoke test)
-
-First real hardware validation.  Do this over UDP since it avoids
-RS-485 wiring complexity.
-
-- [ ] Wire NTC to breadboard on one ESP32
-- [ ] Flash UDP firmware, verify readings arrive at master
-- [ ] Verify daemon stores readings correctly in SQLite
-
 *** Integration + polish
 
-- [ ] Real bus smoke test with 1 slave -> then scale to all slaves
 - [ ] Document how to add a new slave (address + wiring + config)
 - [ ] Confirm error handling (CRC errors, timeouts, missing devices) is reasonable
 - [ ] Check LED behavior sanity (stub vs real hardware alignment)
 - [ ] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
 - [ ] Final pass: remove unused code, clean up comments, ensure docs match behavior
+
+*** Full firmware (RS-485)
+
+- [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
+- [ ] Respond to requests; populate payload with temperature readings
+- [ ] Real device responds reliably on a physical RS-485 bus
+- [ ] Real bus smoke test with 1 slave -> then scale to all slaves
 
 *** Rename master/slave to server/client
 
