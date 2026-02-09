@@ -136,14 +136,10 @@ so something simple.
 
 **** Bare UART test (GPIO-to-GPIO, no RS485)
 - [X] Document Pi UART setup in docs/wiring.org (disable BT, enable UART)
-- [ ] ESP32 UART2 wired directly to Pi UART (TX->RX, RX->TX, GND)
 - [X] Firmware: configure UART on GPIO 16/17, toggle DE/RE on GPIO 5
-- [ ] Echo test: ESP32 echoes received bytes
-- [ ] Protocol test: ESP32 responds to POLL_REQUEST with dummy data
-- [ ] Master talks to real ESP32 over /dev/serial0
+- [X] Superseded by UDP transport; hardware validation moved to "Hardware bring-up" milestone
 
-**** Full firmware
-- [ ] Read NTC thermistors
+**** Full firmware (RS-485)
 - [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
 - [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
@@ -160,9 +156,60 @@ so something simple.
 - [X] Makefile targets for UDP builds
 - [X] Remove obsolete TCP WiFi transport
 
+*** Production directory layout and config resolution
+
+Before anything can be installed, the code needs to know where to find
+config and data in both dev and production contexts.
+
+- [ ] Define layout: ~/etc/tmon/~ for config, ~/var/lib/tmon/~ for data + firmware
+- [ ] Config path resolution: check repo-local first, fall back to ~/etc/tmon/~
+- [ ] Database path: repo-local ~tmon.db~ for dev, ~/var/lib/tmon/tmon.db~ for production
+- [ ] Panel reads DB from same resolved path (no separate config needed)
+
+*** Deployment and installation
+
+Full automation: ~make install~ runs ~install.sh~ which handles everything.
+
+- [ ] ~install.sh~: create ~tmon~ user, create ~/etc/tmon/~ and ~/var/lib/tmon/~
+- [ ] ~install.sh~: pip install master package, copy config files
+- [ ] ~install.sh~: install firmware binaries to ~/var/lib/tmon/firmware/~
+- [ ] systemd service files: ~tmond-serial.service~, ~tmond-udp.service~
+- [ ] systemd service file: ~tmon-panel.service~ (gunicorn serving Flask app)
+- [ ] ~install.sh~: enable and start selected services
+- [ ] ~uninstall.sh~ and ~make uninstall~ target
+- [ ] ~make install~ target that invokes ~install.sh~
+
+*** Firmware flash tool
+
+Convenience script for flashing ESP32s from the Pi.
+
+- [ ] ~tm-flash~ script: ~--mode={serial,udp} --addr=N~
+- [ ] Reads WiFi/host settings from ~/etc/tmon/~ config (not CLI args)
+- [ ] Invokes esptool with correct firmware from ~/var/lib/tmon/firmware/~
+- [ ] Installed by ~install.sh~
+
+*** Hardware bring-up (NTC + UDP smoke test)
+
+First real hardware validation.  Do this over UDP since it avoids
+RS-485 wiring complexity.
+
+- [ ] Wire NTC to breadboard on one ESP32
+- [ ] Flash UDP firmware, verify readings arrive at master
+- [ ] Verify daemon stores readings correctly in SQLite
+
 *** Integration + polish
 
 - [ ] Real bus smoke test with 1 slave -> then scale to all slaves
 - [ ] Document how to add a new slave (address + wiring + config)
 - [ ] Confirm error handling (CRC errors, timeouts, missing devices) is reasonable
-- [ ] Final pass: remove unused code, ensure docs match behavior
+- [ ] Check LED behavior sanity (stub vs real hardware alignment)
+- [ ] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
+- [ ] Final pass: remove unused code, clean up comments, ensure docs match behavior
+
+*** Rename master/slave to server/client
+
+*Last milestone.*  Only after everything else is stable and working.
+
+- [ ] Rename throughout: code, config, docs, directory names, README
+- [ ] Update CLAUDE.md if needed
+- [ ] Verify all tests pass after rename
