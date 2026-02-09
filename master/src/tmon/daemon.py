@@ -19,6 +19,7 @@ import signal
 import threading
 
 from tmon.config import load_config
+from tmon.paths import resolve_config, resolve_db
 from tmon.serial_bus import SerialBus
 from tmon.serial_poller import Poller
 from tmon.storage import Storage
@@ -108,7 +109,9 @@ def main() -> None:
         level=level,
     )
 
-    cfg = load_config(args.config)
+    config_path = resolve_config(args.config)
+    cfg = load_config(config_path)
+    cfg["db"] = resolve_db(config_path, cfg["db"])
     transport = cfg["transport"]
 
     storage = Storage(cfg["db"])

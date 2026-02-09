@@ -8,7 +8,7 @@
 # WiFi credentials for slaves are in wifi.toml (copy from wifi.toml.example).
 
 transport = "udp"
-db = "data/readings.db"
+db = "tmon.db"
 
 [udp]
 # UDP port to listen on for incoming readings

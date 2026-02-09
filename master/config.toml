@@ -6,7 +6,7 @@
 # For WiFi transport, use config-udp.toml instead.
 
 slaves = [1, 2, 3]
-db = "data/readings.db"
+db = "tmon.db"
 # Polling interval in seconds.
 interval = 5
 
