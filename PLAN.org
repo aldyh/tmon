@@ -156,10 +156,10 @@ so something simple.
 Before anything can be installed, the code needs to know where to find
 config and data in both dev and production contexts.
 
-- [ ] Define layout: ~/etc/tmon/~ for config, ~/var/lib/tmon/~ for data + firmware
-- [ ] Config path resolution: check repo-local first, fall back to ~/etc/tmon/~
-- [ ] Database path: repo-local ~tmon.db~ for dev, ~/var/lib/tmon/tmon.db~ for production
-- [ ] Panel reads DB from same resolved path (no separate config needed)
+- [X] Define layout: ~/etc/tmon/~ for config, ~/var/lib/tmon/~ for data + firmware
+- [X] Config path resolution: check repo-local first, fall back to ~/etc/tmon/~
+- [X] Database path: repo-local ~tmon.db~ for dev, ~/var/lib/tmon/tmon.db~ for production
+- [X] Panel reads DB from same resolved path (no separate config needed)
 
 *** Hardware bring-up (NTC + UDP smoke test)
 
