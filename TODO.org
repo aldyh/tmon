@@ -904,3 +904,72 @@ used the Steinhart-Hart equation.  Now it uses the B parameter equation.
 Rename to ~inv_temp~ or ~temp_inv~ to match the actual semantics.
 ** Notes
 Renamed ~steinhart~ to ~inv_temp~ on lines 62, 74, 75, 76 of sensors.cpp.
+* DONE Rewrite master in C and compare with Python implementation
+
+Exploratory rewrite of the Python master daemon in C (GNU style) to
+evaluate whether a C implementation is worth maintaining.  The C code
+lives on branch ~claude/053-c-rewrite~ and is preserved under tag
+~c-rewrite~.
+
+** Comparison
+
+| Metric         | Python       | C                        |
+|----------------+--------------+--------------------------|
+| Source LOC     | ~1,094       | ~2,172 (src + headers)   |
+| Test LOC       | ~1,750       | ~1,257                   |
+| Test count     | 103          | 56                       |
+| Dependencies   | pyserial + stdlib | sqlite3 + POSIX     |
+| Feature parity | 100%         | ~100% (no integration tests) |
+
+The C version is 2x the source code for identical functionality, with
+roughly half the test coverage.
+
+*** Where C wins
+
+- No runtime dependency -- no Python interpreter, no virtualenv, no
+  pyserial.  Just a static binary + libsqlite3.
+- Lower resource use -- relevant if running on a constrained device
+  (this project runs on a Linux box, so moot).
+- Deployment simplicity -- copy one binary vs managing a Python
+  environment.
+
+*** Where Python wins
+
+- Half the code -- 1,094 vs 2,172 lines.  Less code = fewer bugs,
+  faster changes.
+- Far better test coverage -- 103 tests vs 56.  Python has integration
+  tests and daemon-loop tests that C lacks entirely.
+- Faster to modify -- adding a new feature takes far fewer lines and
+  less ceremony.
+- Safer by default -- no manual memory management, no buffer overflows.
+- Config parsing -- stdlib ~tomllib~ vs 324-line hand-rolled TOML
+  subset parser.
+- Testing is trivial -- duck typing means any object with matching
+  methods works as a test double.  C needs explicit function pointer
+  plumbing.
+
+** Notes
+
+Decision: keep the Python version.
+
+This is a home-use monitoring daemon running on a Linux box.  The C
+rewrite is well-written (clean GNU style, good module boundaries,
+proper opaque handles) but does not buy anything meaningful for this
+use case:
+
+1. Maintenance cost is higher in C.  Every change requires touching
+   headers + source + rebuilding.
+2. The test gap is real.  Closing it in C would add hundreds more
+   lines.
+3. The deployment argument is weak -- the target machine already has
+   Python.
+4. Risk surface -- C code handles raw buffers, POSIX file descriptors,
+   and manual resource cleanup.  Every future change carries risk that
+   Python prevents structurally.
+
+The C version would make sense if targeting an embedded Linux board
+with no Python, or if microsecond-level timing were needed.  For a
+daemon that wakes up every 30 seconds to poll temperature sensors,
+Python is the right tool.
+
+Archived C implementation: tag ~c-rewrite~, branch ~claude/053-c-rewrite~.
