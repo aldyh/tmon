@@ -161,15 +161,6 @@ config and data in both dev and production contexts.
 - [X] Database path: repo-local ~tmon.db~ for dev, ~/var/lib/tmon/tmon.db~ for production
 - [X] Panel reads DB from same resolved path (no separate config needed)
 
-*** Hardware bring-up (NTC + UDP smoke test)
-
-First real hardware validation.  Do this over UDP since it avoids
-RS-485 wiring complexity.
-
-- [ ] Wire NTC to breadboard on one ESP32
-- [ ] Flash UDP firmware, verify readings arrive at master
-- [ ] Verify daemon stores readings correctly in SQLite
-
 *** Deployment and installation
 
 Full automation: ~make install~ runs ~install.sh~ which handles everything.
@@ -191,6 +182,15 @@ Convenience script for flashing ESP32s from the Pi.
 - [ ] Reads WiFi/host settings from ~/etc/tmon/~ config (not CLI args)
 - [ ] Invokes esptool with correct firmware from ~/var/lib/tmon/firmware/~
 - [ ] Installed by ~install.sh~
+
+*** Hardware bring-up (NTC + UDP smoke test)
+
+First real hardware validation.  Do this over UDP since it avoids
+RS-485 wiring complexity.
+
+- [ ] Wire NTC to breadboard on one ESP32
+- [ ] Flash UDP firmware, verify readings arrive at master
+- [ ] Verify daemon stores readings correctly in SQLite
 
 *** Integration + polish
 
