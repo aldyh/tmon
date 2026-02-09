@@ -72,7 +72,7 @@ demo-generate: $(PANEL_STAMP)
 
 demo-server: demo-generate
 	@echo "Starting panel at http://localhost:5000"
-	cd panel && . .venv/bin/activate && flask --app app run
+	cd panel && . .venv/bin/activate && TMON_DB=tmon_mock.db flask --app app run
 
 demo-static: demo-generate
 	cd panel && . .venv/bin/activate && python build_demo.py --db tmon_mock.db --output demo

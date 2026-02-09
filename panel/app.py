@@ -19,6 +19,7 @@ import sqlite3
 from datetime import datetime, timedelta, timezone
 
 from flask import Flask, Response, g, jsonify, render_template, request
+from tmon.paths import find_db
 
 
 def _ts_to_iso(ts: int) -> str:
@@ -27,7 +28,7 @@ def _ts_to_iso(ts: int) -> str:
         "%Y-%m-%dT%H:%M:%SZ"
     )
 
-_DB_PATH = os.environ.get("TMON_DB", "tmon_mock.db")
+_DB_PATH = os.environ.get("TMON_DB") or find_db("tmon.db")
 
 
 def create_app(db_path: str) -> Flask:
