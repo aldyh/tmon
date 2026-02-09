@@ -36,11 +36,6 @@ Commit checklist:
 
 ## Coding guidelines
 
-### For all languages
-
-- Main API methods and top-level externally visible functions, include
-  usage/code examples in the docs (docsstring or comments).
-
 ### C/C++ (GNU style)
 
 - 2-space indentation.
@@ -64,7 +59,7 @@ Commit checklist:
 - Space after commas.
 - **Documentation placement**: Headers (`.h`) contain only prototypes and brief
   comments for types/constants. Full function documentation (description, Args,
-  Returns, Example) goes in the source (`.c`) file, directly above each function
+  Returns) goes in the source (`.c`) file, directly above each function
   definition. See `slave/include/protocol.h` and `slave/src/protocol.c` for the
   reference style.
 
@@ -74,9 +69,7 @@ Commit checklist:
 - Short/obvious methods: a one-line summary is enough. Use type hints
   in the signature instead of documenting each arg.
 - Larger or non-obvious functions: use Google-style sections
-  (Args/Returns/Raises/Example) where they add value.
-- Main API methods and top-level externally visible functions: include
-  usage/code examples in the docstring.
+  (Args/Returns/Raises) where they add value.
 
 ## Notes
 
