@@ -198,6 +198,7 @@ RS-485 wiring complexity.
 - [ ] Confirm error handling (CRC errors, timeouts, missing devices) is reasonable
 - [ ] Check LED behavior sanity (stub vs real hardware alignment)
 - [ ] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
+- [ ] Verify flashing a brand-new ESP32 works from a deployed Pi (no dev environment)
 - [ ] Final pass: remove unused code, clean up comments, ensure docs match behavior
 
 *** Full firmware (RS-485)
