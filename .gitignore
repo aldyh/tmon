@@ -17,3 +17,6 @@ tmon-demo.tar.gz
 
 # PlatformIO
 .pio/
+
+# Collected firmware binaries
+firmware/

@@ -5,6 +5,7 @@
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean \
+       firmware firmware-clean \
        install uninstall clean
 
 MASTER_STAMP := master/.venv/.installed
@@ -88,12 +89,46 @@ demo-static-upload: demo-static-tar
 demo-static-clean:
 	rm -rf panel/demo tmon-demo.tar.gz
 
+# ---- Firmware collection ----
+# Build all firmware variants and collect in firmware/.
+
+SERIAL_SLAVES ?= 1 2 3 4
+UDP_SLAVES    ?= 5 6 7 8
+
+BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
+               -name boot_app0.bin 2>/dev/null | head -1)
+
+firmware:
+	mkdir -p firmware
+	@for addr in $(SERIAL_SLAVES); do \
+	  echo "Building serial firmware for addr $$addr..."; \
+	  cd slave && SLAVE_ADDR=$$addr pio run -e uart && cd ..; \
+	  cp slave/.pio/build/uart/firmware.bin firmware/firmware-serial-$$addr.bin; \
+	done
+	@for addr in $(UDP_SLAVES); do \
+	  echo "Building UDP firmware for addr $$addr..."; \
+	  cd slave && SLAVE_ADDR=$$addr pio run -e udp && cd ..; \
+	  cp slave/.pio/build/udp/firmware.bin firmware/firmware-udp-$$addr.bin; \
+	done
+	cp slave/.pio/build/uart/bootloader.bin firmware/bootloader.bin
+	cp slave/.pio/build/uart/partitions.bin firmware/partitions.bin
+ifdef BOOT_APP0
+	cp $(BOOT_APP0) firmware/boot_app0.bin
+else
+	@echo "warning: boot_app0.bin not found in PlatformIO packages"
+endif
+	@echo "Firmware collected in firmware/"
+	@ls -1 firmware/
+
+firmware-clean:
+	rm -rf firmware
+
 install:
 	sudo deploy/install.sh
 
 uninstall:
 	sudo deploy/uninstall.sh
 
-clean: demo-static-clean
+clean: demo-static-clean firmware-clean
 	rm -rf master/.venv panel/.venv panel/tmon_mock.db
 	cd slave && pio run -t clean
