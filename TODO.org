@@ -1009,3 +1009,15 @@ daemon that wakes up every 30 seconds to poll temperature sensors,
 Python is the right tool.
 
 Archived C implementation: tag ~c-rewrite~, branch ~claude/053-c-rewrite~.
+* TODO LED overhaul
+UDP client should stay connected all the time, avoid deep sleep.  The
+power savings isn't worth it.
+
+Serial client never turns on lights at all.  Serial should be working,
+and if it isn't, it'll be clear from the logs.
+
+UDP client only blinks red when no wifi, otherwise nothing.  This simplifies the entire LED system.  Red for no wifi, otherwise no lights.  UDP client will try to connect to wifi, if can't, blinks lights for 10 seconds, then retries.  Continues on this loop until connects to wifi.
+
+Update LED docs in *.org if necessary.
+
+Do this TODO in various logical commits.
