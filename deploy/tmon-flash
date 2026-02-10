@@ -3,8 +3,8 @@
 #
 # Usage: tmon-flash --mode={serial,udp} --addr=N [--port=DEVICE] [--dry-run]
 #
-# Firmware is read from /var/lib/tmon/firmware/ (deployed) or
-# firmware/ (dev machine fallback).
+# Firmware is read from firmware/ (local dev build) or
+# /var/lib/tmon/firmware/ (system-wide fallback).
 
 set -euo pipefail
 
@@ -65,10 +65,10 @@ fi
 # Locate firmware directory
 # ------------------------------------------------------------------
 
-if [ -d /var/lib/tmon/firmware ]; then
-  FW_DIR="/var/lib/tmon/firmware"
-elif [ -d firmware ]; then
+if [ -d firmware ]; then
   FW_DIR="firmware"
+elif [ -d /var/lib/tmon/firmware ]; then
+  FW_DIR="/var/lib/tmon/firmware"
 else
   echo "error: firmware directory not found" >&2
   echo "  Expected /var/lib/tmon/firmware/ or firmware/" >&2
