@@ -5,6 +5,7 @@ description = "Mock visualization panel for tmon temperature monitoring"
 requires-python = ">=3.11"
 dependencies = [
     "flask>=3.0",
+    "gunicorn>=21.0",
 ]
 
 [project.optional-dependencies]
