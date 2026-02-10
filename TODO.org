@@ -1028,6 +1028,12 @@ on/off).  Removed watchdog timer, green TX blink, and led_blink().
 Added led_clear().  Serial firmware no longer uses LED at all.  UDP
 firmware stays connected to WiFi permanently (no deep sleep), blinks
 red only when WiFi is disconnected.  LED tests reduced from 14 to 7.
-* TODO Boot button triggers address query
+* DONE Boot button triggers address query
 
 Change both firmware versions such that pressing the boot button makes the device blink yellow N times, where N is the ADDR.  This way the installer has a way of knowing what address a given node is.
+
+** Notes
+Added LED_IDENTIFY state (blinks yellow N times at 300ms on/off, then
+restores prior state).  Both firmware versions poll GPIO 0 (boot button)
+with 500ms debounce.  main_udp.cpp blocking delay replaced with 10ms
+polling loop.  7 new LED tests (14 total).
