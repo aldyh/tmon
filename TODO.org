@@ -1021,3 +1021,6 @@ UDP client only blinks red when no wifi, otherwise nothing.  This simplifies the
 Update LED docs in *.org if necessary.
 
 Do this TODO in various logical commits.
+* TODO Boot button triggers address query
+
+Change both firmware versions such that pressing the boot button makes the device blink yellow N times, where N is the ADDR.  This way the installer has a way of knowing what address a given node is.
