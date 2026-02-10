@@ -1,0 +1,15 @@
+[Unit]
+Description=tmon temperature monitoring daemon (RS-485)
+After=network.target
+
+[Service]
+Type=simple
+User=tmon
+Group=tmon
+WorkingDirectory=/etc/tmon
+ExecStart=/var/lib/tmon/venv/bin/tmon config.toml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

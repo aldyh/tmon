@@ -1,0 +1,16 @@
+[Unit]
+Description=tmon visualization panel
+After=network.target
+
+[Service]
+Type=simple
+User=tmon
+Group=tmon
+WorkingDirectory=/var/lib/tmon/panel
+Environment=TMON_DB=/var/lib/tmon/tmon.db
+ExecStart=/var/lib/tmon/venv/bin/gunicorn --bind 0.0.0.0:5000 --workers 2 app:app
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
