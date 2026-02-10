@@ -1,8 +1,9 @@
 /*
  * led.h -- Status LED driver for tmon slave
  *
- * Three states: OFF (normal), ERROR (blinking red), and
- * IDENTIFY (blinks yellow N times, then restores prior state).
+ * Two states: OFF (normal) and ERROR (blinking red).
+ * led_identify() is a blocking call that blinks yellow N times,
+ * then restores the prior state.
  */
 
 #ifndef TMON_LED_H
