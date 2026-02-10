@@ -68,18 +68,16 @@ can reduce noise on the reading.
 
 *** Status LED
 
-The ESP32-S3-DevKitC-1 has a built-in RGB LED.  The firmware uses it
-to signal communication state.  No external wiring required.
+The ESP32-S3-DevKitC-1 has a built-in RGB LED.  Only the UDP firmware
+uses it.  The serial firmware does not use the LED at all.
 
-| Color  | Meaning                                       |
-|--------+-----------------------------------------------|
-| Off    | Normal                                        |
-| Green  | Transmitting                                  |
-| Red    | Error (clears when communication resumes)     |
+| Color         | Meaning                  |
+|---------------+--------------------------|
+| Off           | Normal (WiFi connected)  |
+| Blinking red  | WiFi disconnected        |
 
-Error conditions:
-- RS-485: no POLL received for 90 seconds
-- UDP: WiFi connection failed (retries every 60s)
+The UDP firmware blinks red on boot until WiFi connects, and again
+if the connection drops mid-operation.  Retries every 10 seconds.
 
 ** Transport: RS-485 (default)
 
@@ -220,7 +218,8 @@ serial console.
 ** Transport: WiFi (UDP push)
 
 The slave firmware can use WiFi instead of RS-485.  In this mode the
-ESP32 pushes readings to the master over UDP, then enters deep sleep.
+ESP32 stays connected to WiFi and pushes readings to the master over
+UDP at a regular interval.
 
 WiFi slaves use the following from the common wiring section:
 - Power: 3.3V and GND
