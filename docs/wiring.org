@@ -242,11 +242,17 @@ thermistors per floor, using RS-485 transport.
 
 | Qty | Part                      | Notes                          |
 |-----+---------------------------+--------------------------------|
-|   3 | ESP32-S3-DevKitC-1        | 1 per floor                    |
+|   3 | ESP32-S3-DevKitC-1        | Must be S3 variant (see below) |
 |   3 | MAX485 module             | 1 per ESP32 (RS-485 only)      |
 |  12 | 10k ohm 1% resistor       | 4 per floor (voltage dividers) |
 |  12 | 10k NTC thermistor        | 4 per floor (B=3950 type)      |
 |  12 | 100nF ceramic capacitor   | 4 per floor (optional, noise)  |
+
+*Why ESP32-S3?*  The firmware, partition table, and flash tool
+(~tmon-flash~) are built for ESP32-S3.  Other ESP32 variants (original,
+C3, S2) have different bootloader offsets and pin mappings.  Using a
+different chip requires changes to ~platformio.ini~, ~tmon-flash~, and
+the pin assignments above.
 
 *** Master (Raspberry Pi)
 

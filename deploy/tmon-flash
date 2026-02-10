@@ -1,0 +1,159 @@
+#!/bin/bash
+# tmon-flash -- flash ESP32-S3 with pre-built tmon firmware
+#
+# Usage: tmon-flash --mode={serial,udp} --addr=N [--port=DEVICE] [--dry-run]
+#
+# Firmware is read from /var/lib/tmon/firmware/ (deployed) or
+# firmware/ (dev machine fallback).
+
+set -euo pipefail
+
+MODE=""
+ADDR=""
+PORT=""
+DRY_RUN=0
+
+# ------------------------------------------------------------------
+# Argument parsing
+# ------------------------------------------------------------------
+
+usage () {
+  echo "Usage: tmon-flash --mode={serial,udp} --addr=N [--port=DEVICE] [--dry-run]"
+  echo ""
+  echo "Options:"
+  echo "  --mode=MODE   Transport mode: serial or udp"
+  echo "  --addr=N      Slave address (1-247)"
+  echo "  --port=DEV    Serial port (auto-detected if omitted)"
+  echo "  --dry-run     Print esptool command without executing"
+  exit 1
+}
+
+for arg in "$@"; do
+  case "${arg}" in
+    --mode=*)   MODE="${arg#*=}" ;;
+    --addr=*)   ADDR="${arg#*=}" ;;
+    --port=*)   PORT="${arg#*=}" ;;
+    --dry-run)  DRY_RUN=1 ;;
+    *)          echo "error: unknown argument: ${arg}" >&2; usage ;;
+  esac
+done
+
+if [ -z "${MODE}" ] || [ -z "${ADDR}" ]; then
+  usage
+fi
+
+# ------------------------------------------------------------------
+# Validate arguments
+# ------------------------------------------------------------------
+
+if [ "${MODE}" != "serial" ] && [ "${MODE}" != "udp" ]; then
+  echo "error: --mode must be 'serial' or 'udp' (got '${MODE}')" >&2
+  exit 1
+fi
+
+if ! echo "${ADDR}" | grep -qE '^[0-9]+$'; then
+  echo "error: --addr must be a number (got '${ADDR}')" >&2
+  exit 1
+fi
+
+if [ "${ADDR}" -lt 1 ] || [ "${ADDR}" -gt 247 ]; then
+  echo "error: --addr must be 1-247 (got ${ADDR})" >&2
+  exit 1
+fi
+
+# ------------------------------------------------------------------
+# Locate firmware directory
+# ------------------------------------------------------------------
+
+if [ -d /var/lib/tmon/firmware ]; then
+  FW_DIR="/var/lib/tmon/firmware"
+elif [ -d firmware ]; then
+  FW_DIR="firmware"
+else
+  echo "error: firmware directory not found" >&2
+  echo "  Expected /var/lib/tmon/firmware/ or firmware/" >&2
+  echo "  Run 'make firmware' to build firmware binaries." >&2
+  exit 1
+fi
+
+# ------------------------------------------------------------------
+# Verify required files
+# ------------------------------------------------------------------
+
+BOOTLOADER="${FW_DIR}/bootloader.bin"
+PARTITIONS="${FW_DIR}/partitions.bin"
+BOOT_APP0="${FW_DIR}/boot_app0.bin"
+FIRMWARE="${FW_DIR}/firmware-${MODE}-${ADDR}.bin"
+
+missing=0
+for f in "${BOOTLOADER}" "${PARTITIONS}" "${BOOT_APP0}" "${FIRMWARE}"; do
+  if [ ! -f "${f}" ]; then
+    echo "error: missing ${f}" >&2
+    missing=1
+  fi
+done
+
+if [ "${missing}" -eq 1 ]; then
+  echo "Run 'make firmware' to build firmware binaries." >&2
+  exit 1
+fi
+
+# ------------------------------------------------------------------
+# Auto-detect serial port
+# ------------------------------------------------------------------
+
+if [ -z "${PORT}" ]; then
+  ports=()
+  for pattern in /dev/ttyACM* /dev/ttyUSB*; do
+    for p in ${pattern}; do
+      [ -e "${p}" ] && ports+=("${p}")
+    done
+  done
+
+  if [ ${#ports[@]} -eq 0 ]; then
+    echo "error: no serial port detected" >&2
+    echo "  Connect an ESP32 or use --port=DEVICE" >&2
+    exit 1
+  elif [ ${#ports[@]} -gt 1 ]; then
+    echo "error: multiple serial ports detected: ${ports[*]}" >&2
+    echo "  Specify one with --port=DEVICE" >&2
+    exit 1
+  fi
+
+  PORT="${ports[0]}"
+fi
+
+# ------------------------------------------------------------------
+# Summary
+# ------------------------------------------------------------------
+
+echo "tmon-flash"
+echo "  Mode:     ${MODE}"
+echo "  Address:  ${ADDR}"
+echo "  Port:     ${PORT}"
+echo "  Firmware: ${FIRMWARE}"
+echo ""
+
+# ------------------------------------------------------------------
+# Flash
+# ------------------------------------------------------------------
+
+# Flash offsets from the default_8MB.csv partition table.
+# These are ESP32-S3 specific.  The original ESP32 uses 0x1000 for the
+# bootloader; other offsets depend on the partition table.
+# See docs/wiring.org "Parts list" for the required board.
+CMD=(esptool.py
+  --chip esp32s3
+  --port "${PORT}"
+  --baud 460800
+  write_flash
+  0x0     "${BOOTLOADER}"
+  0x8000  "${PARTITIONS}"
+  0xe000  "${BOOT_APP0}"
+  0x10000 "${FIRMWARE}")
+
+if [ "${DRY_RUN}" -eq 1 ]; then
+  echo "[dry-run] ${CMD[*]}"
+else
+  "${CMD[@]}"
+fi
