@@ -80,9 +80,6 @@ loop (void)
 {
   unsigned long now = millis ();
 
-  /* Drive LED animation */
-  led_update (now);
-
   /* Check boot button (active LOW) */
   if (digitalRead (PIN_BUTTON) == LOW
       && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)

@@ -2,7 +2,7 @@
  * tmon slave firmware -- UDP push with always-on WiFi
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
- * Blinks red LED when WiFi is disconnected; LED off when connected.
+ * Blinks red on WiFi failure; LED off when connected.
  * Boot button (GPIO 0) blinks yellow N times (N = SLAVE_ADDR).
  *
  * Protocol defined in docs/protocol.org.
@@ -75,8 +75,7 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
 
 /*
  * Connect to WiFi, retrying until successful.
- * Calls led_update() while waiting to drive the blink animation.
- * On success, clears the LED.
+ * Blinks red on each failed attempt.
  */
 static void
 connect_wifi (void)
@@ -91,7 +90,6 @@ connect_wifi (void)
         {
           if (millis () - start > WIFI_TIMEOUT_MS)
             break;
-          led_update (millis ());
           delay (100);
         }
 
@@ -99,23 +97,11 @@ connect_wifi (void)
         {
           Serial.print ("WiFi connected, IP: ");
           Serial.println (WiFi.localIP ());
-          led_clear ();
           return;
         }
 
-      /* Still blinking red; wait remainder of 10s then retry */
       Serial.println ("WiFi timeout, retrying...");
-      unsigned long elapsed = millis () - start;
-      if (elapsed < WIFI_TIMEOUT_MS)
-        {
-          unsigned long remaining = WIFI_TIMEOUT_MS - elapsed;
-          unsigned long wait_start = millis ();
-          while (millis () - wait_start < remaining)
-            {
-              led_update (millis ());
-              delay (100);
-            }
-        }
+      led_error_blink (3);
     }
 }
 
@@ -124,7 +110,6 @@ setup (void)
 {
   tmon_sensors_init ();
   led_init ();
-  led_error ();
   Serial.begin (115200);
 
   pinMode (PIN_BUTTON, INPUT_PULLUP);
@@ -144,10 +129,7 @@ loop (void)
 {
   /* Reconnect if WiFi dropped */
   if (WiFi.status () != WL_CONNECTED)
-    {
-      led_error ();
-      connect_wifi ();
-    }
+    connect_wifi ();
 
   /* Build and send REPLY frame */
   size_t tx_len = build_reply_frame (tx_buf, BUF_SIZE);
@@ -169,12 +151,11 @@ loop (void)
       Serial.println ("Failed to build frame");
     }
 
-  /* Wait for push interval, polling LED and button */
+  /* Wait for push interval, polling button */
   unsigned long wait_start = millis ();
   while (millis () - wait_start < (unsigned long) PUSH_INTERVAL_S * 1000UL)
     {
       unsigned long now = millis ();
-      led_update (now);
 
       /* Check boot button (active LOW) */
       if (digitalRead (PIN_BUTTON) == LOW

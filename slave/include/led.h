@@ -1,9 +1,7 @@
 /*
  * led.h -- Status LED driver for tmon slave
  *
- * Two states: OFF (normal) and ERROR (blinking red).
- * led_identify() is a blocking call that blinks yellow N times,
- * then restores the prior state.
+ * All blink functions are blocking.  The LED is off between calls.
  */
 
 #ifndef TMON_LED_H
@@ -12,9 +10,7 @@
 #include <stdint.h>
 
 void led_init (void);
-void led_error (void);
-void led_clear (void);
 void led_identify (uint8_t count);
-void led_update (uint32_t now_ms);
+void led_error_blink (uint8_t count);
 
 #endif /* TMON_LED_H */
