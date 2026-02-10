@@ -2,6 +2,7 @@
  * tmon slave firmware -- UART protocol handler
  *
  * Listens for POLL requests on UART and responds with temperature readings.
+ * Boot button (GPIO 0) blinks yellow N times (N = SLAVE_ADDR).
  * Protocol defined in docs/protocol.org.
  *
  * Wiring (with MAX485):
@@ -15,6 +16,7 @@
 #include <Arduino.h>
 
 #include "handler.h"
+#include "led.h"
 #include "log.h"
 #include "protocol.h"
 #include "sensors.h"
@@ -23,6 +25,10 @@
 static const int PIN_UART_RX = 16;
 static const int PIN_UART_TX = 17;
 static const int PIN_DE_RE   = 5;
+
+/* Boot button (active LOW, internal pull-up) */
+static const int PIN_BUTTON = 0;
+static const unsigned long BUTTON_DEBOUNCE_MS = 500;
 
 /* RS-485 bus parameters per docs/protocol.org */
 static const int UART_BAUD = 9600;
@@ -43,6 +49,9 @@ static uint8_t tx_buf[TX_BUF_SIZE];
 static const unsigned long FRAME_TIMEOUT_MS = 50;
 static unsigned long last_rx_time = 0;
 
+/* Button state */
+static unsigned long last_button_ms = 0;
+
 void
 setup (void)
 {
@@ -53,8 +62,9 @@ setup (void)
   Serial.print ("Address: ");
   Serial.println (MY_ADDR);
 
-  /* Initialize temperature sensors */
   tmon_sensors_init ();
+  led_init ();
+  pinMode (PIN_BUTTON, INPUT_PULLUP);
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);
@@ -69,6 +79,20 @@ void
 loop (void)
 {
   unsigned long now = millis ();
+
+  /* Drive LED animation */
+  led_update (now);
+
+  /* Check boot button (active LOW) */
+  if (digitalRead (PIN_BUTTON) == LOW
+      && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
+    {
+      last_button_ms = now;
+      led_identify (MY_ADDR);
+      Serial.print ("Identify: blinking ");
+      Serial.print (MY_ADDR);
+      Serial.println (" times");
+    }
 
   /* Check for inter-byte timeout (frame boundary) */
   if (rx_len > 0 && (now - last_rx_time) > FRAME_TIMEOUT_MS)

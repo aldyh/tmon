@@ -3,6 +3,7 @@
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
  * Blinks red LED when WiFi is disconnected; LED off when connected.
+ * Boot button (GPIO 0) blinks yellow N times (N = SLAVE_ADDR).
  *
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
@@ -27,8 +28,15 @@
 #error "PUSH_INTERVAL_S not defined -- check config-udp.toml"
 #endif
 
+/* Boot button (active LOW, internal pull-up) */
+static const int PIN_BUTTON = 0;
+static const unsigned long BUTTON_DEBOUNCE_MS = 500;
+
 /* WiFi connection timeout (ms) */
 static const unsigned long WIFI_TIMEOUT_MS = 10000;
+
+/* Polling tick interval (ms) */
+static const unsigned long TICK_MS = 10;
 
 /* Transmit buffer */
 static const size_t BUF_SIZE = 64;
@@ -36,6 +44,9 @@ static uint8_t tx_buf[BUF_SIZE];
 
 /* UDP client */
 static WiFiUDP udp;
+
+/* Button state */
+static unsigned long last_button_ms = 0;
 
 /*
  * Build a REPLY frame with current temperatures.
@@ -116,6 +127,8 @@ setup (void)
   led_error ();
   Serial.begin (115200);
 
+  pinMode (PIN_BUTTON, INPUT_PULLUP);
+
   Serial.println ("tmon UDP push slave starting");
   Serial.print ("Address: ");
   Serial.println (SLAVE_ADDR);
@@ -156,5 +169,24 @@ loop (void)
       Serial.println ("Failed to build frame");
     }
 
-  delay ((unsigned long) PUSH_INTERVAL_S * 1000UL);
+  /* Wait for push interval, polling LED and button */
+  unsigned long wait_start = millis ();
+  while (millis () - wait_start < (unsigned long) PUSH_INTERVAL_S * 1000UL)
+    {
+      unsigned long now = millis ();
+      led_update (now);
+
+      /* Check boot button (active LOW) */
+      if (digitalRead (PIN_BUTTON) == LOW
+          && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
+        {
+          last_button_ms = now;
+          led_identify (SLAVE_ADDR);
+          Serial.print ("Identify: blinking ");
+          Serial.print (SLAVE_ADDR);
+          Serial.println (" times");
+        }
+
+      delay (TICK_MS);
+    }
 }
