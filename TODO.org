@@ -904,6 +904,42 @@ used the Steinhart-Hart equation.  Now it uses the B parameter equation.
 Rename to ~inv_temp~ or ~temp_inv~ to match the actual semantics.
 ** Notes
 Renamed ~steinhart~ to ~inv_temp~ on lines 62, 74, 75, 76 of sensors.cpp.
+* TODO NVS-based per-device configuration for ESP32 firmware
+
+Currently, ~SLAVE_ADDR~ and WiFi credentials are compile-time constants
+baked into the firmware binary via PlatformIO build flags
+(~slave_addr.py~, ~wifi_config.py~).  This means we ship one firmware
+binary per address/mode combination (8 binaries total).
+
+The ESP32 NVS (non-volatile storage) system can store per-device
+configuration separately from the firmware image.  This would let us
+build one firmware per transport mode (serial + udp = 2 binaries) and
+set the slave address and WiFi credentials at flash time.
+
+** Approach
+
+- Use the Arduino ~Preferences~ library to read ~slave_addr~, ~ssid~,
+  ~password~, ~master_host~ from NVS at boot.
+- Generate NVS partition images with ~nvs_partition_gen.py~ (ships with
+  ESP-IDF) containing per-device values.
+- Flash the NVS partition alongside the firmware:
+  ~esptool.py write_flash 0x9000 nvs.bin~
+- Update ~tmon-flash~ to accept ~--ssid~, ~--password~, ~--host~ and
+  generate the NVS image on the fly.
+
+** Benefits
+
+- One firmware binary per transport mode instead of one per address.
+- Config changes (new WiFi password, different address) without
+  rebuilding firmware.
+- Credentials never baked into the binary.
+
+** Scope
+
+- Firmware: replace build-flag reads with Preferences reads + fallback.
+- ~tmon-flash~: add NVS partition generation and flashing.
+- Build: simplify ~make firmware~ (2 binaries instead of 8).
+
 * DONE Rewrite master in C and compare with Python implementation
 
 Exploratory rewrite of the Python master daemon in C (GNU style) to
