@@ -4,7 +4,8 @@
        demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
-       demo-static demo-static-tar demo-static-upload demo-static-clean clean
+       demo-static demo-static-tar demo-static-upload demo-static-clean \
+       install uninstall clean
 
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
@@ -86,6 +87,12 @@ demo-static-upload: demo-static-tar
 
 demo-static-clean:
 	rm -rf panel/demo tmon-demo.tar.gz
+
+install:
+	sudo deploy/install.sh
+
+uninstall:
+	sudo deploy/uninstall.sh
 
 clean: demo-static-clean
 	rm -rf master/.venv panel/.venv panel/tmon_mock.db
