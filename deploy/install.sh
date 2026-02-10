@@ -67,6 +67,9 @@ echo "Installing master daemon..."
 echo "Installing panel dependencies..."
 "${VENV_DIR}/bin/pip" install --quiet panel/
 
+echo "Installing esptool..."
+"${VENV_DIR}/bin/pip" install --quiet esptool
+
 # ------------------------------------------------------------------
 # Config files (no-clobber: preserve existing user edits)
 # ------------------------------------------------------------------
@@ -92,16 +95,22 @@ cp -r panel/static "${PANEL_DIR}/"
 # ------------------------------------------------------------------
 
 fw_copied=0
-for env in uart udp; do
-  src="slave/.pio/build/${env}/firmware.bin"
-  if [ -f "${src}" ]; then
-    cp "${src}" "${FW_DIR}/firmware-${env}.bin"
-    fw_copied=1
-  fi
-done
+if [ -d firmware ]; then
+  echo "Copying firmware from firmware/..."
+  cp firmware/*.bin "${FW_DIR}/" 2>/dev/null && fw_copied=1
+else
+  # Fallback: copy from PlatformIO build output
+  for env in uart udp; do
+    src="slave/.pio/build/${env}/firmware.bin"
+    if [ -f "${src}" ]; then
+      cp "${src}" "${FW_DIR}/firmware-${env}.bin"
+      fw_copied=1
+    fi
+  done
+fi
 
 if [ "${fw_copied}" -eq 0 ]; then
-  echo "warning: no firmware binaries found (build with 'make build-slave build-slave-udp')"
+  echo "warning: no firmware binaries found (run 'make firmware')"
 fi
 
 # ------------------------------------------------------------------
@@ -109,6 +118,14 @@ fi
 # ------------------------------------------------------------------
 
 chown -R tmon:tmon "${VAR_DIR}"
+
+# ------------------------------------------------------------------
+# Flash tool
+# ------------------------------------------------------------------
+
+echo "Installing tmon-flash to /usr/local/bin/..."
+cp deploy/tmon-flash /usr/local/bin/tmon-flash
+chmod +x /usr/local/bin/tmon-flash
 
 # ------------------------------------------------------------------
 # systemd units
@@ -132,6 +149,7 @@ echo "  Data:     ${VAR_DIR}/"
 echo "  Venv:     ${VENV_DIR}/"
 echo "  Panel:    ${PANEL_DIR}/"
 echo "  Firmware: ${FW_DIR}/"
+echo "  Flash:    /usr/local/bin/tmon-flash"
 echo ""
 echo "Next steps:"
 echo "  1. Edit ${ETC_DIR}/config.toml (or config-udp.toml) for your setup"
@@ -141,3 +159,5 @@ echo "       sudo systemctl enable --now tmond-udp"
 echo "  3. Enable the panel:"
 echo "       sudo systemctl enable --now tmon-panel"
 echo "  4. View the panel at http://$(hostname):5000"
+echo "  5. Flash an ESP32:"
+echo "       tmon-flash --mode=serial --addr=1"

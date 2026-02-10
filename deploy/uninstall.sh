@@ -42,6 +42,13 @@ rm -f "${SYSTEMD_DIR}/tmon-panel.service"
 systemctl daemon-reload
 
 # ------------------------------------------------------------------
+# Remove flash tool
+# ------------------------------------------------------------------
+
+echo "Removing /usr/local/bin/tmon-flash..."
+rm -f /usr/local/bin/tmon-flash
+
+# ------------------------------------------------------------------
 # Remove venv and panel (always)
 # ------------------------------------------------------------------
 
