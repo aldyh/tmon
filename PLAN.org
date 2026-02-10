@@ -178,10 +178,10 @@ Full automation: ~make install~ runs ~install.sh~ which handles everything.
 
 Convenience script for flashing ESP32s from the Pi.
 
-- [ ] ~tm-flash~ script: ~--mode={serial,udp} --addr=N~
-- [ ] Reads WiFi/host settings from ~/etc/tmon/~ config (not CLI args)
-- [ ] Invokes esptool with correct firmware from ~/var/lib/tmon/firmware/~
-- [ ] Installed by ~install.sh~
+- [X] ~tmon-flash~ script: ~--mode={serial,udp} --addr=N~
+- [X] Invokes esptool with correct firmware from ~/var/lib/tmon/firmware/~
+- [X] Installed by ~install.sh~
+- [X] ~make firmware~ target to build all variants
 
 *** Hardware bring-up (NTC + UDP smoke test)
 
