@@ -1,8 +1,8 @@
 /*
- * tmon slave firmware -- UDP push with deep sleep
+ * tmon slave firmware -- UDP push with always-on WiFi
  *
- * Wakes periodically, connects to WiFi, pushes temperature reading
- * via UDP, then returns to deep sleep.
+ * Stays connected to WiFi and pushes temperature readings periodically.
+ * Blinks red LED when WiFi is disconnected; LED off when connected.
  *
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
@@ -28,7 +28,7 @@
 #endif
 
 /* WiFi connection timeout (ms) */
-static const unsigned long WIFI_TIMEOUT_MS = 15000;
+static const unsigned long WIFI_TIMEOUT_MS = 10000;
 
 /* Transmit buffer */
 static const size_t BUF_SIZE = 64;
@@ -63,79 +63,57 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
 }
 
 /*
- * Connect to WiFi with timeout.
- * Returns true on success.
- */
-static bool
-connect_wifi (void)
-{
-  Serial.println ("Connecting to WiFi...");
-  WiFi.begin (WIFI_SSID, WIFI_PASSWORD);
-
-  unsigned long start = millis ();
-  while (WiFi.status () != WL_CONNECTED)
-    {
-      if (millis () - start > WIFI_TIMEOUT_MS)
-        {
-          Serial.println ("WiFi timeout");
-          return false;
-        }
-      led_update (millis ());
-      delay (100);
-    }
-
-  Serial.print ("WiFi connected, IP: ");
-  Serial.println (WiFi.localIP ());
-  return true;
-}
-
-/*
- * Send reading via UDP and go to deep sleep.
+ * Connect to WiFi, retrying until successful.
+ * Calls led_update() while waiting to drive the blink animation.
+ * On success, clears the LED.
  */
 static void
-send_and_sleep (void)
+connect_wifi (void)
 {
-  /* Build REPLY frame */
-  size_t tx_len = build_reply_frame (tx_buf, BUF_SIZE);
-  if (tx_len == 0)
+  for (;;)
     {
-      Serial.println ("Failed to build frame");
-      return;
+      Serial.println ("Connecting to WiFi...");
+      WiFi.begin (WIFI_SSID, WIFI_PASSWORD);
+
+      unsigned long start = millis ();
+      while (WiFi.status () != WL_CONNECTED)
+        {
+          if (millis () - start > WIFI_TIMEOUT_MS)
+            break;
+          led_update (millis ());
+          delay (100);
+        }
+
+      if (WiFi.status () == WL_CONNECTED)
+        {
+          Serial.print ("WiFi connected, IP: ");
+          Serial.println (WiFi.localIP ());
+          led_clear ();
+          return;
+        }
+
+      /* Still blinking red; wait remainder of 10s then retry */
+      Serial.println ("WiFi timeout, retrying...");
+      unsigned long elapsed = millis () - start;
+      if (elapsed < WIFI_TIMEOUT_MS)
+        {
+          unsigned long remaining = WIFI_TIMEOUT_MS - elapsed;
+          unsigned long wait_start = millis ();
+          while (millis () - wait_start < remaining)
+            {
+              led_update (millis ());
+              delay (100);
+            }
+        }
     }
-
-  /* Log what we're sending */
-  struct tmon_reply_payload parsed;
-  tmon_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
-  Serial.print ("Sending REPLY: ");
-  Serial.print (tx_len);
-  Serial.print (" bytes, ");
-  log_temps (parsed.temps);
-
-  /* Send UDP packet */
-  udp.beginPacket (MASTER_HOST, MASTER_PORT);
-  udp.write (tx_buf, tx_len);
-  udp.endPacket ();
-
-  /* Brief green flash to indicate success */
-  led_blink ();
-  led_update (millis ());
-  delay (200);
-
-  Serial.print ("Sleeping for ");
-  Serial.print (PUSH_INTERVAL_S);
-  Serial.println (" seconds");
-  Serial.flush ();
-
-  /* Enter deep sleep */
-  esp_sleep_enable_timer_wakeup ((uint64_t) PUSH_INTERVAL_S * 1000000ULL);
-  esp_deep_sleep_start ();
 }
 
 void
 setup (void)
 {
-  /* No watchdog needed -- we go to sleep after sending */
-  led_init (0);
+  tmon_sensors_init ();
+  led_init ();
+  led_error ();
   Serial.begin (115200);
 
   Serial.println ("tmon UDP push slave starting");
@@ -145,23 +123,38 @@ setup (void)
   Serial.print (PUSH_INTERVAL_S);
   Serial.println ("s");
 
-  tmon_sensors_init ();
-
-  /* Connect to WiFi, retrying until successful */
-  while (!connect_wifi ())
-    {
-      led_error ();
-      led_update (millis ());
-      Serial.println ("WiFi failed, retrying in 60s");
-      delay (60000);
-    }
-
-  /* Send reading and sleep */
-  send_and_sleep ();
+  connect_wifi ();
 }
 
 void
 loop (void)
 {
-  /* Never reached -- we deep sleep in setup() */
+  /* Reconnect if WiFi dropped */
+  if (WiFi.status () != WL_CONNECTED)
+    {
+      led_error ();
+      connect_wifi ();
+    }
+
+  /* Build and send REPLY frame */
+  size_t tx_len = build_reply_frame (tx_buf, BUF_SIZE);
+  if (tx_len > 0)
+    {
+      struct tmon_reply_payload parsed;
+      tmon_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
+      Serial.print ("Sending REPLY: ");
+      Serial.print (tx_len);
+      Serial.print (" bytes, ");
+      log_temps (parsed.temps);
+
+      udp.beginPacket (MASTER_HOST, MASTER_PORT);
+      udp.write (tx_buf, tx_len);
+      udp.endPacket ();
+    }
+  else
+    {
+      Serial.println ("Failed to build frame");
+    }
+
+  delay ((unsigned long) PUSH_INTERVAL_S * 1000UL);
 }
