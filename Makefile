@@ -5,7 +5,7 @@
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean \
-       firmware firmware-clean \
+       firmware \
        install uninstall clean
 
 MASTER_STAMP := master/.venv/.installed
@@ -111,15 +111,12 @@ endif
 	@echo "Firmware collected in firmware/"
 	@ls -1 firmware/
 
-firmware-clean:
-	rm -rf firmware
-
 install:
 	sudo deploy/install.sh
 
 uninstall:
 	sudo deploy/uninstall.sh
 
-clean: demo-static-clean firmware-clean
-	rm -rf master/.venv panel/.venv panel/tmon_mock.db
+clean: demo-static-clean
+	rm -rf firmware master/.venv panel/.venv panel/tmon_mock.db
 	cd slave && pio run -t clean
