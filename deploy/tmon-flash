@@ -225,9 +225,11 @@ echo ""
 # These are ESP32-S3 specific.  The original ESP32 uses 0x1000 for the
 # bootloader; other offsets depend on the partition table.
 # See docs/wiring.org "Parts list" for the required board.
-# Locate esptool.py: prefer PATH, fall back to PlatformIO's bundled copy
+# Locate esptool.py: prefer PATH, then system venv, then PlatformIO
 if command -v esptool.py >/dev/null 2>&1; then
   ESPTOOL=(esptool.py)
+elif [ -x /var/lib/tmon/venv/bin/esptool.py ]; then
+  ESPTOOL=(/var/lib/tmon/venv/bin/esptool.py)
 elif [ -f "${HOME}/.platformio/packages/tool-esptoolpy/esptool.py" ]; then
   ESPTOOL=(python3 "${HOME}/.platformio/packages/tool-esptoolpy/esptool.py")
 else
