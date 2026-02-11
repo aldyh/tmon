@@ -99,11 +99,13 @@ if [ -d firmware ]; then
   echo "Copying firmware from firmware/..."
   cp firmware/*.bin "${FW_DIR}/" 2>/dev/null && fw_copied=1
 else
-  # Fallback: copy from PlatformIO build output
-  for env in uart udp; do
+  # Fallback: copy from PlatformIO build output (generic binaries)
+  for mode_env in serial:uart udp:udp; do
+    mode="${mode_env%%:*}"
+    env="${mode_env##*:}"
     src="slave/.pio/build/${env}/firmware.bin"
     if [ -f "${src}" ]; then
-      cp "${src}" "${FW_DIR}/firmware-${env}.bin"
+      cp "${src}" "${FW_DIR}/firmware-${mode}.bin"
       fw_copied=1
     fi
   done
@@ -123,9 +125,10 @@ chown -R tmon:tmon "${VAR_DIR}"
 # Flash tool
 # ------------------------------------------------------------------
 
-echo "Installing tmon-flash to /usr/local/bin/..."
+echo "Installing tmon-flash and tmon-patch to /usr/local/bin/..."
 cp deploy/tmon-flash /usr/local/bin/tmon-flash
-chmod +x /usr/local/bin/tmon-flash
+cp deploy/tmon-patch /usr/local/bin/tmon-patch
+chmod +x /usr/local/bin/tmon-flash /usr/local/bin/tmon-patch
 
 # ------------------------------------------------------------------
 # systemd units
@@ -149,7 +152,7 @@ echo "  Data:     ${VAR_DIR}/"
 echo "  Venv:     ${VENV_DIR}/"
 echo "  Panel:    ${PANEL_DIR}/"
 echo "  Firmware: ${FW_DIR}/"
-echo "  Flash:    /usr/local/bin/tmon-flash"
+echo "  Flash:    /usr/local/bin/tmon-flash, tmon-patch"
 echo ""
 echo "Next steps:"
 echo "  1. Edit ${ETC_DIR}/config.toml (or config-udp.toml) for your setup"
