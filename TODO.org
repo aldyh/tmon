@@ -904,40 +904,44 @@ used the Steinhart-Hart equation.  Now it uses the B parameter equation.
 Rename to ~inv_temp~ or ~temp_inv~ to match the actual semantics.
 ** Notes
 Renamed ~steinhart~ to ~inv_temp~ on lines 62, 74, 75, 76 of sensors.cpp.
-* TODO NVS-based per-device configuration for ESP32 firmware
+* TODO Binary-patch per-device configuration into firmware
 
 Currently, ~SLAVE_ADDR~ and WiFi credentials are compile-time constants
 baked into the firmware binary via PlatformIO build flags
 (~slave_addr.py~, ~wifi_config.py~).  This means we ship one firmware
 binary per address/mode combination (8 binaries total).
 
-The ESP32 NVS (non-volatile storage) system can store per-device
-configuration separately from the firmware image.  This would let us
-build one firmware per transport mode (serial + udp = 2 binaries) and
-set the slave address and WiFi credentials at flash time.
+The NVS approach (Preferences API + ~nvs_partition_gen.py~) would
+require ESP-IDF tooling on the Pi, a separate NVS partition image
+flashed to a specific offset, and fallback logic in firmware for
+missing keys.  That is the right tool for a product with OTA and
+factory resets, but overkill here.
+
+A simpler approach: embed fixed-length marker strings in the firmware
+source at compile time, then patch them with real values in the binary
+post-build.  ESP32 firmware binaries are not checksummed, so this
+works cleanly -- just a few lines of perl/sed on the Pi, one binary,
+one flash step, same as today.
 
 ** Approach
 
-- Use the Arduino ~Preferences~ library to read ~slave_addr~, ~ssid~,
-  ~password~, ~master_host~ from NVS at boot.
-- Generate NVS partition images with ~nvs_partition_gen.py~ (ships with
-  ESP-IDF) containing per-device values.
-- Flash the NVS partition alongside the firmware:
-  ~esptool.py write_flash 0x9000 nvs.bin~
-- Update ~tmon-flash~ to accept ~--ssid~, ~--password~, ~--host~ and
-  generate the NVS image on the fly.
-
-** Benefits
-
-- One firmware binary per transport mode instead of one per address.
-- Config changes (new WiFi password, different address) without
-  rebuilding firmware.
-- Credentials never baked into the binary.
+- Define marker strings as fixed-length char arrays in the firmware:
+  ~char cfg_ssid[33] = "@@MARKER_SSID@@";~
+  ~char cfg_pass[65] = "@@MARKER_PASS@@";~
+  ~char cfg_addr[4]  = "@@A";~
+  The fixed length ensures the compiler allocates enough space in the
+  binary for the real values to be written over the markers.
+- Build one firmware per transport mode (serial, udp) with the markers
+  in place.
+- In ~tmon-flash~, patch the binary before flashing:
+  ~perl -pi -e "s/\@\@MARKER_SSID\@\@.{17}/sprintf('%-33s',$ssid)/e" fw.bin~
+  Or equivalent sed/python one-liner.
+- Flash the patched binary as usual with ~esptool.py~.
 
 ** Scope
 
-- Firmware: replace build-flag reads with Preferences reads + fallback.
-- ~tmon-flash~: add NVS partition generation and flashing.
+- Firmware: replace build-flag reads with marker char arrays.
+- ~tmon-flash~: add a patch step before flashing.
 - Build: simplify ~make firmware~ (2 binaries instead of 8).
 
 * DONE Rewrite master in C and compare with Python implementation
