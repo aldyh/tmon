@@ -11,6 +11,7 @@ Usage:
 """
 
 import argparse
+import hashlib
 import struct
 import sys
 
@@ -65,6 +66,32 @@ def patch_string(data, marker, value, array_size):
     return data[:offset] + patch + data[offset + array_size:]
 
 
+def fix_checksums(data):
+    """Recalculate the XOR checksum and SHA-256 hash in an ESP32 image.
+
+    ESP32 firmware binaries have two integrity checks:
+    1. XOR checksum over all segment data (stored just before the hash).
+    2. SHA-256 hash over everything up to (but not including) the hash.
+    Patching marker bytes invalidates both; this function repairs them.
+    """
+    seg_count = data[1]
+    offset = 24  # skip image header (8) + extended header (16)
+
+    xor = 0xEF
+    for _ in range(seg_count):
+        size = struct.unpack_from("<I", data, offset + 4)[0]
+        for b in data[offset + 8 : offset + 8 + size]:
+            xor ^= b
+        offset += 8 + size
+
+    # Checksum byte is the last byte before the 16-byte aligned hash region
+    cksum_offset = ((offset + 15) & ~15) - 1
+    data[cksum_offset] = xor
+
+    # SHA-256 hash covers everything before the last 32 bytes
+    data[-32:] = hashlib.sha256(data[:-32]).digest()
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Patch configuration into tmon firmware binary."
@@ -112,6 +139,8 @@ def main():
         data = patch_uint16(data, "@@MARKER_PORT@@", args.port, 16)
     if args.push is not None:
         data = patch_uint16(data, "@@MARKER_PUSH@@", args.push, 16)
+
+    fix_checksums(data)
 
     with open(args.output, "wb") as f:
         f.write(data)
