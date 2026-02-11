@@ -225,7 +225,18 @@ echo ""
 # These are ESP32-S3 specific.  The original ESP32 uses 0x1000 for the
 # bootloader; other offsets depend on the partition table.
 # See docs/wiring.org "Parts list" for the required board.
-CMD=(esptool.py
+# Locate esptool.py: prefer PATH, fall back to PlatformIO's bundled copy
+if command -v esptool.py >/dev/null 2>&1; then
+  ESPTOOL=(esptool.py)
+elif [ -f "${HOME}/.platformio/packages/tool-esptoolpy/esptool.py" ]; then
+  ESPTOOL=(python3 "${HOME}/.platformio/packages/tool-esptoolpy/esptool.py")
+else
+  echo "error: esptool.py not found" >&2
+  echo "  Install with: pip install esptool" >&2
+  exit 1
+fi
+
+CMD=("${ESPTOOL[@]}"
   --chip esp32s3
   --port "${PORT}"
   --baud 460800
