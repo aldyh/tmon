@@ -102,7 +102,10 @@ connect_wifi (void)
 void
 setup (void)
 {
+  /* USB serial for debug output */
   Serial.begin (115200);
+  /* Wait enough to attach screen to the serial log.  */
+  delay (5000);
 
   config_init ();
 

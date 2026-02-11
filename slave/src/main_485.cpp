@@ -55,7 +55,8 @@ setup (void)
 {
   /* USB serial for debug output */
   Serial.begin (115200);
-  delay (5000);  /* Wait for USB CDC to enumerate */
+  /* Wait enough to attach screen to the serial log.  */
+  delay (5000);
 
   config_init ();
 
