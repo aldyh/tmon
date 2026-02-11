@@ -183,6 +183,19 @@ Convenience script for flashing ESP32s from the Pi.
 - [X] Installed by ~install.sh~
 - [X] ~make firmware~ target to build all variants
 
+*** Binary-patch configuration
+
+Replace compile-time build flags with binary-patchable marker arrays.
+Build 2 generic firmware binaries, patch config at flash time.
+
+- [X] ~config.h~ / ~config.cpp~: marker arrays + ~config_init()~
+- [X] ~main_485.cpp~ / ~main_udp.cpp~: use config.h globals, halt if unpatched
+- [X] Remove ~slave_addr.py~ and ~wifi_config.py~
+- [X] ~deploy/tmon-patch~: find markers, overwrite with real values
+- [X] ~tmon-flash~: generic binary name, patch step, TOML reading for UDP
+- [X] ~Makefile~: 2 generic builds, ~flash-slave*~ calls ~tmon-flash~
+- [X] ~install.sh~: install ~tmon-patch~, generic firmware names
+
 *** Hardware bring-up (NTC + UDP smoke test)
 
 First real hardware validation.  Do this over UDP since it avoids

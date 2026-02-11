@@ -904,45 +904,42 @@ used the Steinhart-Hart equation.  Now it uses the B parameter equation.
 Rename to ~inv_temp~ or ~temp_inv~ to match the actual semantics.
 ** Notes
 Renamed ~steinhart~ to ~inv_temp~ on lines 62, 74, 75, 76 of sensors.cpp.
-* TODO Binary-patch per-device configuration into firmware
+* DONE Binary-patch per-device configuration into firmware
 
-Currently, ~SLAVE_ADDR~ and WiFi credentials are compile-time constants
-baked into the firmware binary via PlatformIO build flags
-(~slave_addr.py~, ~wifi_config.py~).  This means we ship one firmware
-binary per address/mode combination (8 binaries total).
+Replaced compile-time build flags (~slave_addr.py~, ~wifi_config.py~)
+with binary-patchable marker arrays in firmware.  ~deploy/tmon-patch~
+finds ~@@MARKER_XXX@@~ byte patterns and overwrites them with real
+configuration values before flashing.
 
-The NVS approach (Preferences API + ~nvs_partition_gen.py~) would
-require ESP-IDF tooling on the Pi, a separate NVS partition image
-flashed to a specific offset, and fallback logic in firmware for
-missing keys.  That is the right tool for a product with OTA and
-factory resets, but overkill here.
+** Notes
 
-A simpler approach: embed fixed-length marker strings in the firmware
-source at compile time, then patch them with real values in the binary
-post-build.  ESP32 firmware binaries are not checksummed, so this
-works cleanly -- just a few lines of perl/sed on the Pi, one binary,
-one flash step, same as today.
+New files:
+- ~slave/include/config.h~, ~slave/src/config.cpp~: marker arrays and
+  ~config_init()~ that parses patched bytes at boot.
+- ~deploy/tmon-patch~: Python binary patcher (addr, ssid, pass, host,
+  port).
 
-** Approach
+Changes:
+- ~main_485.cpp~, ~main_udp.cpp~: use ~cfg_slave_addr~ and WiFi
+  globals from config.h.  Halt with red LED blink if unpatched.
+- ~platformio.ini~: removed all ~extra_scripts~ lines.
+- ~tmon-flash~: patches generic binary before flashing.  For UDP mode,
+  reads ~wifi.toml~ and ~config-udp.toml~ for WiFi/UDP settings.
+- ~Makefile~: ~firmware~ target builds 2 generic binaries (not 8).
+  ~flash-slave*~ targets build then call ~tmon-flash~.
+- ~install.sh~: installs ~tmon-patch~ alongside ~tmon-flash~.
 
-- Define marker strings as fixed-length char arrays in the firmware:
-  ~char cfg_ssid[33] = "@@MARKER_SSID@@";~
-  ~char cfg_pass[65] = "@@MARKER_PASS@@";~
-  ~char cfg_addr[4]  = "@@A";~
-  The fixed length ensures the compiler allocates enough space in the
-  binary for the real values to be written over the markers.
-- Build one firmware per transport mode (serial, udp) with the markers
-  in place.
-- In ~tmon-flash~, patch the binary before flashing:
-  ~perl -pi -e "s/\@\@MARKER_SSID\@\@.{17}/sprintf('%-33s',$ssid)/e" fw.bin~
-  Or equivalent sed/python one-liner.
-- Flash the patched binary as usual with ~esptool.py~.
+Deleted:
+- ~slave/slave_addr.py~, ~slave/wifi_config.py~.
 
-** Scope
+All 217 tests pass (114 master + 40 slave + 8 integration + 55 panel).
 
-- Firmware: replace build-flag reads with marker char arrays.
-- ~tmon-flash~: add a patch step before flashing.
-- Build: simplify ~make firmware~ (2 binaries instead of 8).
+* TODO Move tmon-patch out of /usr/local/bin
+
+~tmon-patch~ is an implementation detail of ~tmon-flash~, not a
+user-facing tool.  It shouldn't be on PATH.  Move it to
+~/usr/local/lib/tmon/~ and update ~tmon-flash~ path resolution and
+~install.sh~ accordingly.
 
 * DONE Rewrite master in C and compare with Python implementation
 
