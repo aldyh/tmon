@@ -1,0 +1,69 @@
+#!/usr/bin/env python3
+"""tmon-patch -- patch configuration into a firmware binary.
+
+Finds @@MARKER_XXX@@ byte patterns in the binary and overwrites each
+marker array with the real value.  Numeric fields are written as raw
+binary; string fields are null-terminated and null-padded.
+
+Usage:
+    tmon-patch INPUT OUTPUT --addr=N
+"""
+
+import argparse
+import struct
+import sys
+
+
+def find_marker(data, marker):
+    """Return the offset of *marker* in *data*, or -1 if not found."""
+    encoded = marker.encode("ascii")
+    offset = data.find(encoded)
+    if offset == -1:
+        return -1
+    # Ensure marker appears exactly once
+    if data.find(encoded, offset + 1) != -1:
+        print(f"error: marker {marker} found more than once", file=sys.stderr)
+        sys.exit(1)
+    return offset
+
+
+def patch_uint8(data, marker, value, array_size):
+    """Patch a single uint8 value into the marker array region."""
+    offset = find_marker(data, marker)
+    if offset == -1:
+        print(f"error: marker {marker} not found in binary", file=sys.stderr)
+        sys.exit(1)
+    patch = struct.pack("B", value) + b"\x00" * (array_size - 1)
+    return data[:offset] + patch + data[offset + array_size:]
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Patch configuration into tmon firmware binary."
+    )
+    parser.add_argument("input", help="Input firmware binary")
+    parser.add_argument("output", help="Output (patched) firmware binary")
+    parser.add_argument(
+        "--addr", type=int, required=True,
+        help="Slave address (1-247)"
+    )
+
+    args = parser.parse_args()
+
+    if args.addr < 1 or args.addr > 247:
+        print(f"error: --addr must be 1-247 (got {args.addr})", file=sys.stderr)
+        sys.exit(1)
+
+    with open(args.input, "rb") as f:
+        data = bytearray(f.read())
+
+    data = patch_uint8(data, "@@MARKER_ADDR@@", args.addr, 16)
+
+    with open(args.output, "wb") as f:
+        f.write(data)
+
+    print(f"Patched addr={args.addr} -> {args.output}")
+
+
+if __name__ == "__main__":
+    main()
