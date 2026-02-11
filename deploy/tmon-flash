@@ -118,6 +118,18 @@ if [ "${missing}" -eq 1 ]; then
 fi
 
 # ------------------------------------------------------------------
+# Locate config directory (for UDP WiFi config)
+# ------------------------------------------------------------------
+
+if [ -d master ]; then
+  CFG_DIR="master"
+elif [ -d /etc/tmon ]; then
+  CFG_DIR="/etc/tmon"
+else
+  CFG_DIR=""
+fi
+
+# ------------------------------------------------------------------
 # Patch firmware binary
 # ------------------------------------------------------------------
 
@@ -125,6 +137,47 @@ PATCHED=$(mktemp /tmp/tmon-firmware-XXXXXX.bin)
 trap 'rm -f "${PATCHED}"' EXIT
 
 PATCH_ARGS=(--addr="${ADDR}")
+
+# For UDP mode, read WiFi credentials and UDP settings from TOML
+if [ "${MODE}" = "udp" ]; then
+  if [ -z "${CFG_DIR}" ]; then
+    echo "error: config directory not found (need wifi.toml)" >&2
+    echo "  Expected master/ or /etc/tmon/" >&2
+    exit 1
+  fi
+
+  WIFI_TOML="${CFG_DIR}/wifi.toml"
+  UDP_TOML="${CFG_DIR}/config-udp.toml"
+
+  for f in "${WIFI_TOML}" "${UDP_TOML}"; do
+    if [ ! -f "${f}" ]; then
+      echo "error: ${f} not found" >&2
+      exit 1
+    fi
+  done
+
+  # Extract WiFi credentials and master port via Python tomllib
+  eval "$(python3 -c "
+import tomllib, shlex
+with open('${WIFI_TOML}', 'rb') as f:
+    w = tomllib.load(f)
+with open('${UDP_TOML}', 'rb') as f:
+    c = tomllib.load(f)
+print('WIFI_SSID=' + shlex.quote(w['ssid']))
+print('WIFI_PASS=' + shlex.quote(w['password']))
+print('MASTER_HOST=' + shlex.quote(w['master_host']))
+print('MASTER_PORT=' + str(c['udp']['port']))
+print('PUSH_INTERVAL=' + str(c['udp']['push_interval']))
+")"
+
+  PATCH_ARGS+=(
+    --ssid="${WIFI_SSID}"
+    --pass="${WIFI_PASS}"
+    --host="${MASTER_HOST}"
+    --port="${MASTER_PORT}"
+    --push="${PUSH_INTERVAL}"
+  )
+fi
 
 "${PATCHER}" "${FIRMWARE}" "${PATCHED}" "${PATCH_ARGS[@]}"
 
