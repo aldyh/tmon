@@ -3,7 +3,7 @@
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
  * Blinks red on WiFi failure; LED off when connected.
- * Boot button (GPIO 0) blinks yellow N times (N = SLAVE_ADDR).
+ * Boot button (GPIO 0) blinks yellow N times (N = cfg_slave_addr).
  *
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
@@ -11,13 +11,14 @@
  * Build flags (injected by wifi_config.py from master/*.toml):
  *   WIFI_SSID, WIFI_PASSWORD, MASTER_HOST (from wifi.toml)
  *   MASTER_PORT, PUSH_INTERVAL_S (from config-udp.toml [udp] section)
- *   SLAVE_ADDR (from environment or platformio.ini)
+ * Address is patched into the binary by deploy/tmon-patch.
  */
 
 #include <Arduino.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 
+#include "config.h"
 #include "led.h"
 #include "log.h"
 #include "protocol.h"
@@ -69,7 +70,7 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
     }
 
   /* Encode the REPLY frame */
-  return tmon_encode_frame (buf, buf_len, SLAVE_ADDR, TMON_CMD_REPLY,
+  return tmon_encode_frame (buf, buf_len, cfg_slave_addr, TMON_CMD_REPLY,
                               payload, TMON_REPLY_PAYLOAD_LEN);
 }
 
@@ -108,15 +109,18 @@ connect_wifi (void)
 void
 setup (void)
 {
+  Serial.begin (115200);
+
+  config_init ();
+
   tmon_sensors_init ();
   led_init ();
-  Serial.begin (115200);
 
   pinMode (PIN_BUTTON, INPUT_PULLUP);
 
   Serial.println ("tmon UDP push slave starting");
   Serial.print ("Address: ");
-  Serial.println (SLAVE_ADDR);
+  Serial.println (cfg_slave_addr);
   Serial.print ("Push interval: ");
   Serial.print (PUSH_INTERVAL_S);
   Serial.println ("s");
@@ -162,9 +166,9 @@ loop (void)
           && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
         {
           last_button_ms = now;
-          led_identify (SLAVE_ADDR);
+          led_identify (cfg_slave_addr);
           Serial.print ("Identify: blinking ");
-          Serial.print (SLAVE_ADDR);
+          Serial.print (cfg_slave_addr);
           Serial.println (" times");
         }
 
