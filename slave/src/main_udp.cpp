@@ -8,10 +8,8 @@
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
  *
- * Build flags (injected by wifi_config.py from master/*.toml):
- *   WIFI_SSID, WIFI_PASSWORD, MASTER_HOST (from wifi.toml)
- *   MASTER_PORT, PUSH_INTERVAL_S (from config-udp.toml [udp] section)
- * Address is patched into the binary by deploy/tmon-patch.
+ * Per-device configuration (address, WiFi credentials, master host/port)
+ * is patched into the binary by deploy/tmon-patch.
  */
 
 #include <Arduino.h>
@@ -23,11 +21,6 @@
 #include "log.h"
 #include "protocol.h"
 #include "sensors.h"
-
-/* PUSH_INTERVAL_S must be set via build flag (from config-udp.toml) */
-#ifndef PUSH_INTERVAL_S
-#error "PUSH_INTERVAL_S not defined -- check config-udp.toml"
-#endif
 
 /* Boot button (active LOW, internal pull-up) */
 static const int PIN_BUTTON = 0;
@@ -84,7 +77,7 @@ connect_wifi (void)
   for (;;)
     {
       Serial.println ("Connecting to WiFi...");
-      WiFi.begin (WIFI_SSID, WIFI_PASSWORD);
+      WiFi.begin (cfg_ssid, cfg_pass);
 
       unsigned long start = millis ();
       while (WiFi.status () != WL_CONNECTED)
@@ -122,7 +115,7 @@ setup (void)
   Serial.print ("Address: ");
   Serial.println (cfg_slave_addr);
   Serial.print ("Push interval: ");
-  Serial.print (PUSH_INTERVAL_S);
+  Serial.print (cfg_push_interval);
   Serial.println ("s");
 
   connect_wifi ();
@@ -146,7 +139,7 @@ loop (void)
       Serial.print (" bytes, ");
       log_temps (parsed.temps);
 
-      udp.beginPacket (MASTER_HOST, MASTER_PORT);
+      udp.beginPacket (cfg_host, cfg_master_port);
       udp.write (tx_buf, tx_len);
       udp.endPacket ();
     }
@@ -157,7 +150,7 @@ loop (void)
 
   /* Wait for push interval, polling button */
   unsigned long wait_start = millis ();
-  while (millis () - wait_start < (unsigned long) PUSH_INTERVAL_S * 1000UL)
+  while (millis () - wait_start < cfg_push_interval * 1000UL)
     {
       unsigned long now = millis ();
 
