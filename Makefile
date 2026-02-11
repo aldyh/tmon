@@ -28,17 +28,17 @@ build-slave:
 build-slave-udp:
 	cd slave && pio run -e udp
 
-flash-slave:
+flash-slave: build-slave
 ifndef SLAVE_ADDR
 	$(error SLAVE_ADDR required, e.g. make flash-slave SLAVE_ADDR=1)
 endif
-	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e uart -t upload
+	deploy/tmon-flash --mode=serial --addr=$(SLAVE_ADDR)
 
-flash-slave-udp:
+flash-slave-udp: build-slave-udp
 ifndef SLAVE_ADDR
 	$(error SLAVE_ADDR required, e.g. make flash-slave-udp SLAVE_ADDR=1)
 endif
-	cd slave && SLAVE_ADDR=$(SLAVE_ADDR) pio run -e udp -t upload
+	deploy/tmon-flash --mode=udp --addr=$(SLAVE_ADDR)
 
 run-master: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config.toml
@@ -90,26 +90,17 @@ demo-static-clean:
 	rm -rf panel/demo tmon-demo.tar.gz
 
 # ---- Firmware collection ----
-# Build all firmware variants and collect in firmware/.
-
-SERIAL_SLAVES ?= 1 2 3 4
-UDP_SLAVES    ?= 5 6 7 8
+# Build generic firmware binaries (one per transport mode) and collect
+# in firmware/.  Config is patched into the binary at flash time by
+# tmon-patch, so no per-address builds are needed.
 
 BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
                -name boot_app0.bin 2>/dev/null | head -1)
 
-firmware:
+firmware: build-slave build-slave-udp
 	mkdir -p firmware
-	@for addr in $(SERIAL_SLAVES); do \
-	  echo "Building serial firmware for addr $$addr..."; \
-	  cd slave && SLAVE_ADDR=$$addr pio run -e uart && cd ..; \
-	  cp slave/.pio/build/uart/firmware.bin firmware/firmware-serial-$$addr.bin; \
-	done
-	@for addr in $(UDP_SLAVES); do \
-	  echo "Building UDP firmware for addr $$addr..."; \
-	  cd slave && SLAVE_ADDR=$$addr pio run -e udp && cd ..; \
-	  cp slave/.pio/build/udp/firmware.bin firmware/firmware-udp-$$addr.bin; \
-	done
+	cp slave/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
+	cp slave/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
 	cp slave/.pio/build/uart/bootloader.bin firmware/bootloader.bin
 	cp slave/.pio/build/uart/partitions.bin firmware/partitions.bin
 ifdef BOOT_APP0
