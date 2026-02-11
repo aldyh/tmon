@@ -246,27 +246,6 @@ Checklist for the milestone:
 
 ** Notes
 Milestone added to PLAN.org in commit 4848bc5.
-* WAITING Missing index on readings table
-
-- State "WAITING"    from "TODO"       [2026-02-04 Wed 11:13] \\
-  This isn't urgent.
-The ~readings~ table (schema/readings.sql) has no indexes beyond the
-primary key.  The panel's ~/api/history~ and ~/api/export~ endpoints
-filter by ~(addr, ts)~ range:
-
-#+begin_example
-SELECT ... FROM readings WHERE addr = ? AND ts >= ? AND ts <= ?
-#+end_example
-
-With a year of data (~3M rows per slave), this scans the full table.
-Adding a composite index would help:
-
-#+begin_example
-CREATE INDEX idx_readings_addr_ts ON readings(addr, ts);
-#+end_example
-
-This is a straightforward change to ~schema/readings.sql~.  Existing
-databases can be migrated with a one-time ~CREATE INDEX~ command.
 * DONE Fragile schema loading path in storage.py
 
 ~storage.py~ loads the schema from ~schema/readings.sql~ using relative
@@ -934,13 +913,6 @@ Deleted:
 
 All 217 tests pass (114 master + 40 slave + 8 integration + 55 panel).
 
-* TODO Move tmon-patch out of /usr/local/bin
-
-~tmon-patch~ is an implementation detail of ~tmon-flash~, not a
-user-facing tool.  It shouldn't be on PATH.  Move it to
-~/usr/local/lib/tmon/~ and update ~tmon-flash~ path resolution and
-~install.sh~ accordingly.
-
 * DONE Rewrite master in C and compare with Python implementation
 
 Exploratory rewrite of the Python master daemon in C (GNU style) to
@@ -1040,3 +1012,9 @@ with 500ms debounce.  main_udp.cpp blocking delay replaced with 10ms
 polling loop.  7 new LED tests (14 total).
 * TODO rename build-slave to build-slave-485
 and flash-slave to flash-slave-485
+* TODO should config.toml be config-485.toml
+For consistency, since we have config-udp.toml, should config.toml be config-485.toml?
+
+485 and udp implementations should both be first class citizens.
+
+Or do we have config.toml, because that's a default of sorts and it must be named that?
