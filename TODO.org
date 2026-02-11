@@ -921,7 +921,7 @@ New files:
 
 Changes:
 - ~main_485.cpp~, ~main_udp.cpp~: use ~cfg_slave_addr~ and WiFi
-  globals from config.h.  Halt with red LED blink if unpatched.
+  globals from config.h instead of compile-time build flags.
 - ~platformio.ini~: removed all ~extra_scripts~ lines.
 - ~tmon-flash~: patches generic binary before flashing.  For UDP mode,
   reads ~wifi.toml~ and ~config-udp.toml~ for WiFi/UDP settings.
