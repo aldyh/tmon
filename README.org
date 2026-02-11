@@ -20,16 +20,14 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
   - ~tools/~ -- x86 serial simulator + ~socat~ harness (integration tests)
 - ~slave/~ -- ESP32 firmware (PlatformIO, Arduino framework)
 - ~panel/~ -- demo dashboard (Flask + Chart.js)
+- ~deploy/~ -- install/uninstall scripts, systemd units, ~tmon-flash~ tool
 - ~docs/~ -- documentation (see links below)
 
-** Quick start
-
-*** Prerequisites
+** Prerequisites
 
 - Python 3.11+
-- [[https://platformio.org/][PlatformIO]] -- install via
-  [[https://pipx.pypa.io/][pipx]] (~apt~ package is outdated on recent
-  Ubuntu):
+- [[https://platformio.org/][PlatformIO]] (only needed to build firmware from source) -- install via
+  [[https://pipx.pypa.io/][pipx]] (~apt~ package is outdated on recent Ubuntu):
 
   #+begin_example
   sudo apt install pipx
@@ -37,60 +35,116 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
   pipx ensurepath          # if ~/.local/bin is not already on PATH
   #+end_example
 
-*** Build
+** Installation
+
+Build the project, then install system-wide:
 
 #+begin_example
 make                  # create master venv + deps, build slave firmware
+sudo make install     # install daemon, panel, config, systemd units
 #+end_example
 
-*** Test
+The installer creates a ~tmon~ system user, installs the daemon and panel
+into ~/var/lib/tmon/venv/~, copies config files to ~/etc/tmon/~, and loads
+systemd units.  Services are installed but *not* enabled -- see [[*Running][Running]].
+
+To include pre-built firmware for ~tmon-flash~, build it before installing:
 
 #+begin_example
-make check            # run all tests (no hardware needed)
+make firmware         # build all firmware variants into firmware/
+sudo make install     # copies firmware to /var/lib/tmon/firmware/
 #+end_example
 
-*** Flash slaves
+** Configuration
 
-#+begin_example
-make flash-slave SLAVE_ADDR=1        # RS-485 transport
-make flash-slave-udp SLAVE_ADDR=1   # UDP push (WiFi with deep sleep)
-#+end_example
+Config files live in ~/etc/tmon/~:
 
-For UDP builds, copy ~master/wifi.toml.example~ to ~master/wifi.toml~ and fill in your WiFi credentials.
+- ~config.toml~ -- RS-485 transport: serial port, baud rate, slave list, polling interval.
+- ~config-udp.toml~ -- UDP transport: listen port, push interval.
+- ~wifi.toml~ -- WiFi credentials for UDP slaves (copy from ~wifi.toml.example~ and fill in).
 
-*** Run the daemon
+The database is auto-created at ~/var/lib/tmon/tmon.db~ on first run.
 
-#+begin_example
-make run-master       # RS-485 (uses master/config.toml)
-make run-master-udp  # UDP push (uses master/config-udp.toml)
-#+end_example
+** Running
 
-Runs in foreground; Ctrl+C to stop.
-
-** Deployment
-
-Install on a target machine (e.g. Raspberry Pi):
-
-#+begin_example
-sudo make install
-#+end_example
-
-This creates a ~tmon~ system user, installs the daemon and panel into
-~/var/lib/tmon/venv/~, copies config files to ~/etc/tmon/~, and loads
-systemd units.  Services are installed but *not* enabled -- choose which
-to run:
+Enable one daemon transport:
 
 #+begin_example
 sudo systemctl enable --now tmond-serial   # RS-485 transport
 sudo systemctl enable --now tmond-udp      # UDP push transport
-sudo systemctl enable --now tmon-panel     # web dashboard on port 5000
 #+end_example
 
-To uninstall (preserves config and database by default):
+Enable the web dashboard:
+
+#+begin_example
+sudo systemctl enable --now tmon-panel     # accessible at http://<host>:5000
+#+end_example
+
+Check status and logs:
+
+#+begin_example
+systemctl status tmond-serial
+journalctl -u tmond-serial
+#+end_example
+
+** Flashing slaves
+
+Use the ~tmon-flash~ tool to flash pre-built firmware onto ESP32 slaves:
+
+#+begin_example
+tmon-flash --mode=serial --addr=1          # RS-485 slave at address 1
+tmon-flash --mode=udp --addr=5             # UDP slave at address 5
+#+end_example
+
+The tool auto-detects the serial port; use ~--port=/dev/ttyACM0~ to
+override.  Use ~--dry-run~ to preview the esptool command without flashing.
+
+Firmware binaries are looked up from ~firmware/~ (local dev build) or
+~/var/lib/tmon/firmware/~ (system-wide install).
+
+** Uninstalling
 
 #+begin_example
 sudo make uninstall              # keeps /etc/tmon/ and /var/lib/tmon/
 sudo deploy/uninstall.sh --purge # removes everything
+#+end_example
+
+** Development
+
+For contributors and local hacking -- these targets use local venvs and
+do not require a system-wide install.
+
+*** Build and test
+
+#+begin_example
+make                  # create venvs + deps, build firmware
+make check            # run all test suites (no hardware needed)
+#+end_example
+
+Individual test targets: ~check-master~, ~check-slave~, ~check-integration~, ~check-demo~.
+
+*** Run locally
+
+#+begin_example
+make run-master       # RS-485 (uses master/config.toml)
+make run-master-udp   # UDP push (uses master/config-udp.toml)
+make demo-server      # panel with mock data at http://localhost:5000
+#+end_example
+
+*** Flash directly via PlatformIO
+
+An alternative to ~tmon-flash~ for development -- flashes one slave at a time
+without needing pre-built firmware:
+
+#+begin_example
+make flash-slave SLAVE_ADDR=1        # RS-485 transport
+make flash-slave-udp SLAVE_ADDR=1    # UDP transport
+#+end_example
+
+*** Build firmware collection
+
+#+begin_example
+make firmware         # build all variants into firmware/
 #+end_example
 
 ** Documentation
