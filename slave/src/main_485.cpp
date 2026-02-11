@@ -2,7 +2,7 @@
  * tmon slave firmware -- UART protocol handler
  *
  * Listens for POLL requests on UART and responds with temperature readings.
- * Boot button (GPIO 0) blinks yellow N times (N = SLAVE_ADDR).
+ * Boot button (GPIO 0) blinks yellow N times (N = cfg_slave_addr).
  * Protocol defined in docs/protocol.org.
  *
  * Wiring (with MAX485):
@@ -15,6 +15,7 @@
 
 #include <Arduino.h>
 
+#include "config.h"
 #include "handler.h"
 #include "led.h"
 #include "log.h"
@@ -32,9 +33,6 @@ static const unsigned long BUTTON_DEBOUNCE_MS = 500;
 
 /* RS-485 bus parameters per docs/protocol.org */
 static const int UART_BAUD = 9600;
-
-/* This slave's address (set via -DSLAVE_ADDR=N at build time) */
-static const uint8_t MY_ADDR = SLAVE_ADDR;
 
 /* Receive buffer */
 static const size_t RX_BUF_SIZE = 64;
@@ -58,9 +56,12 @@ setup (void)
   /* USB serial for debug output */
   Serial.begin (115200);
   delay (5000);  /* Wait for USB CDC to enumerate */
+
+  config_init ();
+
   Serial.println ("tmon slave starting");
   Serial.print ("Address: ");
-  Serial.println (MY_ADDR);
+  Serial.println (cfg_slave_addr);
 
   tmon_sensors_init ();
   led_init ();
@@ -85,9 +86,9 @@ loop (void)
       && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
     {
       last_button_ms = now;
-      led_identify (MY_ADDR);
+      led_identify (cfg_slave_addr);
       Serial.print ("Identify: blinking ");
-      Serial.print (MY_ADDR);
+      Serial.print (cfg_slave_addr);
       Serial.println (" times");
     }
 
@@ -99,7 +100,7 @@ loop (void)
       Serial.println (" bytes");
 
       /* Try to process the accumulated bytes */
-      size_t tx_len = tmon_handler_process (MY_ADDR, rx_buf, rx_len,
+      size_t tx_len = tmon_handler_process (cfg_slave_addr, rx_buf, rx_len,
                                             tx_buf, TX_BUF_SIZE);
       if (tx_len > 0)
         {
