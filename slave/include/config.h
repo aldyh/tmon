@@ -6,7 +6,7 @@
  * values in the firmware binary before flashing.
  *
  * config_init() reads the (possibly patched) marker arrays into the
- * cfg_* variables that firmware code uses at runtime.
+ * config_* variables that firmware code uses at runtime.
  */
 
 #ifndef TMON_CONFIG_H
@@ -15,12 +15,12 @@
 #include <stdint.h>
 
 /* Parsed configuration -- set by config_init() */
-extern uint8_t  cfg_slave_addr;
-extern char     cfg_ssid[33];
-extern char     cfg_pass[65];
-extern char     cfg_host[65];
-extern uint16_t cfg_master_port;
-extern uint16_t cfg_push_interval;
+extern uint8_t  config_slave_addr;
+extern char     config_ssid[33];
+extern char     config_pass[65];
+extern char     config_host[65];
+extern uint16_t config_master_port;
+extern uint16_t config_push_interval;
 
 void config_init (void);
 

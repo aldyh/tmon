@@ -3,7 +3,7 @@
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
  * Blinks red on WiFi failure; LED off when connected.
- * Boot button (GPIO 0) blinks yellow N times (N = cfg_slave_addr).
+ * Boot button (GPIO 0) blinks yellow N times (N = config_slave_addr).
  *
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
@@ -63,7 +63,7 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
     }
 
   /* Encode the REPLY frame */
-  return tmon_encode_frame (buf, buf_len, cfg_slave_addr, TMON_CMD_REPLY,
+  return tmon_encode_frame (buf, buf_len, config_slave_addr, TMON_CMD_REPLY,
                               payload, TMON_REPLY_PAYLOAD_LEN);
 }
 
@@ -77,7 +77,7 @@ connect_wifi (void)
   for (;;)
     {
       Serial.println ("Connecting to WiFi...");
-      WiFi.begin (cfg_ssid, cfg_pass);
+      WiFi.begin (config_ssid, config_pass);
 
       unsigned long start = millis ();
       while (WiFi.status () != WL_CONNECTED)
@@ -113,9 +113,9 @@ setup (void)
 
   Serial.println ("tmon UDP push slave starting");
   Serial.print ("Address: ");
-  Serial.println (cfg_slave_addr);
+  Serial.println (config_slave_addr);
   Serial.print ("Push interval: ");
-  Serial.print (cfg_push_interval);
+  Serial.print (config_push_interval);
   Serial.println ("s");
 
   connect_wifi ();
@@ -139,7 +139,7 @@ loop (void)
       Serial.print (" bytes, ");
       log_temps (parsed.temps);
 
-      udp.beginPacket (cfg_host, cfg_master_port);
+      udp.beginPacket (config_host, config_master_port);
       udp.write (tx_buf, tx_len);
       udp.endPacket ();
     }
@@ -150,7 +150,7 @@ loop (void)
 
   /* Wait for push interval, polling button */
   unsigned long wait_start = millis ();
-  while (millis () - wait_start < cfg_push_interval * 1000UL)
+  while (millis () - wait_start < config_push_interval * 1000UL)
     {
       unsigned long now = millis ();
 
@@ -159,9 +159,9 @@ loop (void)
           && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
         {
           last_button_ms = now;
-          led_identify (cfg_slave_addr);
+          led_identify (config_slave_addr);
           Serial.print ("Identify: blinking ");
-          Serial.print (cfg_slave_addr);
+          Serial.print (config_slave_addr);
           Serial.println (" times");
         }
 

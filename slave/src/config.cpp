@@ -5,7 +5,7 @@
  * deploy/tmon-patch overwrites the marker region with real values
  * (binary for numerics, null-terminated for strings).
  *
- * config_init() reads the patched bytes into cfg_* variables.
+ * config_init() reads the patched bytes into config_* variables.
  */
 
 #include "config.h"
@@ -18,20 +18,20 @@
  * Numeric fields: patcher writes raw little-endian binary.
  * String fields: patcher writes null-terminated string + null padding.
  */
-uint8_t cfg_addr[16] = "@@MARKER_ADDR@@";
-uint8_t cfg_port[16] = "@@MARKER_PORT@@";
-uint8_t cfg_push[16] = "@@MARKER_PUSH@@";
-char    cfg_ssid_buf[33] = "@@MARKER_SSID@@";
-char    cfg_pass_buf[65] = "@@MARKER_PASS@@";
-char    cfg_host_buf[65] = "@@MARKER_HOST@@";
+uint8_t config_addr[16] = "@@MARKER_ADDR@@";
+uint8_t config_port[16] = "@@MARKER_PORT@@";
+uint8_t config_push[16] = "@@MARKER_PUSH@@";
+char    config_ssid_buf[33] = "@@MARKER_SSID@@";
+char    config_pass_buf[65] = "@@MARKER_PASS@@";
+char    config_host_buf[65] = "@@MARKER_HOST@@";
 
 /* Parsed configuration */
-uint8_t  cfg_slave_addr   = 0;
-char     cfg_ssid[33]     = "";
-char     cfg_pass[65]     = "";
-char     cfg_host[65]     = "";
-uint16_t cfg_master_port  = 0;
-uint16_t cfg_push_interval = 0;
+uint8_t  config_slave_addr   = 0;
+char     config_ssid[33]     = "";
+char     config_pass[65]     = "";
+char     config_host[65]     = "";
+uint16_t config_master_port  = 0;
+uint16_t config_push_interval = 0;
 
 /*
  * config_init -- Parse patched marker arrays into config variables.
@@ -43,10 +43,10 @@ uint16_t cfg_push_interval = 0;
 void
 config_init (void)
 {
-  cfg_slave_addr = cfg_addr[0];
-  cfg_master_port = (uint16_t)(cfg_port[0] | (cfg_port[1] << 8));
-  cfg_push_interval = (uint16_t)(cfg_push[0] | (cfg_push[1] << 8));
-  memcpy (cfg_ssid, cfg_ssid_buf, sizeof (cfg_ssid));
-  memcpy (cfg_pass, cfg_pass_buf, sizeof (cfg_pass));
-  memcpy (cfg_host, cfg_host_buf, sizeof (cfg_host));
+  config_slave_addr = config_addr[0];
+  config_master_port = (uint16_t)(config_port[0] | (config_port[1] << 8));
+  config_push_interval = (uint16_t)(config_push[0] | (config_push[1] << 8));
+  memcpy (config_ssid, config_ssid_buf, sizeof (config_ssid));
+  memcpy (config_pass, config_pass_buf, sizeof (config_pass));
+  memcpy (config_host, config_host_buf, sizeof (config_host));
 }
