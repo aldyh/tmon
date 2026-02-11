@@ -16,6 +16,11 @@
 
 /* Parsed configuration -- set by config_init() */
 extern uint8_t  cfg_slave_addr;
+extern char     cfg_ssid[33];
+extern char     cfg_pass[65];
+extern char     cfg_host[65];
+extern uint16_t cfg_master_port;
+extern uint16_t cfg_push_interval;
 
 void config_init (void);
 
