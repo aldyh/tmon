@@ -5,6 +5,10 @@
 #
 # Firmware is read from firmware/ (local dev build) or
 # /var/lib/tmon/firmware/ (system-wide fallback).
+#
+# The generic firmware binary contains marker strings that are patched
+# with real config values (address, WiFi credentials, etc.) by
+# tmon-patch before flashing.
 
 set -euo pipefail
 
@@ -77,13 +81,28 @@ else
 fi
 
 # ------------------------------------------------------------------
+# Locate tmon-patch
+# ------------------------------------------------------------------
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+if [ -x "${SCRIPT_DIR}/tmon-patch" ]; then
+  PATCHER="${SCRIPT_DIR}/tmon-patch"
+elif command -v tmon-patch >/dev/null 2>&1; then
+  PATCHER="tmon-patch"
+else
+  echo "error: tmon-patch not found" >&2
+  echo "  Expected in ${SCRIPT_DIR}/ or on PATH" >&2
+  exit 1
+fi
+
+# ------------------------------------------------------------------
 # Verify required files
 # ------------------------------------------------------------------
 
 BOOTLOADER="${FW_DIR}/bootloader.bin"
 PARTITIONS="${FW_DIR}/partitions.bin"
 BOOT_APP0="${FW_DIR}/boot_app0.bin"
-FIRMWARE="${FW_DIR}/firmware-${MODE}-${ADDR}.bin"
+FIRMWARE="${FW_DIR}/firmware-${MODE}.bin"
 
 missing=0
 for f in "${BOOTLOADER}" "${PARTITIONS}" "${BOOT_APP0}" "${FIRMWARE}"; do
@@ -97,6 +116,17 @@ if [ "${missing}" -eq 1 ]; then
   echo "Run 'make firmware' to build firmware binaries." >&2
   exit 1
 fi
+
+# ------------------------------------------------------------------
+# Patch firmware binary
+# ------------------------------------------------------------------
+
+PATCHED=$(mktemp /tmp/tmon-firmware-XXXXXX.bin)
+trap 'rm -f "${PATCHED}"' EXIT
+
+PATCH_ARGS=(--addr="${ADDR}")
+
+"${PATCHER}" "${FIRMWARE}" "${PATCHED}" "${PATCH_ARGS[@]}"
 
 # ------------------------------------------------------------------
 # Auto-detect serial port
@@ -131,7 +161,7 @@ echo "tmon-flash"
 echo "  Mode:     ${MODE}"
 echo "  Address:  ${ADDR}"
 echo "  Port:     ${PORT}"
-echo "  Firmware: ${FIRMWARE}"
+echo "  Firmware: ${FIRMWARE} (patched)"
 echo ""
 
 # ------------------------------------------------------------------
@@ -150,7 +180,7 @@ CMD=(esptool.py
   0x0     "${BOOTLOADER}"
   0x8000  "${PARTITIONS}"
   0xe000  "${BOOT_APP0}"
-  0x10000 "${FIRMWARE}")
+  0x10000 "${PATCHED}")
 
 if [ "${DRY_RUN}" -eq 1 ]; then
   echo "[dry-run] ${CMD[*]}"
