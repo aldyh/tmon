@@ -73,6 +73,11 @@ def fix_checksums(data):
     1. XOR checksum over all segment data (stored just before the hash).
     2. SHA-256 hash over everything up to (but not including) the hash.
     Patching marker bytes invalidates both; this function repairs them.
+
+    Note: esptool's bin_image.LoadFirmwareImage can also parse and
+    re-checksum images, but we keep this self-contained to avoid
+    depending on esptool's internal (unstable) API.  The image format
+    is defined by the ESP32 ROM bootloader and will not change.
     """
     seg_count = data[1]
     offset = 24  # skip image header (8) + extended header (16)
