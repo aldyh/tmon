@@ -3,6 +3,7 @@
 import os
 import sqlite3
 import tempfile
+from unittest.mock import patch
 
 from generate_data import generate
 
@@ -105,12 +106,16 @@ class TestGenerate:
 
     def test_reproducible_with_seed(self):
         """Same seed produces identical data."""
+        # Freeze time so both generate() calls use the same "now",
+        # avoiding timestamp drift on slow machines (e.g. the Pi).
+        frozen_epoch = 1750000000
         paths = []
         try:
             for _ in range(2):
                 fd, path = tempfile.mkstemp(suffix=".db")
                 os.close(fd)
-                generate(path, 1, 99)
+                with patch("generate_data.time.time", return_value=float(frozen_epoch)):
+                    generate(path, 1, 99)
                 paths.append(path)
             conn1 = sqlite3.connect(paths[0])
             conn2 = sqlite3.connect(paths[1])

@@ -17,6 +17,8 @@ import math
 import os
 import random
 import sqlite3
+import time
+from datetime import datetime, timedelta, timezone
 
 from tmon.storage import SCHEMA
 
@@ -73,8 +75,8 @@ def generate(db_path: str, days: int, seed: int) -> int:
     total_steps = total_seconds // _INTERVAL
 
     # End at the current time so the mock data feels recent.
-    from datetime import datetime, timedelta, timezone
-    now = datetime.now(timezone.utc).replace(microsecond=0)
+    now_epoch = int(time.time())
+    now = datetime.fromtimestamp(now_epoch, tz=timezone.utc)
     start = now - timedelta(days=days)
 
     rows = []
