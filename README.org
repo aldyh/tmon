@@ -7,7 +7,7 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
 ** What it is
 
 - *Master (Raspberry Pi):* Python daemon that collects readings from ESP32 slaves and stores them in SQLite.
-- *Transport:* RS-485 (USB adapter, master polls) or UDP over WiFi (slaves push with deep sleep).
+- *Transport:* RS-485 (USB adapter, master polls) or UDP over WiFi (slaves push).
 - *Slaves (ESP32):* Each reads up to *4 NTC thermistors*.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
 - *Scale:* 1-4 slaves; designed to stay small and stable.
@@ -18,7 +18,7 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
   - ~src/tmon/~ -- protocol, bus, poller, storage, config
   - ~tests/~ -- pytest unit tests (no hardware)
   - ~tools/~ -- x86 serial simulator + ~socat~ harness (integration tests)
-- ~slave/~ -- ESP32 firmware (PlatformIO, Arduino framework)
+- ~slave/~ -- ESP32 firmware
 - ~panel/~ -- demo dashboard (Flask + Chart.js)
 - ~deploy/~ -- install/uninstall scripts, systemd units, ~tmon-flash~ tool
 - ~docs/~ -- documentation (see links below)
@@ -127,7 +127,7 @@ make run-master-udp   # UDP push (uses master/config-udp.toml)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example
 
-*** Flash directly
+*** Flashing slaves
 
 An alternative to ~tmon-flash~ for development -- flashes one slave at a time
 without needing pre-built firmware:
