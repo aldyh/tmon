@@ -137,7 +137,7 @@ An alternative to ~tmon-flash~ for development -- flashes one slave at a time
 without needing pre-built firmware:
 
 #+begin_example
-make flash-slave SLAVE_ADDR=1        # RS-485 transport
+make flash-slave-485 SLAVE_ADDR=1    # RS-485 transport
 make flash-slave-udp SLAVE_ADDR=1    # UDP transport
 #+end_example
 

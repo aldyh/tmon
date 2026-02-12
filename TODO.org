@@ -1010,8 +1010,10 @@ Added LED_IDENTIFY state (blinks yellow N times at 300ms on/off, then
 restores prior state).  Both firmware versions poll GPIO 0 (boot button)
 with 500ms debounce.  main_udp.cpp blocking delay replaced with 10ms
 polling loop.  7 new LED tests (14 total).
-* TODO rename build-slave to build-slave-485
+* DONE rename build-slave to build-slave-485
 and flash-slave to flash-slave-485
+** Notes
+Renamed in Makefile and README.org.
 * TODO should config.toml be config-485.toml
 For consistency, since we have config-udp.toml, should config.toml be config-485.toml?
 

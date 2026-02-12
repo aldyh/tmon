@@ -1,5 +1,5 @@
-.PHONY: all build-master build-slave build-slave-udp \
-       flash-slave flash-slave-udp \
+.PHONY: all build-master build-slave-485 build-slave-udp \
+       flash-slave-485 flash-slave-udp \
        run-master run-master-udp \
        demo-setup \
        check check-master check-slave check-integration check-demo \
@@ -22,15 +22,15 @@ $(MASTER_STAMP): master/.venv master/pyproject.toml
 	. master/.venv/bin/activate && pip install -e "master/.[test]"
 	touch $(MASTER_STAMP)
 
-build-slave:
+build-slave-485:
 	cd slave && pio run -e uart
 
 build-slave-udp:
 	cd slave && pio run -e udp
 
-flash-slave: build-slave
+flash-slave-485: build-slave-485
 ifndef SLAVE_ADDR
-	$(error SLAVE_ADDR required, e.g. make flash-slave SLAVE_ADDR=1)
+	$(error SLAVE_ADDR required, e.g. make flash-slave-485 SLAVE_ADDR=1)
 endif
 	deploy/tmon-flash --mode=serial --addr=$(SLAVE_ADDR)
 
@@ -97,7 +97,7 @@ demo-static-clean:
 BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
                -name boot_app0.bin 2>/dev/null | head -1)
 
-firmware: build-slave build-slave-udp
+firmware: build-slave-485 build-slave-udp
 	mkdir -p firmware
 	cp slave/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
 	cp slave/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
