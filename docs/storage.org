@@ -33,6 +33,13 @@ The authoritative schema is embedded in [[file:../master/src/tmon/storage.py][st
 | temp_2 | INTEGER | Channel 2 reading, same encoding as temp_0.                                         |
 | temp_3 | INTEGER | Channel 3 reading, same encoding as temp_0.                                         |
 
+*** Indexes
+
+| Index                | Columns    | Purpose                                            |
+|----------------------+------------+----------------------------------------------------|
+| idx_readings_addr_ts | (addr, ts) | Speeds up queries that filter by slave address and |
+|                      |            | time range -- the panel's primary access pattern.  |
+
 ** Path resolution
 
 The database path in ~config-485.toml~ is a bare filename (e.g. ~tmon.db~).

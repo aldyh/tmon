@@ -1025,3 +1025,17 @@ Or do we have config.toml, because that's a default of sorts and it must be name
 Renamed to config-485.toml. The filename is never used as a hardcoded
 default -- it's always passed explicitly as a CLI positional arg, so
 neither transport looks like the "default".
+* DONE Document composite index in storage.org
+~storage.py~ creates a composite index:
+
+#+begin_example
+CREATE INDEX IF NOT EXISTS idx_readings_addr_ts ON readings (addr, ts);
+#+end_example
+
+This was added in commit 655c689 and noted in PLAN.org, but
+~docs/storage.org~ has no mention of it.  The Schema section should
+list the index alongside the table definition.
+
+** Notes
+Added an "Indexes" subsection after "Column details" in docs/storage.org
+documenting the idx_readings_addr_ts composite index on (addr, ts).
