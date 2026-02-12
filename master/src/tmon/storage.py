@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS readings (
     temp_2    INTEGER,           -- channel 2, tenths of deg C
     temp_3    INTEGER            -- channel 3, tenths of deg C
 );
+CREATE INDEX IF NOT EXISTS idx_readings_addr_ts ON readings (addr, ts);
 """
 
 _INSERT = """\

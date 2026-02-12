@@ -227,7 +227,7 @@ RS-485 wiring complexity.
 - [X] Document how to add a new slave (address + wiring + config)
 - [ ] Confirm error handling (CRC errors, timeouts, missing devices) is reasonable
 - [X] Check LED behavior sanity (stub vs real hardware alignment)
-- [ ] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
+- [X] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
 - [X] Verify flashing a brand-new ESP32 works from a deployed Pi (no dev environment)
 - [ ] Final pass: remove unused code, clean up comments, ensure docs match behavior
 

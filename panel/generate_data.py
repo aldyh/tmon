@@ -124,10 +124,6 @@ def generate(db_path: str, days: int, seed: int) -> int:
             rows,
         )
 
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_readings_addr_ts"
-        " ON readings (addr, ts)"
-    )
     conn.commit()
     conn.close()
     return count
