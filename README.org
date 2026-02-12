@@ -127,7 +127,7 @@ make run-master-udp   # UDP push (uses master/config-udp.toml)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example
 
-*** Flash directly via PlatformIO
+*** Flash directly
 
 An alternative to ~tmon-flash~ for development -- flashes one slave at a time
 without needing pre-built firmware:
@@ -135,12 +135,6 @@ without needing pre-built firmware:
 #+begin_example
 make flash-slave-485 SLAVE_ADDR=1    # RS-485 transport
 make flash-slave-udp SLAVE_ADDR=1    # UDP transport
-#+end_example
-
-*** Build firmware collection
-
-#+begin_example
-make firmware         # build all variants into firmware/
 #+end_example
 
 ** Documentation
