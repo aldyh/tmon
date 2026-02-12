@@ -48,12 +48,8 @@ The installer creates a ~tmon~ system user, installs the daemon and panel
 into ~/var/lib/tmon/venv/~, copies config files to ~/etc/tmon/~, and loads
 systemd units.  Services are installed but *not* enabled -- see [[*Running][Running]].
 
-To include pre-built firmware for ~tmon-flash~, build it before installing:
-
-#+begin_example
-make firmware         # build all firmware variants into firmware/
-sudo make install     # copies firmware to /var/lib/tmon/firmware/
-#+end_example
+The installer also copies pre-built firmware to ~/var/lib/tmon/firmware/~
+for use by ~tmon-flash~.
 
 ** Configuration
 
