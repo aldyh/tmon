@@ -61,7 +61,8 @@ check-master: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && pytest -m "not integration"
 
 check-slave:
-	cd slave && pio test -e native
+	if command -v pio >/dev/null 2>&1; then cd slave && pio test -e native; \
+	else echo "pio not found, skipping slave tests"; fi
 
 check-integration: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && pytest -m integration -v
