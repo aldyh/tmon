@@ -91,28 +91,15 @@ cp -r panel/templates "${PANEL_DIR}/"
 cp -r panel/static "${PANEL_DIR}/"
 
 # ------------------------------------------------------------------
-# Firmware binaries (optional)
+# Firmware binaries
 # ------------------------------------------------------------------
 
-fw_copied=0
 if [ -d firmware ]; then
   echo "Copying firmware from firmware/..."
-  cp firmware/*.bin "${FW_DIR}/" 2>/dev/null && fw_copied=1
+  cp firmware/*.bin "${FW_DIR}/"
 else
-  # Fallback: copy from PlatformIO build output (generic binaries)
-  for mode_env in serial:uart udp:udp; do
-    mode="${mode_env%%:*}"
-    env="${mode_env##*:}"
-    src="slave/.pio/build/${env}/firmware.bin"
-    if [ -f "${src}" ]; then
-      cp "${src}" "${FW_DIR}/firmware-${mode}.bin"
-      fw_copied=1
-    fi
-  done
-fi
-
-if [ "${fw_copied}" -eq 0 ]; then
-  echo "warning: no firmware binaries found (run 'make firmware')"
+  echo "error: firmware/ directory not found (run 'make firmware')" >&2
+  exit 1
 fi
 
 # ------------------------------------------------------------------

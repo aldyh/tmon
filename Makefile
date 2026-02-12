@@ -11,7 +11,7 @@
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-master build-slave build-slave-udp
+all: build-master firmware
 
 build-master: $(MASTER_STAMP)
 
@@ -111,7 +111,7 @@ endif
 	@echo "Firmware collected in firmware/"
 	@ls -1 firmware/
 
-install:
+install: all
 	sudo deploy/install.sh
 
 uninstall:
