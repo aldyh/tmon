@@ -25,9 +25,9 @@ make check-demo             # run panel pytest suite
 | Endpoint                                   | Description                                  |
 |--------------------------------------------+----------------------------------------------|
 | ~GET /~                                    | Dashboard HTML page                          |
-| ~GET /api/current~                         | Latest reading per slave (JSON)              |
+| ~GET /api/current~                         | Latest reading per sensor (JSON)             |
 | ~GET /api/history?addr=N&hours=H&points=P~ | Historical readings, downsampled to P points |
-| ~GET /api/slaves~                          | List of distinct slave addresses             |
+| ~GET /api/sensors~                         | List of distinct sensor addresses            |
 | ~GET /api/export?addr=N&hours=H~           | CSV download for node N, trailing H hours    |
 | ~GET /api/range~                           | Min/max timestamps in DB                     |
 
@@ -37,7 +37,7 @@ mock data always appears current.
 *** Examples
 
 #+begin_example
-curl http://localhost:5000/api/slaves
+curl http://localhost:5000/api/sensors
 # [1, 2, 3]
 
 curl http://localhost:5000/api/current
@@ -74,7 +74,7 @@ extracted directory.
 ** How it works
 
 - ~generate_data.py~ creates ~tmon_mock.db~ with the same schema as
-  ~master/src/tmon/storage.py~.  3 slaves, 2-4 channels each,
+  ~server/src/tmon/storage.py~.  3 sensors, 2-4 channels each,
   readings every 30s for 365 days.  Sinusoidal daily/seasonal cycles
   plus Gaussian noise.
 - ~app.py~ is a Flask app that reads ~tmon_mock.db~ and serves JSON

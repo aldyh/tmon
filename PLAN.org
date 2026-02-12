@@ -6,19 +6,19 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 
 ** Assumptions
 
-- 1-4 ESP32 slaves, each with up to 4 NTC thermistors.
+- 1-4 ESP32 sensors, each with up to 4 NTC thermistors.
 - A USB <-> RS-485 adapter on the Pi.
 - SQLite is sufficient
 - Protocol is custom binary as defined in ~docs/protocol.org~.
 
 ** Conventions
 
-- *Python (master):* Python 3.11+, minimal deps (prefer stdlib; ~pyserial~ is expected).
+- *Python (server):* Python 3.11+, minimal deps (prefer stdlib; ~pyserial~ is expected).
 - *Config:* ~config-485.toml~, ~config-udp.toml~ (stdlib ~tomllib~ in Python 3.11).
 - *Testing:*
   - Unit tests: ~pytest~ with fakes/mocks (no hardware).
-  - Integration tests: ~socat~ + serial simulator (~master/tools~).
-- *Firmware (slave):* PlatformIO + Arduino framework; keep firmware straightforward.
+  - Integration tests: ~socat~ + serial simulator (~server/tools~).
+- *Firmware (sensor):* PlatformIO + Arduino framework; keep firmware straightforward.
 
 ** Milestones
 
@@ -55,7 +55,7 @@ so something simple.
 *** Setup skeleton test
 
 - [X] Setup bare stubs for entire project (no API, just stubs)
-- [X] Add stub tests so that we can "run" tests for slave, master, etc, even if just placeholders.
+- [X] Add stub tests so that we can "run" tests for sensor, server, etc, even if just placeholders.
 - [X] We can build the entire system and tests pass.
 - [X] Flesh out "Quick Start" section in README.org.
 
@@ -77,18 +77,18 @@ so something simple.
 
 *** Unified test runner
 
-- [X] Add root Makefile with ~check~, ~check-master~, ~check-slave~ targets
+- [X] Add root Makefile with ~check~, ~check-server~, ~check-sensor~ targets
 - [X] Simplify README.org testing section to point at ~make check~
-- [X] Add ~all~, ~build-master~, ~build-slave~ targets to Makefile
+- [X] Add ~all~, ~build-server~, ~build-sensor~ targets to Makefile
 - [X] Rewrite README Quick Start to use make targets
 
 *** Simulator (x86)
 
-- [X] Implement a simple "virtual slave" that speaks the protocol over a pseudo-serial port
-- [X] Integration test: master talks to simulator and receives stable readings
-- [X] Master can poll simulator end-to-end without hardware
+- [X] Implement a simple "virtual sensor" that speaks the protocol over a pseudo-serial port
+- [X] Integration test: server talks to simulator and receives stable readings
+- [X] Server can poll simulator end-to-end without hardware
 
-*** Master poller loop
+*** Server poller loop
 
 - [X] Implement serial bus abstraction
 - [X] Poll loop
@@ -103,7 +103,7 @@ so something simple.
 - [X] Integration test: poller -> storage using simulator
 - [X] SQLite DB gets populated correctly during simulator run
 
-*** Master daemon
+*** Server daemon
 
 - [X] Config-driven entry point (~tmon~ console script via pyproject.toml)
 - [X] Run poll loop on a configurable schedule
@@ -141,13 +141,13 @@ so something simple.
 
 *** UDP push transport (alternative to RS-485)
 
-- [X] Master: UDPReceiver implementation
-- [X] Master: Listener for decoding/storing
-- [X] Master: Config transport selection (rs485 or udp)
-- [X] Master: UDP integration tests
-- [X] Slave: NTC thermistor reading (Steinhart-Hart)
-- [X] Slave: UDP push with deep sleep
-- [X] Slave: Build environments (uart vs udp)
+- [X] Server: UDPReceiver implementation
+- [X] Server: Listener for decoding/storing
+- [X] Server: Config transport selection (rs485 or udp)
+- [X] Server: UDP integration tests
+- [X] Sensor: NTC thermistor reading (Steinhart-Hart)
+- [X] Sensor: UDP push with deep sleep
+- [X] Sensor: Build environments (uart vs udp)
 - [X] Makefile targets for UDP builds
 - [X] Remove obsolete TCP WiFi transport
 
@@ -166,7 +166,7 @@ config and data in both dev and production contexts.
 Full automation: ~make install~ runs ~install.sh~ which handles everything.
 
 - [X] ~install.sh~: create ~tmon~ user, create ~/etc/tmon/~ and ~/var/lib/tmon/~
-- [X] ~install.sh~: pip install master package, copy config files
+- [X] ~install.sh~: pip install server package, copy config files
 - [X] ~install.sh~: install firmware binaries to ~/var/lib/tmon/firmware/~
 - [X] systemd service files: ~tmond-serial.service~, ~tmond-udp.service~
 - [X] systemd service file: ~tmon-panel.service~ (gunicorn serving Flask app)
@@ -193,7 +193,7 @@ Build 2 generic firmware binaries, patch config at flash time.
 - [X] Remove ~slave_addr.py~ and ~wifi_config.py~
 - [X] ~deploy/tmon-patch~: find markers, overwrite with real values
 - [X] ~tmon-flash~: generic binary name, patch step, TOML reading for UDP
-- [X] ~Makefile~: 2 generic builds, ~flash-slave*~ calls ~tmon-flash~
+- [X] ~Makefile~: 2 generic builds, ~flash-sensor*~ calls ~tmon-flash~
 - [X] ~install.sh~: install ~tmon-patch~, generic firmware names
 
 *** Verify installation works on x86
@@ -224,7 +224,7 @@ RS-485 wiring complexity.
 
 *** Integration + polish
 
-- [X] Document how to add a new slave (address + wiring + config)
+- [X] Document how to add a new sensor (address + wiring + config)
 - [X] Confirm error handling (CRC errors, timeouts, missing devices) is reasonable
 - [X] Check LED behavior sanity (stub vs real hardware alignment)
 - [X] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
@@ -236,11 +236,11 @@ RS-485 wiring complexity.
 - [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
 - [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
-- [ ] Real bus smoke test with 1 slave -> then scale to all slaves
+- [ ] Real bus smoke test with 1 sensor -> then scale to all sensors
 
-*** Rename master/slave to server/client
+*** Rename master/slave to server/sensor
 
 *Last milestone.*  Only after everything else is stable and working.
 
-- [ ] Rename throughout: code, config, docs, directory names, README
-- [ ] Verify all tests pass after rename
+- [X] Rename throughout: code, config, docs, directory names, README
+- [X] Verify all tests pass after rename

@@ -60,7 +60,7 @@ Commit checklist:
 - **Documentation placement**: Headers (`.h`) contain only prototypes and brief
   comments for types/constants. Full function documentation (description, Args,
   Returns) goes in the source (`.c`) file, directly above each function
-  definition. See `slave/include/protocol.h` and `slave/src/protocol.c` for the
+  definition. See `sensor/include/protocol.h` and `sensor/src/protocol.c` for the
   reference style.
 
 ### Python

@@ -2,12 +2,12 @@
 * Wiring Reference
 
 This system monitors temperatures across multiple floors using ESP32
-slave nodes connected to a Raspberry Pi master.
+sensor nodes connected to a Raspberry Pi server.
 
-This document describes how to wire ESP32-S3 slave nodes with NTC
-thermistors.  Three transport options connect slaves to the master:
+This document describes how to wire ESP32-S3 sensor nodes with NTC
+thermistors.  Three transport options connect sensors to the server:
 
-| Transport  | Use case                | Master connection        |
+| Transport  | Use case                | Server connection        |
 |------------+-------------------------+--------------------------|
 | RS-485     | Production (default)    | USB-RS485 adapter        |
 | Bare UART  | Testing without RS-485  | Pi GPIO UART             |
@@ -85,7 +85,7 @@ if the connection drops mid-operation.  Retries every 10 seconds.
 *** Boot button
 
 Pressing the boot button (GPIO 0) triggers the identify sequence:
-the LED blinks yellow N times, where N is the slave address.  This
+the LED blinks yellow N times, where N is the sensor address.  This
 lets an installer verify which address a device has after flashing.
 Both firmware versions support this.
 
@@ -120,11 +120,11 @@ GPIO  5      ------> DE + RE (tied)
 
 *** Bus topology
 
-All nodes (master USB adapter + ESP32 slaves) share a single
+All nodes (server USB adapter + ESP32 sensors) share a single
 twisted pair plus ground.
 
 #+begin_example
-Pi (USB-RS485)       Slave 1         Slave 2         Slave N
+Pi (USB-RS485)       Sensor 1        Sensor 2        Sensor N
    A ----+-----------+- A --+---------+- A --+-- ... --+- A
    B ----+-----------+- B --+---------+- B --+-- ... --+- B
   GND ---+-----------+- GND-+---------+- GND-+-- ... --+- GND
@@ -146,7 +146,7 @@ lines and they float.  Electrical noise can produce garbage bytes.
 
 Failsafe biasing holds the bus in the UART idle state (mark) by
 pulling the idle-high line toward VCC and the other toward GND with
-560 ohm resistors at the master end.  A/B naming varies between
+560 ohm resistors at the server end.  A/B naming varies between
 manufacturers -- check your transceiver datasheet for which line is
 high at idle.
 
@@ -173,9 +173,9 @@ For a short home bus you can skip these.  CRC catches any garbage
 and the poll loop self-heals within seconds.  Add them only if you
 see frequent CRC errors.
 
-*** Master side
+*** Server side
 
-The master uses a USB-to-RS-485 adapter.  No additional wiring is
+The server uses a USB-to-RS-485 adapter.  No additional wiring is
 needed on the Pi beyond plugging in the adapter and connecting A, B,
 GND to the bus.
 
@@ -187,7 +187,7 @@ The adapter typically appears as ~/dev/ttyUSB0~.
 
 ** Transport: Bare UART (testing)
 
-The slave firmware can be tested without RS-485 transceivers by
+The sensor firmware can be tested without RS-485 transceivers by
 connecting the ESP32 UART directly to the Pi's GPIO UART.  No code
 changes are required.
 
@@ -227,11 +227,11 @@ serial console.
 
 ** Transport: WiFi (UDP push)
 
-The slave firmware can use WiFi instead of RS-485.  In this mode the
-ESP32 stays connected to WiFi and pushes readings to the master over
+The sensor firmware can use WiFi instead of RS-485.  In this mode the
+ESP32 stays connected to WiFi and pushes readings to the server over
 UDP at a regular interval.
 
-WiFi slaves use the following from the common wiring section:
+WiFi sensors use the following from the common wiring section:
 - Power: 3.3V and GND
 - NTC thermistor inputs (GPIO 1-4) with voltage dividers
 - Status LED (built-in, no wiring needed)
@@ -239,7 +239,7 @@ WiFi slaves use the following from the common wiring section:
 The UART pins (GPIO 16/17) and RS-485 pins (GPIO 5, MAX485 module)
 are unused.
 
-WiFi credentials are read from ~master/wifi.toml~ (copy from
+WiFi credentials are read from ~server/wifi.toml~ (copy from
 ~wifi.toml.example~).
 
 ** Parts list (reference setup)
@@ -247,7 +247,7 @@ WiFi credentials are read from ~master/wifi.toml~ (copy from
 This bill of materials covers the reference setup: 3 floors with 4
 thermistors per floor, using RS-485 transport.
 
-*** Slave nodes (3 total, one per floor)
+*** Sensor nodes (3 total, one per floor)
 
 | Qty | Part                      | Notes                          |
 |-----+---------------------------+--------------------------------|
@@ -263,7 +263,7 @@ C3, S2) have different bootloader offsets and pin mappings.  Using a
 different chip requires changes to ~platformio.ini~, ~tmon-flash~, and
 the pin assignments above.
 
-*** Master (Raspberry Pi)
+*** Server (Raspberry Pi)
 
 | Qty | Part                | Notes                                  |
 |-----+---------------------+----------------------------------------|
