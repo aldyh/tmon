@@ -4,7 +4,7 @@
 SQLite database for persisting temperature readings collected by the
 master poller.
 
-- *Database file:* ~tmon.db~ (configurable in ~config.toml~, resolved by ~tmon.paths~).
+- *Database file:* ~tmon.db~ (configurable in ~config-485.toml~, resolved by ~tmon.paths~).
 - *Engine:* SQLite 3
 - *Write pattern:* one INSERT per successful poll reply.
 - *No deletes or updates* during normal operation.
@@ -35,13 +35,13 @@ The authoritative schema is embedded in [[file:../master/src/tmon/storage.py][st
 
 ** Path resolution
 
-The database path in ~config.toml~ is a bare filename (e.g. ~tmon.db~).
+The database path in ~config-485.toml~ is a bare filename (e.g. ~tmon.db~).
 The daemon resolves it to an absolute path based on the config file location:
 
 | Context    | Config location          | Database location              |
 |------------+--------------------------+--------------------------------|
-| Dev        | ~master/config.toml~     | ~master/data/tmon.db~          |
-| Production | ~/etc/tmon/config.toml~  | ~/var/lib/tmon/tmon.db~        |
+| Dev        | ~master/config-485.toml~ | ~master/data/tmon.db~          |
+| Production | ~/etc/tmon/config-485.toml~ | ~/var/lib/tmon/tmon.db~     |
 
 This logic lives in ~tmon.paths.resolve_db()~.  The panel uses
 ~tmon.paths.find_db()~ which searches ~./data/~ then ~/var/lib/tmon/~.

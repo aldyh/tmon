@@ -41,7 +41,7 @@ endif
 	deploy/tmon-flash --mode=udp --addr=$(SLAVE_ADDR)
 
 run-master: $(MASTER_STAMP)
-	cd master && . .venv/bin/activate && tmon config.toml
+	cd master && . .venv/bin/activate && tmon config-485.toml
 
 run-master-udp: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config-udp.toml

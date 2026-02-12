@@ -1014,9 +1014,14 @@ polling loop.  7 new LED tests (14 total).
 and flash-slave to flash-slave-485
 ** Notes
 Renamed in Makefile and README.org.
-* TODO should config.toml be config-485.toml
+* DONE should config.toml be config-485.toml
 For consistency, since we have config-udp.toml, should config.toml be config-485.toml?
 
 485 and udp implementations should both be first class citizens.
 
 Or do we have config.toml, because that's a default of sorts and it must be named that?
+
+** Notes
+Renamed to config-485.toml. The filename is never used as a hardcoded
+default -- it's always passed explicitly as a CLI positional arg, so
+neither transport looks like the "default".

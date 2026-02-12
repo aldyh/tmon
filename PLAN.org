@@ -14,7 +14,7 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 ** Conventions
 
 - *Python (master):* Python 3.11+, minimal deps (prefer stdlib; ~pyserial~ is expected).
-- *Config:* ~config.toml~ (stdlib ~tomllib~ in Python 3.11).
+- *Config:* ~config-485.toml~, ~config-udp.toml~ (stdlib ~tomllib~ in Python 3.11).
 - *Testing:*
   - Unit tests: ~pytest~ with fakes/mocks (no hardware).
   - Integration tests: ~socat~ + serial simulator (~master/tools~).

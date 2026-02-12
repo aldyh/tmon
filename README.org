@@ -59,7 +59,7 @@ sudo make install     # copies firmware to /var/lib/tmon/firmware/
 
 Config files live in ~/etc/tmon/~:
 
-- ~config.toml~ -- RS-485 transport: serial port, baud rate, slave list, polling interval.
+- ~config-485.toml~ -- RS-485 transport: serial port, baud rate, slave list, polling interval.
 - ~config-udp.toml~ -- UDP transport: listen port, push interval.
 - ~wifi.toml~ -- WiFi credentials for UDP slaves (copy from ~wifi.toml.example~ and fill in).
 
@@ -126,7 +126,7 @@ Individual test targets: ~check-master~, ~check-slave~, ~check-integration~, ~ch
 *** Run locally
 
 #+begin_example
-make run-master       # RS-485 (uses master/config.toml)
+make run-master       # RS-485 (uses master/config-485.toml)
 make run-master-udp   # UDP push (uses master/config-udp.toml)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example

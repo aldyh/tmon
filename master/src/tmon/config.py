@@ -5,7 +5,7 @@ Import individual names where needed.
 
 Example:
     >>> from tmon.config import load_config, TIMEOUT_MS
-    >>> cfg = load_config("config.toml")
+    >>> cfg = load_config("config-485.toml")
     >>> cfg["transport"]
     'rs485'
 """
@@ -29,7 +29,7 @@ def load_config(path: str) -> dict:
         ValueError: If any required key is missing or has the wrong type.
 
     Example:
-        >>> cfg = load_config("master/config.toml")
+        >>> cfg = load_config("master/config-485.toml")
         >>> cfg["slaves"]
         [1, 2, 3]
     """

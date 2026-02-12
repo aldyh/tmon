@@ -10,7 +10,7 @@ on SIGINT or SIGTERM.
 Example:
     Run from the command line::
 
-        tmon master/config.toml -v
+        tmon master/config-485.toml -v
 """
 
 import argparse
@@ -91,8 +91,8 @@ def main() -> None:
     Example:
         From the shell::
 
-            tmon config.toml
-            tmon config.toml -v
+            tmon config-485.toml
+            tmon config-485.toml -v
     """
     _shutdown.clear()
 

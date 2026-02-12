@@ -1,7 +1,7 @@
 # tmon sample configuration (RS-485)
 #
 # Copy this file and adjust for your setup.
-# Run with: tmon config.toml
+# Run with: tmon config-485.toml
 #
 # For WiFi transport, use config-udp.toml instead.
 
