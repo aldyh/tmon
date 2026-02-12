@@ -203,10 +203,10 @@ Build 2 generic firmware binaries, patch config at flash time.
 - [X] Flash UDP firmware, verify readings arrive at daemons
 - [X] Verify daemon stores readings correctly in SQLite
 - [X] Verify panel reads SQLite correctly
+- [X] Verify git clone works
 
 *** Verify installation works on pi
 
-- [ ] Verify git clone works
 - [ ] Verify make install works
 - [ ] Verify daemons can run
 - [ ] Verify daemons can log
