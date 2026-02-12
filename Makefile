@@ -1,6 +1,6 @@
 .PHONY: all build-master build-slave-485 build-slave-udp \
        flash-slave-485 flash-slave-udp \
-       run-master run-master-udp \
+       run-master-485 run-master-udp \
        demo-setup \
        check check-master check-slave check-integration check-demo \
        demo-generate demo-server \
@@ -40,7 +40,7 @@ ifndef SLAVE_ADDR
 endif
 	deploy/tmon-flash --mode=udp --addr=$(SLAVE_ADDR)
 
-run-master: $(MASTER_STAMP)
+run-master-485: $(MASTER_STAMP)
 	cd master && . .venv/bin/activate && tmon config-485.toml
 
 run-master-udp: $(MASTER_STAMP)

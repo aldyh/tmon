@@ -122,7 +122,7 @@ Individual test targets: ~check-master~, ~check-slave~, ~check-integration~, ~ch
 *** Run locally
 
 #+begin_example
-make run-master       # RS-485 (uses master/config-485.toml)
+make run-master-485   # RS-485 (uses master/config-485.toml)
 make run-master-udp   # UDP push (uses master/config-udp.toml)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example
