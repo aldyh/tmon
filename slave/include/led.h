@@ -12,5 +12,6 @@
 void led_init (void);
 void led_identify (uint8_t count);
 void led_error_blink (uint8_t count);
+void led_tx_blink (void);
 
 #endif /* TMON_LED_H */

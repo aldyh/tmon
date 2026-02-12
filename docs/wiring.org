@@ -76,6 +76,7 @@ WiFi status.
 |------------------+------------------------------------|
 | Off              | Normal operation                   |
 | Blinking red     | WiFi disconnected (UDP only)       |
+| Blinking green   | Sent reading (both firmwares)       |
 | Blinking yellow  | Identify: blinks N times (N=ADDR)  |
 
 The UDP firmware blinks red on boot until WiFi connects, and again

@@ -2,7 +2,7 @@
  * tmon slave firmware -- UDP push with always-on WiFi
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
- * Blinks red on WiFi failure; LED off when connected.
+ * Blinks red on WiFi failure; blinks green after each send.
  * Boot button (GPIO 0) blinks yellow N times (N = config_slave_addr).
  *
  * Protocol defined in docs/protocol.org.
@@ -145,6 +145,7 @@ loop (void)
       udp.beginPacket (config_host, config_master_port);
       udp.write (tx_buf, tx_len);
       udp.endPacket ();
+      led_tx_blink ();
     }
   else
     {

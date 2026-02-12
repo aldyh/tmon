@@ -14,6 +14,7 @@ extern int led_stub_get_identify_call_count (void);
 extern uint8_t led_stub_get_identify_last_n (void);
 extern int led_stub_get_error_blink_call_count (void);
 extern uint8_t led_stub_get_error_blink_last_n (void);
+extern int led_stub_get_tx_blink_call_count (void);
 extern void led_stub_reset (void);
 
 /* -- Initialization -------------------------------------------------------- */
@@ -27,6 +28,7 @@ test_init_resets_counters (void)
   led_init ();
   TEST_ASSERT_EQUAL (0, led_stub_get_identify_call_count ());
   TEST_ASSERT_EQUAL (0, led_stub_get_error_blink_call_count ());
+  TEST_ASSERT_EQUAL (0, led_stub_get_tx_blink_call_count ());
 }
 
 /* -- Identify -------------------------------------------------------------- */
@@ -55,6 +57,19 @@ test_error_blink_records_call (void)
   TEST_ASSERT_EQUAL (2, led_stub_get_error_blink_last_n ());
 }
 
+/* -- TX blink -------------------------------------------------------------- */
+
+void
+test_tx_blink_records_call (void)
+{
+  /* TX blink records each call. */
+  led_tx_blink ();
+  TEST_ASSERT_EQUAL (1, led_stub_get_tx_blink_call_count ());
+
+  led_tx_blink ();
+  TEST_ASSERT_EQUAL (2, led_stub_get_tx_blink_call_count ());
+}
+
 /* -- Unity setup/teardown -------------------------------------------------- */
 
 void
@@ -78,6 +93,8 @@ main (void)
   RUN_TEST (test_identify_records_call);
 
   RUN_TEST (test_error_blink_records_call);
+
+  RUN_TEST (test_tx_blink_records_call);
 
   return UNITY_END ();
 }

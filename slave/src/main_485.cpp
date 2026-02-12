@@ -2,6 +2,7 @@
  * tmon slave firmware -- UART protocol handler
  *
  * Listens for POLL requests on UART and responds with temperature readings.
+ * Blinks green after each send.
  * Boot button (GPIO 0) blinks yellow N times (N = config_slave_addr).
  * Protocol defined in docs/protocol.org.
  *
@@ -110,6 +111,7 @@ loop (void)
           Serial1.write (tx_buf, tx_len);
           Serial1.flush ();                /* wait for TX complete */
           digitalWrite (PIN_DE_RE, LOW);   /* back to receive mode */
+          led_tx_blink ();
 
           /* Log temps from the actual response payload */
           struct tmon_reply_payload parsed;

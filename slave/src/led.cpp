@@ -23,6 +23,7 @@ static const uint8_t BRIGHTNESS = 20;
 /* Colors */
 static const uint32_t COLOR_OFF    = 0x000000;
 static const uint32_t COLOR_RED    = 0xFF0000;
+static const uint32_t COLOR_GREEN  = 0x00FF00;
 static const uint32_t COLOR_YELLOW = 0xFFFF00;
 
 static Adafruit_NeoPixel led (NUM_LEDS, LED_PIN, NEO_GRB + NEO_KHZ800);
@@ -80,4 +81,13 @@ void
 led_error_blink (uint8_t count)
 {
   led_blink (COLOR_RED, count);
+}
+
+/*
+ * Blink green once after transmitting a reading (blocking).
+ */
+void
+led_tx_blink (void)
+{
+  led_blink (COLOR_GREEN, 1);
 }
