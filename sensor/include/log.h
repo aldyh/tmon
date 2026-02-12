@@ -1,5 +1,5 @@
 /*
- * log.h -- Debug logging helpers for tmon slave
+ * log.h -- Debug logging helpers for tmon sensor
  *
  * Inline functions for logging to Arduino Serial.
  */

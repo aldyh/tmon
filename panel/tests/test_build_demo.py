@@ -49,7 +49,7 @@ class TestExpectedFiles:
 
     def test_api_json_files(self, demo_dir):
         """Top-level API JSON files exist."""
-        for name in ("current.json", "slaves.json", "range.json"):
+        for name in ("current.json", "sensors.json", "range.json"):
             path = os.path.join(demo_dir, "api", name)
             assert os.path.isfile(path), "{} missing".format(name)
 
@@ -75,14 +75,14 @@ class TestExpectedFiles:
 class TestJsonOutput:
     """JSON output matches the Flask endpoint responses."""
 
-    def test_slaves(self, demo_dir):
-        """slaves.json contains the correct addresses."""
-        with open(os.path.join(demo_dir, "api", "slaves.json")) as f:
+    def test_sensors(self, demo_dir):
+        """sensors.json contains the correct addresses."""
+        with open(os.path.join(demo_dir, "api", "sensors.json")) as f:
             data = json.load(f)
         assert data == [1, 2]
 
     def test_current(self, demo_dir):
-        """current.json contains latest reading per slave."""
+        """current.json contains latest reading per sensor."""
         with open(os.path.join(demo_dir, "api", "current.json")) as f:
             data = json.load(f)
         addrs = sorted(r["addr"] for r in data)
@@ -175,12 +175,12 @@ class TestTransformHtml:
         assert 'fetch("api/current.json")' in html
         assert 'fetch("/api/current")' not in html
 
-    def test_api_slaves_rewritten(self, demo_dir):
-        """fetch for /api/slaves points to api/slaves.json."""
+    def test_api_sensors_rewritten(self, demo_dir):
+        """fetch for /api/sensors points to api/sensors.json."""
         with open(os.path.join(demo_dir, "index.html")) as f:
             html = f.read()
-        assert 'fetch("api/slaves.json")' in html
-        assert 'fetch("/api/slaves")' not in html
+        assert 'fetch("api/sensors.json")' in html
+        assert 'fetch("/api/sensors")' not in html
 
     def test_api_history_rewritten(self, demo_dir):
         """fetch for /api/history points to static JSON files."""
@@ -206,9 +206,9 @@ class TestTransformHtml:
 class TestEmptyDb:
     """Edge case: building from an empty database."""
 
-    def test_slaves_empty(self, empty_demo_dir):
-        """slaves.json is an empty list."""
-        with open(os.path.join(empty_demo_dir, "api", "slaves.json")) as f:
+    def test_sensors_empty(self, empty_demo_dir):
+        """sensors.json is an empty list."""
+        with open(os.path.join(empty_demo_dir, "api", "sensors.json")) as f:
             data = json.load(f)
         assert data == []
 

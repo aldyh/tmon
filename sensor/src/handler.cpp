@@ -1,5 +1,5 @@
 /*
- * handler.c -- Protocol message handler for tmon slave
+ * handler.c -- Protocol message handler for tmon sensor
  *
  * Processes incoming POLL requests and builds REPLY responses.
  */
@@ -15,7 +15,7 @@
  * current temperature readings.  Otherwise returns 0.
  *
  * Args:
- *   my_addr:  This slave's address (1-247).
+ *   my_addr:  This sensor's address (1-247).
  *   data:     Raw received frame bytes.
  *   len:      Number of bytes in data.
  *   out:      Output buffer for response frame.

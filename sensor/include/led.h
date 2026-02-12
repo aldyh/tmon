@@ -1,5 +1,5 @@
 /*
- * led.h -- Status LED driver for tmon slave
+ * led.h -- Status LED driver for tmon sensor
  *
  * All blink functions are blocking.  The LED is off between calls.
  */

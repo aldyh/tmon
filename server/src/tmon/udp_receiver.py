@@ -1,7 +1,7 @@
 """UDP receiver for pushed readings.
 
-Slaves push REPLY frames via UDP; master just listens and stores.
-No connection state, no polling -- slaves control timing.
+Sensors push REPLY frames via UDP; server just listens and stores.
+No connection state, no polling -- sensors control timing.
 
 Example:
     >>> from tmon.udp_receiver import UDPReceiver
@@ -13,9 +13,9 @@ import socket
 
 
 class UDPReceiver:
-    """UDP socket for receiving slave readings.
+    """UDP socket for receiving sensor readings.
 
-    Binds to a UDP port and receives frames pushed by slaves.
+    Binds to a UDP port and receives frames pushed by sensors.
     Each frame is a complete protocol REPLY (START, ADDR, CMD, LEN,
     payload, CRC).
 

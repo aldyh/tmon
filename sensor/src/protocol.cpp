@@ -56,7 +56,7 @@ tmon_crc16 (const uint8_t *data, size_t len)
  * Args:
  *   buf:         Output buffer (caller-provided).
  *   buf_len:     Size of the output buffer in bytes.
- *   addr:        Slave address (1-247).
+ *   addr:        Sensor address (1-247).
  *   cmd:         Command byte.
  *   payload:     Payload bytes (may be NULL when payload_len is 0).
  *   payload_len: Number of payload bytes.

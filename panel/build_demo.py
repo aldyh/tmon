@@ -50,8 +50,8 @@ def _downsample(rows: list, max_points: int) -> list:
     return result
 
 
-def _query_slaves(conn: sqlite3.Connection) -> list:
-    """Return sorted list of distinct slave addresses."""
+def _query_sensors(conn: sqlite3.Connection) -> list:
+    """Return sorted list of distinct sensor addresses."""
     rows = conn.execute(
         "SELECT DISTINCT addr FROM readings ORDER BY addr"
     ).fetchall()
@@ -59,7 +59,7 @@ def _query_slaves(conn: sqlite3.Connection) -> list:
 
 
 def _query_current(conn: sqlite3.Connection) -> list:
-    """Return the latest reading per slave as a list of dicts."""
+    """Return the latest reading per sensor as a list of dicts."""
     rows = conn.execute(
         "SELECT addr, ts, temp_0, temp_1, temp_2, temp_3"
         " FROM readings WHERE ts = ("
@@ -151,7 +151,7 @@ def _query_export(conn: sqlite3.Connection, addr: int,
     return buf.getvalue()
 
 
-def _transform_html(html: str, slaves: list) -> str:
+def _transform_html(html: str, sensors: list) -> str:
     """Rewrite index.html for static file serving.
 
     - Rewrites asset paths to be relative.
@@ -160,7 +160,7 @@ def _transform_html(html: str, slaves: list) -> str:
 
     Args:
         html: Original index.html content.
-        slaves: List of slave address integers.
+        sensors: List of sensor address integers.
 
     Returns:
         Transformed HTML string.
@@ -174,9 +174,9 @@ def _transform_html(html: str, slaves: list) -> str:
     html = html.replace('fetch("/api/current")',
                         'fetch("api/current.json")')
 
-    # API: /api/slaves -> api/slaves.json
-    html = html.replace('fetch("/api/slaves")',
-                        'fetch("api/slaves.json")')
+    # API: /api/sensors -> api/sensors.json
+    html = html.replace('fetch("/api/sensors")',
+                        'fetch("api/sensors.json")')
 
     # API: /api/history?addr=...&hours=...&points=500 ->
     #       api/history/<addr>_<hours>.json
@@ -226,7 +226,7 @@ def build(db_path: str, output_dir: str) -> None:
     """
     conn = sqlite3.connect(db_path)
 
-    slaves = _query_slaves(conn)
+    sensors = _query_sensors(conn)
     current = _query_current(conn)
     ts_range = _query_range(conn)
 
@@ -239,12 +239,12 @@ def build(db_path: str, output_dir: str) -> None:
     os.makedirs(os.path.join(output_dir, "api", "export"))
 
     # Write JSON endpoints
-    _write_json(os.path.join(output_dir, "api", "slaves.json"), slaves)
+    _write_json(os.path.join(output_dir, "api", "sensors.json"), sensors)
     _write_json(os.path.join(output_dir, "api", "current.json"), current)
     _write_json(os.path.join(output_dir, "api", "range.json"), ts_range)
 
     # Write history JSON and export CSV for each node x range
-    for addr in slaves:
+    for addr in sensors:
         for hours in _RANGE_HOURS:
             history = _query_history(conn, addr, hours)
             name = "{}_{}.json".format(addr, hours)
@@ -276,7 +276,7 @@ def build(db_path: str, output_dir: str) -> None:
     # Transform and write index.html
     with open(os.path.join(panel_dir, "templates", "index.html")) as f:
         html = f.read()
-    html = _transform_html(html, slaves)
+    html = _transform_html(html, sensors)
     _write_text(os.path.join(output_dir, "index.html"), html)
 
 

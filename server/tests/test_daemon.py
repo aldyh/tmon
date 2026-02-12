@@ -93,8 +93,8 @@ class TestRunPoller:
         _on_signal(2, None)
         assert daemon_mod._shutdown.is_set()
 
-    def test_multiple_slaves(self):
-        """run_poller() polls all configured slaves each cycle."""
+    def test_multiple_sensors(self):
+        """run_poller() polls all configured sensors each cycle."""
         shutdown = threading.Event()
         reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)

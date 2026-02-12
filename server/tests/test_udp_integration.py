@@ -2,7 +2,7 @@
 
 Tests the full push cycle over localhost UDP:
 - UDPReceiver listening on localhost
-- Simulated slave pushing REPLY frames
+- Simulated sensor pushing REPLY frames
 - UDPListener receives and stores readings
 """
 
@@ -73,8 +73,8 @@ class TestUDPIntegration:
             receiver.close()
             storage.close()
 
-    def test_receive_multiple_slaves(self) -> None:
-        """Receive pushed readings from multiple slaves."""
+    def test_receive_multiple_sensors(self) -> None:
+        """Receive pushed readings from multiple sensors."""
         port = _find_free_port()
         receiver = UDPReceiver(port)
         storage = Storage(":memory:")

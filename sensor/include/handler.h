@@ -1,5 +1,5 @@
 /*
- * handler.h -- Protocol message handler for tmon slave
+ * handler.h -- Protocol message handler for tmon sensor
  *
  * Processes incoming POLL requests and builds REPLY responses.
  * Transport-agnostic: works with UART or WiFi.

@@ -1,5 +1,5 @@
 /*
- * led.cpp -- Status LED driver for tmon slave (ESP32-S3)
+ * led.cpp -- Status LED driver for tmon sensor (ESP32-S3)
  *
  * Uses the built-in WS2812 RGB LED on GPIO 48 to signal state.
  * All blink functions are blocking (delay() yields to the RTOS).

@@ -1,6 +1,6 @@
-"""Poll loop for querying slave devices.
+"""Poll loop for querying sensor devices.
 
-Sends POLL requests to each configured slave, decodes REPLY frames,
+Sends POLL requests to each configured sensor, decodes REPLY frames,
 and stores raw int16 temperature readings in Storage.
 
 Example:
@@ -27,16 +27,16 @@ log = logging.getLogger(__name__)
 
 
 class Poller:
-    """Polls slave devices and stores readings.
+    """Polls sensor devices and stores readings.
 
-    Sends a POLL frame to each slave address, waits for a REPLY,
+    Sends a POLL frame to each sensor address, waits for a REPLY,
     unpacks the raw int16 temperatures from the payload, and
     inserts them into storage.
 
     Args:
         bus: Object with ``send(data)`` and ``receive()`` methods.
         storage: Object with ``insert(addr, temps)``.
-        slaves: List of integer slave addresses to poll.
+        sensors: List of integer sensor addresses to poll.
 
     Example:
         >>> poller = Poller(bus, storage, [1, 2])
@@ -45,14 +45,14 @@ class Poller:
 
 
 
-    def __init__(self, bus, storage, slaves: list[int]):
+    def __init__(self, bus, storage, sensors: list[int]):
         """Initialize the poller."""
         self._bus = bus
         self._storage = storage
-        self._slaves = list(slaves)
+        self._sensors = list(sensors)
 
     def poll(self, addr: int) -> Reading | None:
-        """Poll a single slave and return a Reading or None.
+        """Poll a single sensor and return a Reading or None.
 
         Sends a POLL frame, validates the REPLY, and unpacks raw int16
         temperatures.  Returns None on timeout or protocol error.
@@ -68,13 +68,13 @@ class Poller:
 
         # All error conditions return None; details go to the log.
         if not raw:
-            log.debug("timeout polling slave %d", addr)
+            log.debug("timeout polling sensor %d", addr)
             return None
 
         try:
             reply = decode_frame(raw)
         except ValueError as exc:
-            log.debug("bad frame from slave %d: %s", addr, exc)
+            log.debug("bad frame from sensor %d: %s", addr, exc)
             return None
 
         if reply.addr != addr:
@@ -85,14 +85,14 @@ class Poller:
 
         if reply.cmd != PROTO_CMD_REPLY:
             log.debug(
-                "unexpected cmd from slave %d: 0x%02X", addr, reply.cmd
+                "unexpected cmd from sensor %d: 0x%02X", addr, reply.cmd
             )
             return None
 
         payload = reply.payload
         if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
             log.debug(
-                "bad payload length from slave %d: %d",
+                "bad payload length from sensor %d: %d",
                 addr, len(payload),
             )
             return None
@@ -100,7 +100,7 @@ class Poller:
         temps = parse_reply(payload)
 
         log.info(
-            "slave %d: temps=[%s, %s, %s, %s]",
+            "sensor %d: temps=[%s, %s, %s, %s]",
             addr,
             fmt_temp(temps[0]), fmt_temp(temps[1]),
             fmt_temp(temps[2]), fmt_temp(temps[3]),
@@ -115,7 +115,7 @@ class Poller:
         )
 
     def poll_all(self) -> list[Reading]:
-        """Poll all slaves and store successful readings.
+        """Poll all sensors and store successful readings.
 
         Returns:
             list[Reading]: Readings collected this cycle.
@@ -126,7 +126,7 @@ class Poller:
             2
         """
         results = []
-        for addr in self._slaves:
+        for addr in self._sensors:
             reading = self.poll(addr)
             if reading is not None:
                 self._storage.insert(

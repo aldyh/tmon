@@ -1,9 +1,9 @@
 /*
- * tmon slave firmware -- UART protocol handler
+ * tmon sensor firmware -- UART protocol handler
  *
  * Listens for POLL requests on UART and responds with temperature readings.
  * Blinks green after each send.
- * Boot button (GPIO 0) blinks yellow N times (N = config_slave_addr).
+ * Boot button (GPIO 0) blinks yellow N times (N = config_sensor_addr).
  * Protocol defined in docs/protocol.org.
  *
  * Wiring (with MAX485):
@@ -61,9 +61,9 @@ setup (void)
 
   config_init ();
 
-  Serial.println ("tmon slave starting");
+  Serial.println ("tmon sensor starting");
   Serial.print ("Address: ");
-  Serial.println (config_slave_addr);
+  Serial.println (config_sensor_addr);
 
   tmon_sensors_init ();
   led_init ();
@@ -88,9 +88,9 @@ loop (void)
       && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
     {
       last_button_ms = now;
-      led_identify (config_slave_addr);
+      led_identify (config_sensor_addr);
       Serial.print ("Identify: blinking ");
-      Serial.print (config_slave_addr);
+      Serial.print (config_sensor_addr);
       Serial.println (" times");
     }
 
@@ -102,7 +102,7 @@ loop (void)
       Serial.println (" bytes");
 
       /* Try to process the accumulated bytes */
-      size_t tx_len = tmon_handler_process (config_slave_addr, rx_buf, rx_len,
+      size_t tx_len = tmon_handler_process (config_sensor_addr, rx_buf, rx_len,
                                             tx_buf, TX_BUF_SIZE);
       if (tx_len > 0)
         {

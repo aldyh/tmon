@@ -1,14 +1,14 @@
 /*
- * tmon slave firmware -- UDP push with always-on WiFi
+ * tmon sensor firmware -- UDP push with always-on WiFi
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
  * Blinks red on WiFi failure; blinks green after each send.
- * Boot button (GPIO 0) blinks yellow N times (N = config_slave_addr).
+ * Boot button (GPIO 0) blinks yellow N times (N = config_sensor_addr).
  *
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
  *
- * Per-device configuration (address, WiFi credentials, master host/port)
+ * Per-device configuration (address, WiFi credentials, server host/port)
  * is patched into the binary by deploy/tmon-patch.
  */
 
@@ -63,7 +63,7 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
     }
 
   /* Encode the REPLY frame */
-  return tmon_encode_frame (buf, buf_len, config_slave_addr, TMON_CMD_REPLY,
+  return tmon_encode_frame (buf, buf_len, config_sensor_addr, TMON_CMD_REPLY,
                               payload, TMON_REPLY_PAYLOAD_LEN);
 }
 
@@ -114,9 +114,9 @@ setup (void)
 
   pinMode (PIN_BUTTON, INPUT_PULLUP);
 
-  Serial.println ("tmon UDP push slave starting");
+  Serial.println ("tmon UDP push sensor starting");
   Serial.print ("Address: ");
-  Serial.println (config_slave_addr);
+  Serial.println (config_sensor_addr);
   Serial.print ("Push interval: ");
   Serial.print (config_push_interval);
   Serial.println ("s");
@@ -142,7 +142,7 @@ loop (void)
       Serial.print (" bytes, ");
       log_temps (parsed.temps);
 
-      udp.beginPacket (config_host, config_master_port);
+      udp.beginPacket (config_host, config_server_port);
       udp.write (tx_buf, tx_len);
       udp.endPacket ();
       led_tx_blink ();
@@ -163,9 +163,9 @@ loop (void)
           && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
         {
           last_button_ms = now;
-          led_identify (config_slave_addr);
+          led_identify (config_sensor_addr);
           Serial.print ("Identify: blinking ");
-          Serial.print (config_slave_addr);
+          Serial.print (config_sensor_addr);
           Serial.println (" times");
         }
 

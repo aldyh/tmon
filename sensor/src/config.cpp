@@ -1,5 +1,5 @@
 /*
- * config.cpp -- Binary-patchable configuration for tmon slave
+ * config.cpp -- Binary-patchable configuration for tmon sensor
  *
  * Marker arrays contain @@MARKER_XXX@@ strings in unpatched firmware.
  * deploy/tmon-patch overwrites the marker region with real values
@@ -26,25 +26,25 @@ char    config_pass_buf[65] = "@@MARKER_PASS@@";
 char    config_host_buf[65] = "@@MARKER_HOST@@";
 
 /* Parsed configuration */
-uint8_t  config_slave_addr   = 0;
+uint8_t  config_sensor_addr  = 0;
 char     config_ssid[33]     = "";
 char     config_pass[65]     = "";
 char     config_host[65]     = "";
-uint16_t config_master_port  = 0;
+uint16_t config_server_port  = 0;
 uint16_t config_push_interval = 0;
 
 /*
  * config_init -- Parse patched marker arrays into config variables.
  *
- * For addr: byte 0 holds the slave address (1-247).
+ * For addr: byte 0 holds the sensor address (1-247).
  * For port/push: bytes 0-1 hold a little-endian uint16.
  * For strings: null-terminated value copied from marker buffer.
  */
 void
 config_init (void)
 {
-  config_slave_addr = config_addr[0];
-  config_master_port = (uint16_t)(config_port[0] | (config_port[1] << 8));
+  config_sensor_addr = config_addr[0];
+  config_server_port = (uint16_t)(config_port[0] | (config_port[1] << 8));
   config_push_interval = (uint16_t)(config_push[0] | (config_push[1] << 8));
   memcpy (config_ssid, config_ssid_buf, sizeof (config_ssid));
   memcpy (config_pass, config_pass_buf, sizeof (config_pass));

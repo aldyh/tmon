@@ -66,7 +66,7 @@ def create_app(db_path: str) -> Flask:
 
     @app.route("/api/current")
     def api_current() -> tuple:
-        """Return the latest reading per slave.
+        """Return the latest reading per sensor.
 
         Response JSON:
             [{"addr": 1, "ts": "2024-01-01T00:00:00Z", "temp_0": 220, ...}, ...]
@@ -93,10 +93,10 @@ def create_app(db_path: str) -> Flask:
 
     @app.route("/api/history")
     def api_history() -> tuple:
-        """Return historical readings for one slave, downsampled.
+        """Return historical readings for one sensor, downsampled.
 
         Query parameters:
-            addr: Slave address (required, integer).
+            addr: Sensor address (required, integer).
             hours: Time window in hours (default 24).
             points: Maximum points to return (default 500).
 
@@ -143,9 +143,9 @@ def create_app(db_path: str) -> Flask:
             result.append(d)
         return jsonify(result), 200
 
-    @app.route("/api/slaves")
-    def api_slaves() -> tuple:
-        """Return a list of distinct slave addresses.
+    @app.route("/api/sensors")
+    def api_sensors() -> tuple:
+        """Return a list of distinct sensor addresses.
 
         Response JSON:
             [1, 2, 3]

@@ -1,8 +1,8 @@
-"""Master daemon -- collects readings from slaves and stores them.
+"""Server daemon -- collects readings from sensors and stores them.
 
 Supports two modes:
-- Poll mode (RS-485): actively polls slaves on a schedule
-- Push mode (UDP): passively receives readings pushed by slaves
+- Poll mode (RS-485): actively polls sensors on a schedule
+- Push mode (UDP): passively receives readings pushed by sensors
 
 Foreground loop driven by a TOML config file.  Shuts down cleanly
 on SIGINT or SIGTERM.
@@ -39,7 +39,7 @@ def _on_signal(signum: int, frame) -> None:
 def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
     """Run the poll loop until *shutdown* is set.
 
-    Polls all slaves, sleeps for ``cfg["interval"]`` seconds, and
+    Polls all sensors, sleeps for ``cfg["interval"]`` seconds, and
     repeats.  Returns the number of completed cycles.
 
     Example:
@@ -66,7 +66,7 @@ def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
 def run_listener(receiver, storage, shutdown: threading.Event) -> int:
     """Run the push receiver loop until *shutdown* is set.
 
-    Receives readings pushed by slaves via UDP and stores them.
+    Receives readings pushed by sensors via UDP and stores them.
     Returns the number of readings received.
 
     Example:

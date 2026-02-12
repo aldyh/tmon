@@ -157,7 +157,7 @@
 
   // -- populate node selector --
   function loadNodes() {
-    fetch("/api/slaves")
+    fetch("/api/sensors")
       .then(function (r) { return r.json(); })
       .then(function (addrs) {
         nodeSelect.innerHTML = "";

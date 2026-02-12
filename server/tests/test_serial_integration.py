@@ -89,7 +89,7 @@ def pty_pair():
 class TestIntegration:
     """Integration tests using socat + simulator."""
 
-    def test_poll_single_slave(self, pty_pair):
+    def test_poll_single_sensor(self, pty_pair):
         """Poller.poll_all polls the simulator and gets a reading."""
         bus = SerialBus(pty_pair, 9600)
         storage = Storage(":memory:")

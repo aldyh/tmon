@@ -12,7 +12,7 @@ class TestGenerate:
     """Verify mock data generation produces valid, realistic data."""
 
     def test_row_count(self):
-        """One day = 2880 intervals * 3 slaves = 8640 rows."""
+        """One day = 2880 intervals * 3 sensors = 8640 rows."""
         fd, path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         try:
@@ -42,7 +42,7 @@ class TestGenerate:
             os.unlink(path)
 
     def test_timestamps_ordered(self):
-        """Timestamps within each slave are strictly non-decreasing."""
+        """Timestamps within each sensor are strictly non-decreasing."""
         fd, path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         try:
@@ -61,7 +61,7 @@ class TestGenerate:
             os.unlink(path)
 
     def test_null_presence(self):
-        """Slave 3 channel 1 has some NULL values."""
+        """Sensor 3 channel 1 has some NULL values."""
         fd, path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         try:
@@ -82,19 +82,19 @@ class TestGenerate:
             os.unlink(path)
 
     def test_unused_channels_are_null(self):
-        """Channels beyond a slave's count are always NULL."""
+        """Channels beyond a sensor's count are always NULL."""
         fd, path = tempfile.mkstemp(suffix=".db")
         os.close(fd)
         try:
             generate(path, 1, 42)
             conn = sqlite3.connect(path)
-            # Slave 2 has 3 channels: temp_3 should always be NULL
+            # Sensor 2 has 3 channels: temp_3 should always be NULL
             non_null = conn.execute(
                 "SELECT COUNT(*) FROM readings"
                 " WHERE addr = 2 AND temp_3 IS NOT NULL"
             ).fetchone()[0]
             assert non_null == 0
-            # Slave 3 has 2 channels: temp_2 and temp_3 always NULL
+            # Sensor 3 has 2 channels: temp_2 and temp_3 always NULL
             non_null = conn.execute(
                 "SELECT COUNT(*) FROM readings"
                 " WHERE addr = 3 AND temp_2 IS NOT NULL"

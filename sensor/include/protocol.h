@@ -2,7 +2,7 @@
  * protocol.h -- tmon RS-485 frame encoding/decoding
  *
  * Binary framing as described in docs/protocol.org.
- * Shared between slave firmware modules.
+ * Shared between sensor firmware modules.
  */
 
 #ifndef TMON_PROTOCOL_H
@@ -27,7 +27,7 @@
 /* Frame overhead: START + ADDR + CMD + LEN + CRC_LO + CRC_HI */
 #define TMON_FRAME_OVERHEAD  6
 
-/* Number of temperature channels per slave */
+/* Number of temperature channels per sensor */
 #define TMON_NUM_CHANNELS  4
 
 /*

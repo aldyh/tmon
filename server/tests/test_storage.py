@@ -101,8 +101,8 @@ class TestStorage:
         assert rows[0]["temp_0"] == -100
         store.close()
 
-    def test_multiple_slaves(self):
-        """Readings from different slaves coexist."""
+    def test_multiple_sensors(self):
+        """Readings from different sensors coexist."""
         store = Storage(":memory:")
         store.insert(1, [100, None, None, None])
         store.insert(2, [200, None, None, None])
