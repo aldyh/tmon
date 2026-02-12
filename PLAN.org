@@ -207,12 +207,12 @@ Build 2 generic firmware binaries, patch config at flash time.
 
 *** Verify installation works on pi
 
-- [ ] Verify make install works
-- [ ] Verify daemons can run
-- [ ] Verify daemons can log
-- [ ] Flash UDP firmware, verify readings arrive at daemons
-- [ ] Verify daemon stores readings correctly in SQLite
-- [ ] Verify panel reads SQLite correctly
+- [X] Verify make install works
+- [X] Verify daemons can run
+- [X] Verify daemons can log
+- [X] Flash UDP firmware, verify readings arrive at daemons
+- [X] Verify daemon stores readings correctly in SQLite
+- [X] Verify panel reads SQLite correctly
 
 *** Hardware bring-up (NTC + UDP smoke test)
 
