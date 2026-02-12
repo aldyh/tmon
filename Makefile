@@ -111,11 +111,11 @@ endif
 	@echo "Firmware collected in firmware/"
 	@ls -1 firmware/
 
-install: all
-	sudo deploy/install.sh
+install:
+	deploy/install.sh
 
 uninstall:
-	sudo deploy/uninstall.sh
+	deploy/uninstall.sh
 
 clean: demo-static-clean
 	rm -rf firmware master/.venv panel/.venv panel/tmon_mock.db
