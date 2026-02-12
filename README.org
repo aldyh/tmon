@@ -80,7 +80,9 @@ Check status and logs:
 
 #+begin_example
 systemctl status tmond-serial
-journalctl -u tmond-serial
+systemctl status tmond-udp
+journalctl -u tmond-serial -f
+journalctl -u tmond-udp -f
 #+end_example
 
 ** Flashing slaves
