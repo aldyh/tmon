@@ -37,10 +37,16 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over 
 
 ** Installation
 
-Build the project, then install system-wide:
+Firmware must be built on the *dev machine* (x86, with PlatformIO) and
+copied to the Pi before installing:
 
 #+begin_example
-make                  # create master venv + deps, build slave firmware
+# On the dev machine:
+make firmware         # build ESP32 binaries into firmware/
+scp -r firmware/ pi:~/tmon/
+
+# On the Pi:
+make                  # create master venv + deps
 sudo make install     # install daemon, panel, config, systemd units
 #+end_example
 
@@ -115,7 +121,7 @@ do not require a system-wide install.
 *** Build and test
 
 #+begin_example
-make                  # create venvs + deps, build firmware
+make                  # create venvs + deps
 make check            # run all test suites (no hardware needed)
 #+end_example
 

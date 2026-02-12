@@ -11,7 +11,7 @@
 MASTER_STAMP := master/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-master firmware
+all: build-master
 
 build-master: $(MASTER_STAMP)
 
@@ -119,4 +119,4 @@ uninstall:
 
 clean: demo-static-clean
 	rm -rf firmware master/.venv panel/.venv panel/tmon_mock.db
-	cd slave && pio run -t clean
+	if command -v pio >/dev/null 2>&1; then cd slave && pio run -t clean; fi
