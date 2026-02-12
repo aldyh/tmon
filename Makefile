@@ -1,71 +1,71 @@
-.PHONY: all build-master build-slave-485 build-slave-udp \
-       flash-slave-485 flash-slave-udp \
-       run-master-485 run-master-udp \
+.PHONY: all build-server build-sensor-485 build-sensor-udp \
+       flash-sensor-485 flash-sensor-udp \
+       run-server-485 run-server-udp \
        demo-setup \
-       check check-master check-slave check-integration check-demo \
+       check check-server check-sensor check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean \
        firmware \
        install uninstall clean
 
-MASTER_STAMP := master/.venv/.installed
+SERVER_STAMP := server/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-master
+all: build-server
 
-build-master: $(MASTER_STAMP)
+build-server: $(SERVER_STAMP)
 
-master/.venv:
-	python3 -m venv master/.venv
+server/.venv:
+	python3 -m venv server/.venv
 
-$(MASTER_STAMP): master/.venv master/pyproject.toml
-	. master/.venv/bin/activate && pip install -e "master/.[test]"
-	touch $(MASTER_STAMP)
+$(SERVER_STAMP): server/.venv server/pyproject.toml
+	. server/.venv/bin/activate && pip install -e "server/.[test]"
+	touch $(SERVER_STAMP)
 
-build-slave-485:
-	cd slave && pio run -e uart
+build-sensor-485:
+	cd sensor && pio run -e uart
 
-build-slave-udp:
-	cd slave && pio run -e udp
+build-sensor-udp:
+	cd sensor && pio run -e udp
 
-flash-slave-485: build-slave-485
-ifndef SLAVE_ADDR
-	$(error SLAVE_ADDR required, e.g. make flash-slave-485 SLAVE_ADDR=1)
+flash-sensor-485: build-sensor-485
+ifndef SENSOR_ADDR
+	$(error SENSOR_ADDR required, e.g. make flash-sensor-485 SENSOR_ADDR=1)
 endif
-	deploy/tmon-flash --mode=serial --addr=$(SLAVE_ADDR)
+	deploy/tmon-flash --mode=serial --addr=$(SENSOR_ADDR)
 
-flash-slave-udp: build-slave-udp
-ifndef SLAVE_ADDR
-	$(error SLAVE_ADDR required, e.g. make flash-slave-udp SLAVE_ADDR=1)
+flash-sensor-udp: build-sensor-udp
+ifndef SENSOR_ADDR
+	$(error SENSOR_ADDR required, e.g. make flash-sensor-udp SENSOR_ADDR=1)
 endif
-	deploy/tmon-flash --mode=udp --addr=$(SLAVE_ADDR)
+	deploy/tmon-flash --mode=udp --addr=$(SENSOR_ADDR)
 
-run-master-485: $(MASTER_STAMP)
-	cd master && . .venv/bin/activate && tmon config-485.toml
+run-server-485: $(SERVER_STAMP)
+	cd server && . .venv/bin/activate && tmon config-485.toml
 
-run-master-udp: $(MASTER_STAMP)
-	cd master && . .venv/bin/activate && tmon config-udp.toml
+run-server-udp: $(SERVER_STAMP)
+	cd server && . .venv/bin/activate && tmon config-udp.toml
 
 demo-setup: $(PANEL_STAMP)
 
 panel/.venv:
 	python3 -m venv panel/.venv
 
-$(PANEL_STAMP): panel/.venv panel/pyproject.toml master/pyproject.toml
-	. panel/.venv/bin/activate && pip install -e master -e "panel/.[test]"
+$(PANEL_STAMP): panel/.venv panel/pyproject.toml server/pyproject.toml
+	. panel/.venv/bin/activate && pip install -e server -e "panel/.[test]"
 	touch $(PANEL_STAMP)
 
-check: check-master check-slave check-integration check-demo
+check: check-server check-sensor check-integration check-demo
 
-check-master: $(MASTER_STAMP)
-	cd master && . .venv/bin/activate && pytest -m "not integration"
+check-server: $(SERVER_STAMP)
+	cd server && . .venv/bin/activate && pytest -m "not integration"
 
-check-slave:
-	if command -v pio >/dev/null 2>&1; then cd slave && pio test -e native; \
-	else echo "pio not found, skipping slave tests"; fi
+check-sensor:
+	if command -v pio >/dev/null 2>&1; then cd sensor && pio test -e native; \
+	else echo "pio not found, skipping sensor tests"; fi
 
-check-integration: $(MASTER_STAMP)
-	cd master && . .venv/bin/activate && pytest -m integration -v
+check-integration: $(SERVER_STAMP)
+	cd server && . .venv/bin/activate && pytest -m integration -v
 
 check-demo: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && pytest
@@ -98,12 +98,12 @@ demo-static-clean:
 BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
                -name boot_app0.bin 2>/dev/null | head -1)
 
-firmware: build-slave-485 build-slave-udp
+firmware: build-sensor-485 build-sensor-udp
 	mkdir -p firmware
-	cp slave/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
-	cp slave/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
-	cp slave/.pio/build/uart/bootloader.bin firmware/bootloader.bin
-	cp slave/.pio/build/uart/partitions.bin firmware/partitions.bin
+	cp sensor/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
+	cp sensor/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
+	cp sensor/.pio/build/uart/bootloader.bin firmware/bootloader.bin
+	cp sensor/.pio/build/uart/partitions.bin firmware/partitions.bin
 ifdef BOOT_APP0
 	cp $(BOOT_APP0) firmware/boot_app0.bin
 else
@@ -119,5 +119,5 @@ uninstall:
 	deploy/uninstall.sh
 
 clean: demo-static-clean
-	rm -rf firmware master/.venv panel/.venv panel/tmon_mock.db
-	if command -v pio >/dev/null 2>&1; then cd slave && pio run -t clean; fi
+	rm -rf firmware server/.venv panel/.venv panel/tmon_mock.db
+	if command -v pio >/dev/null 2>&1; then cd sensor && pio run -t clean; fi

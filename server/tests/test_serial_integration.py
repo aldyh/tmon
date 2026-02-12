@@ -1,7 +1,7 @@
 """Integration tests: poller + simulator over socat PTY pair.
 
 These tests require socat to be installed and are excluded from
-the default ``make check-master`` run (marker: ``integration``).
+the default ``make check-server`` run (marker: ``integration``).
 
 Run with::
 
@@ -151,7 +151,7 @@ class TestIntegration:
         with open(config_path, "w") as f:
             f.write('port = "%s"\n' % pty_pair)
             f.write("baudrate = 9600\n")
-            f.write("slaves = [%d]\n" % SIM_ADDR)
+            f.write("sensors = [%d]\n" % SIM_ADDR)
             f.write('db = "%s"\n' % db_path)
             f.write("interval = 1\n")
 

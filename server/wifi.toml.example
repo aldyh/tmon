@@ -1,8 +1,8 @@
-# WiFi credentials for slave firmware
+# WiFi credentials for sensor firmware
 #
 # Copy this file to wifi.toml and fill in your credentials.
 # wifi.toml is gitignored to prevent committing secrets.
 
 ssid = "your_wifi_ssid"
 password = "your_wifi_password"
-master_host = "192.168.1.100"
+server_host = "192.168.1.100"

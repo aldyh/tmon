@@ -62,7 +62,7 @@ class TestRunPoller:
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = CountingBus(reply, 2, shutdown)
         storage = Storage(":memory:")
-        cfg = {"slaves": [3], "interval": 0}
+        cfg = {"sensors": [3], "interval": 0}
 
         cycles = run_poller(cfg, bus, storage, shutdown)
 
@@ -80,7 +80,7 @@ class TestRunPoller:
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
-        cfg = {"slaves": [1], "interval": 0}
+        cfg = {"sensors": [1], "interval": 0}
 
         cycles = run_poller(cfg, bus, storage, shutdown)
 
@@ -131,7 +131,7 @@ class TestRunPoller:
 
         bus = MultiBus([reply1, reply2], 4, shutdown)
         storage = Storage(":memory:")
-        cfg = {"slaves": [1, 2], "interval": 0}
+        cfg = {"sensors": [1, 2], "interval": 0}
 
         cycles = run_poller(cfg, bus, storage, shutdown)
 

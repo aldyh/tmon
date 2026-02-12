@@ -26,7 +26,7 @@ usage () {
   echo ""
   echo "Options:"
   echo "  --mode=MODE   Transport mode: serial or udp"
-  echo "  --addr=N      Slave address (1-247)"
+  echo "  --addr=N      Sensor address (1-247)"
   echo "  --port=DEV    Serial port (auto-detected if omitted)"
   echo "  --dry-run     Print esptool command without executing"
   exit 1
@@ -121,8 +121,8 @@ fi
 # Locate config directory (for UDP WiFi config)
 # ------------------------------------------------------------------
 
-if [ -d master ]; then
-  CFG_DIR="master"
+if [ -d server ]; then
+  CFG_DIR="server"
 elif [ -d /etc/tmon ]; then
   CFG_DIR="/etc/tmon"
 else
@@ -142,7 +142,7 @@ PATCH_ARGS=(--addr="${ADDR}")
 if [ "${MODE}" = "udp" ]; then
   if [ -z "${CFG_DIR}" ]; then
     echo "error: config directory not found (need wifi.toml)" >&2
-    echo "  Expected master/ or /etc/tmon/" >&2
+    echo "  Expected server/ or /etc/tmon/" >&2
     exit 1
   fi
 
@@ -165,16 +165,16 @@ with open('${UDP_TOML}', 'rb') as f:
     c = tomllib.load(f)
 print('WIFI_SSID=' + shlex.quote(w['ssid']))
 print('WIFI_PASS=' + shlex.quote(w['password']))
-print('MASTER_HOST=' + shlex.quote(w['master_host']))
-print('MASTER_PORT=' + str(c['udp']['port']))
+print('SERVER_HOST=' + shlex.quote(w['server_host']))
+print('SERVER_PORT=' + str(c['udp']['port']))
 print('PUSH_INTERVAL=' + str(c['udp']['push_interval']))
 ")"
 
   PATCH_ARGS+=(
     --ssid="${WIFI_SSID}"
     --pass="${WIFI_PASS}"
-    --host="${MASTER_HOST}"
-    --port="${MASTER_PORT}"
+    --host="${SERVER_HOST}"
+    --port="${SERVER_PORT}"
     --push="${PUSH_INTERVAL}"
   )
 fi

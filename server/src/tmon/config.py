@@ -21,7 +21,7 @@ def load_config(path: str) -> dict:
 
     Common keys: ``transport`` (str, "rs485" or "udp"), ``db`` (str).
 
-    For rs485: ``slaves`` (list[int]), ``interval`` (int), ``port`` (str),
+    For rs485: ``sensors`` (list[int]), ``interval`` (int), ``port`` (str),
     ``baudrate`` (int).
     For udp: ``[udp]`` section with ``port`` (int).
 
@@ -29,8 +29,8 @@ def load_config(path: str) -> dict:
         ValueError: If any required key is missing or has the wrong type.
 
     Example:
-        >>> cfg = load_config("master/config-485.toml")
-        >>> cfg["slaves"]
+        >>> cfg = load_config("server/config-485.toml")
+        >>> cfg["sensors"]
         [1, 2, 3]
     """
     with open(path, "rb") as f:
@@ -53,12 +53,12 @@ def load_config(path: str) -> dict:
         _require_udp_section(raw)
         result["udp_port"] = raw["udp"]["port"]
     else:
-        # RS-485 needs slaves, interval, port, baudrate
+        # RS-485 needs sensors, interval, port, baudrate
         _require_int(raw, "interval")
-        _require_slaves(raw)
+        _require_sensors(raw)
         _require_str(raw, "port")
         _require_int(raw, "baudrate")
-        result["slaves"] = raw["slaves"]
+        result["sensors"] = raw["sensors"]
         result["interval"] = raw["interval"]
         result["port"] = raw["port"]
         result["baudrate"] = raw["baudrate"]
@@ -66,17 +66,17 @@ def load_config(path: str) -> dict:
     return result
 
 
-def _require_slaves(raw: dict[str, object]) -> None:
-    """Validate that slaves exists and is a non-empty list of ints."""
-    if "slaves" not in raw:
-        raise ValueError("missing required key: slaves")
-    if not isinstance(raw["slaves"], list):
-        raise ValueError("slaves must be a list of ints")
-    for i, v in enumerate(raw["slaves"]):
+def _require_sensors(raw: dict[str, object]) -> None:
+    """Validate that sensors exists and is a non-empty list of ints."""
+    if "sensors" not in raw:
+        raise ValueError("missing required key: sensors")
+    if not isinstance(raw["sensors"], list):
+        raise ValueError("sensors must be a list of ints")
+    for i, v in enumerate(raw["sensors"]):
         if not isinstance(v, int):
-            raise ValueError("slaves[%d] must be int, got %s" % (i, type(v).__name__))
-    if len(raw["slaves"]) == 0:
-        raise ValueError("slaves must not be empty")
+            raise ValueError("sensors[%d] must be int, got %s" % (i, type(v).__name__))
+    if len(raw["sensors"]) == 0:
+        raise ValueError("sensors must not be empty")
 
 
 def _require_udp_section(raw: dict[str, object]) -> None:

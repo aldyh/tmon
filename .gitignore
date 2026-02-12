@@ -6,7 +6,7 @@ build/
 .pytest_cache/
 
 # Config with credentials
-master/wifi.toml
+server/wifi.toml
 
 # Data
 data/

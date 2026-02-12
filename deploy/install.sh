@@ -28,7 +28,7 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-if [ ! -f master/pyproject.toml ]; then
+if [ ! -f server/pyproject.toml ]; then
   echo "error: run from the project root directory" >&2
   exit 1
 fi
@@ -61,8 +61,8 @@ mkdir -p "${ETC_DIR}" "${VAR_DIR}" "${FW_DIR}" "${PANEL_DIR}"
 echo "Creating virtual environment at ${VENV_DIR}..."
 python3 -m venv "${VENV_DIR}"
 
-echo "Installing master daemon..."
-"${VENV_DIR}/bin/pip" install --quiet master/
+echo "Installing server daemon..."
+"${VENV_DIR}/bin/pip" install --quiet server/
 
 echo "Installing panel dependencies..."
 "${VENV_DIR}/bin/pip" install --quiet panel/
@@ -75,9 +75,9 @@ echo "Installing esptool..."
 # ------------------------------------------------------------------
 
 echo "Copying config files to ${ETC_DIR}..."
-cp -n master/config-485.toml "${ETC_DIR}/config-485.toml" 2>/dev/null || true
-cp -n master/config-udp.toml "${ETC_DIR}/config-udp.toml" 2>/dev/null || true
-cp -n master/wifi.toml.example "${ETC_DIR}/wifi.toml.example" 2>/dev/null || true
+cp -n server/config-485.toml "${ETC_DIR}/config-485.toml" 2>/dev/null || true
+cp -n server/config-udp.toml "${ETC_DIR}/config-udp.toml" 2>/dev/null || true
+cp -n server/wifi.toml.example "${ETC_DIR}/wifi.toml.example" 2>/dev/null || true
 
 chown -R tmon:tmon "${ETC_DIR}"
 

@@ -10,7 +10,7 @@ on SIGINT or SIGTERM.
 Example:
     Run from the command line::
 
-        tmon master/config-485.toml -v
+        tmon server/config-485.toml -v
 """
 
 import argparse
@@ -43,18 +43,18 @@ def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
     repeats.  Returns the number of completed cycles.
 
     Example:
-        >>> run_poller({"slaves": [3], "interval": 30}, bus, storage, ev)
+        >>> run_poller({"sensors": [3], "interval": 30}, bus, storage, ev)
         5
     """
-    poller = Poller(bus, storage, cfg["slaves"])
+    poller = Poller(bus, storage, cfg["sensors"])
     cycles = 0
 
     while not shutdown.is_set():
         results = poller.poll_all()
         cycles += 1
         log.info(
-            "cycle %d: %d/%d slaves responded",
-            cycles, len(results), len(cfg["slaves"]),
+            "cycle %d: %d/%d sensors responded",
+            cycles, len(results), len(cfg["sensors"]),
         )
         remaining = cfg["interval"]
         if remaining > 0:
@@ -133,9 +133,9 @@ def main() -> None:
     else:
         # RS-485 poll transport
         log.info(
-            "starting: transport=rs485 port=%s baudrate=%d slaves=%s db=%s "
+            "starting: transport=rs485 port=%s baudrate=%d sensors=%s db=%s "
             "interval=%ds",
-            cfg["port"], cfg["baudrate"], cfg["slaves"], cfg["db"],
+            cfg["port"], cfg["baudrate"], cfg["sensors"], cfg["db"],
             cfg["interval"],
         )
         bus = SerialBus(cfg["port"], cfg["baudrate"])

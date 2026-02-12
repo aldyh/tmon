@@ -104,12 +104,12 @@ def main():
     parser.add_argument("input", help="Input firmware binary")
     parser.add_argument("output", help="Output (patched) firmware binary")
     parser.add_argument("--addr", type=int, required=True,
-                        help="Slave address (1-247)")
+                        help="Sensor address (1-247)")
     parser.add_argument("--ssid", help="WiFi SSID (max 32 chars)")
     parser.add_argument("--pass", dest="password",
                         help="WiFi password (max 64 chars)")
-    parser.add_argument("--host", help="Master hostname/IP (max 64 chars)")
-    parser.add_argument("--port", type=int, help="Master UDP port (1-65535)")
+    parser.add_argument("--host", help="Server hostname/IP (max 64 chars)")
+    parser.add_argument("--port", type=int, help="Server UDP port (1-65535)")
     parser.add_argument("--push", type=int,
                         help="Push interval in seconds (1-65535)")
 
