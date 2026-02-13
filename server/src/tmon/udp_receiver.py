@@ -2,11 +2,6 @@
 
 Sensors push REPLY frames via UDP; server just listens and stores.
 No connection state, no polling -- sensors control timing.
-
-Example:
-    >>> from tmon.udp_receiver import UDPReceiver
-    >>> with UDPReceiver(5555) as receiver:
-    ...     frame = receiver.recv(1.0)
 """
 
 import socket
@@ -21,12 +16,6 @@ class UDPReceiver:
 
     Args:
         port: UDP port to listen on.
-
-    Example:
-        >>> with UDPReceiver(5555) as receiver:
-        ...     frame = receiver.recv(1.0)
-        ...     frame[1]  # ADDR byte
-        3
     """
 
     _MAX_FRAME = 64

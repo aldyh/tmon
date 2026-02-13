@@ -93,12 +93,6 @@ adc_to_temp (int adc_value)
  *
  * Args:
  *   temps: Output array of 4 int16_t values (tenths of degree C).
- *
- * Example:
- *   int16_t temps[4];
- *   tmon_read_temps (temps);
- *   // temps[0] = 235 means 23.5 C
- *   // temps[1] = TMON_TEMP_INVALID means channel 1 not connected
  */
 void
 tmon_read_temps (int16_t temps[TMON_NUM_CHANNELS])

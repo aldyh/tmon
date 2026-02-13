@@ -2,12 +2,6 @@
 
 Central place for tuneable parameters shared across modules.
 Import individual names where needed.
-
-Example:
-    >>> from tmon.config import load_config, TIMEOUT_MS
-    >>> cfg = load_config("config-485.toml")
-    >>> cfg["transport"]
-    'rs485'
 """
 
 import tomllib
@@ -27,11 +21,6 @@ def load_config(path: str) -> dict:
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
-
-    Example:
-        >>> cfg = load_config("server/config-485.toml")
-        >>> cfg["sensors"]
-        [1, 2, 3]
     """
     with open(path, "rb") as f:
         raw = tomllib.load(f)

@@ -15,9 +15,6 @@ Usage:
 Args:
     port: Serial port path (e.g. /tmp/tmon-sensor).
     baudrate: Baud rate (e.g. 9600).
-
-Example:
-    python serial_simulator.py /tmp/tmon-sensor 9600
 """
 
 import random

@@ -20,10 +20,6 @@
  *
  * Returns:
  *   16-bit CRC value.
- *
- * Example:
- *   uint8_t body[] = {0x03, 0x01, 0x00};
- *   uint16_t crc = tmon_crc16 (body, 3);  // => 0x5080
  */
 
 uint16_t
@@ -63,12 +59,6 @@ tmon_crc16 (const uint8_t *data, size_t len)
  *
  * Returns:
  *   Frame length written to buf, or 0 on error (bad addr, buffer too small).
- *
- * Example:
- *   uint8_t buf[64];
- *   size_t n = tmon_encode_frame (buf, sizeof (buf), 3, TMON_CMD_POLL,
- *                                   NULL, 0);
- *   // buf[0..5] = {0x01, 0x03, 0x01, 0x00, 0x80, 0x50}, n = 6
  */
 
 size_t
@@ -121,13 +111,6 @@ tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
  *
  * Returns:
  *   0 on success, -1 on any validation failure.
- *
- * Example:
- *   uint8_t raw[] = {0x01, 0x03, 0x01, 0x00, 0x80, 0x50};
- *   uint8_t addr, cmd, plen;
- *   const uint8_t *payload;
- *   int rc = tmon_decode_frame (raw, 6, &addr, &cmd, &payload, &plen);
- *   // rc = 0, addr = 3, cmd = 1, plen = 0
  */
 
 int
@@ -185,12 +168,6 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
  *
  * Returns:
  *   0 on success, -1 if payload_len != 8.
- *
- * Example:
- *   uint8_t pl[] = {0xEB,0x00, 0xC6,0x00, 0xFF,0x7F, 0xFF,0x7F};
- *   struct tmon_reply_payload rp;
- *   int rc = tmon_parse_reply (pl, 8, &rp);
- *   // rc = 0, rp.temps = {235, 198, 32767, 32767}
  */
 
 int

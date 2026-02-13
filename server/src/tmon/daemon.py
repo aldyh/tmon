@@ -6,11 +6,6 @@ Supports two modes:
 
 Foreground loop driven by a TOML config file.  Shuts down cleanly
 on SIGINT or SIGTERM.
-
-Example:
-    Run from the command line::
-
-        tmon server/config-485.toml -v
 """
 
 import argparse
@@ -41,10 +36,6 @@ def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
 
     Polls all sensors, sleeps for ``cfg["interval"]`` seconds, and
     repeats.  Returns the number of completed cycles.
-
-    Example:
-        >>> run_poller({"sensors": [3], "interval": 30}, bus, storage, ev)
-        5
     """
     poller = Poller(bus, storage, cfg["sensors"])
     cycles = 0
@@ -68,10 +59,6 @@ def run_listener(receiver, storage, shutdown: threading.Event) -> int:
 
     Receives readings pushed by sensors via UDP and stores them.
     Returns the number of readings received.
-
-    Example:
-        >>> run_listener(receiver, storage, ev)
-        42
     """
     listener = UDPListener(receiver, storage)
     count = 0
@@ -86,14 +73,7 @@ def run_listener(receiver, storage, shutdown: threading.Event) -> int:
 
 
 def main() -> None:
-    """CLI entry point -- parse args, load config, run the daemon.
-
-    Example:
-        From the shell::
-
-            tmon config-485.toml
-            tmon config-485.toml -v
-    """
+    """CLI entry point -- parse args, load config, run the daemon."""
     _shutdown.clear()
 
     parser = argparse.ArgumentParser(description="tmon temperature monitor")

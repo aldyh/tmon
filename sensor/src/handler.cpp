@@ -23,13 +23,6 @@
  *
  * Returns:
  *   Length of response written to out, or 0 if no response needed.
- *
- * Example:
- *   uint8_t rx[64], tx[64];
- *   size_t rx_len = read_from_bus (rx, sizeof (rx));
- *   size_t tx_len = tmon_handler_process (3, rx, rx_len, tx, sizeof (tx));
- *   if (tx_len > 0)
- *     write_to_bus (tx, tx_len);
  */
 size_t
 tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,

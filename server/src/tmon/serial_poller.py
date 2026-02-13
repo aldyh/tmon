@@ -2,13 +2,6 @@
 
 Sends POLL requests to each configured sensor, decodes REPLY frames,
 and stores raw int16 temperature readings in Storage.
-
-Example:
-    >>> from tmon.serial_poller import Poller
-    >>> poller = Poller(bus, storage, [1, 2])
-    >>> readings = poller.poll_all()
-    >>> readings[0].addr
-    1
 """
 
 import logging
@@ -37,10 +30,6 @@ class Poller:
         bus: Object with ``send(data)`` and ``receive()`` methods.
         storage: Object with ``insert(addr, temps)``.
         sensors: List of integer sensor addresses to poll.
-
-    Example:
-        >>> poller = Poller(bus, storage, [1, 2])
-        >>> results = poller.poll_all()
     """
 
 
@@ -56,11 +45,6 @@ class Poller:
 
         Sends a POLL frame, validates the REPLY, and unpacks raw int16
         temperatures.  Returns None on timeout or protocol error.
-
-        Example:
-            >>> reading = poller.poll(3)
-            >>> reading.temp_0
-            235
         """
         frame = encode_frame(addr, PROTO_CMD_POLL, b"")
         self._bus.send(frame)
@@ -119,11 +103,6 @@ class Poller:
 
         Returns:
             list[Reading]: Readings collected this cycle.
-
-        Example:
-            >>> results = poller.poll_all()
-            >>> len(results)
-            2
         """
         results = []
         for addr in self._sensors:

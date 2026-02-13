@@ -2,17 +2,6 @@
 
 Handles the binary framing format described in docs/protocol.org:
 START, ADDR, CMD, LEN, PAYLOAD, CRC_LO, CRC_HI.
-
-Example:
-    >>> from tmon.protocol import encode_frame, decode_frame, PROTO_CMD_POLL
-    >>> raw = encode_frame(3, PROTO_CMD_POLL, b"")
-    >>> raw.hex(' ')
-    '01 03 01 00 80 50'
-    >>> frame = decode_frame(raw)
-    >>> frame.addr
-    3
-    >>> frame.cmd
-    1
 """
 
 import struct
@@ -53,10 +42,6 @@ def crc16_modbus(data: bytes) -> int:
     Uses polynomial 0x8005 with initial value 0xFFFF and reflected
     input/output (standard MODBUS CRC).  Bitwise implementation --
     simple and sufficient for our short frames.
-
-    Example:
-        >>> crc16_modbus(bytes([0x03, 0x01, 0x00]))
-        0x5080
     """
     crc = 0xFFFF
     for byte in data:
@@ -80,14 +65,6 @@ def encode_frame(addr: int, cmd: int, payload: bytes) -> bytes:
 
     Raises:
         ValueError: If addr is outside the valid range 1-247.
-
-    Example:
-        >>> encode_frame(3, PROTO_CMD_POLL, b"").hex(' ')
-        '01 03 01 00 80 50'
-        >>> import struct
-        >>> payload = struct.pack("<hhhh", 235, 198, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        >>> encode_frame(3, PROTO_CMD_REPLY, payload).hex(' ')
-        '01 03 02 08 eb 00 c6 00 ff 7f ff 7f 90 eb'
     """
     if not is_valid_address(addr):
         raise ValueError(
@@ -111,11 +88,6 @@ def decode_frame(data: bytes) -> Frame:
     Raises:
         ValueError: On any validation failure (short frame, bad START byte,
             length mismatch, CRC mismatch, or address out of range).
-
-    Example:
-        >>> frame = decode_frame(bytes.fromhex('01 03 01 00 80 50'))
-        >>> (frame.addr, frame.cmd, frame.payload)
-        (3, 1, b'')
     """
     if len(data) < 6:
         raise ValueError(
@@ -175,10 +147,6 @@ def parse_reply(payload: bytes) -> list[int | None]:
 
     Raises:
         ValueError: If payload is not exactly 8 bytes.
-
-    Example:
-        >>> parse_reply(bytes([0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F]))
-        [235, 198, None, None]
     """
     if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
         raise ValueError(

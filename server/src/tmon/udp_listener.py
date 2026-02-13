@@ -2,12 +2,6 @@
 
 Sensors push REPLY frames periodically; this listener receives them,
 decodes temperatures, and stores to the database. No polling needed.
-
-Example:
-    >>> from tmon.udp_listener import UDPListener
-    >>> from tmon.udp_receiver import UDPReceiver
-    >>> listener = UDPListener(UDPReceiver(5555), storage)
-    >>> listener.receive(1.0)  # Wait up to 1 second
 """
 
 import logging
@@ -32,12 +26,6 @@ class UDPListener:
     Args:
         receiver: Object with ``recv(timeout_s)`` method.
         storage: Object with ``insert(addr, temps)`` and ``commit()``.
-
-    Example:
-        >>> listener = UDPListener(receiver, storage)
-        >>> reading = listener.receive(1.0)
-        >>> reading.addr
-        3
     """
 
     def __init__(self, receiver, storage):
@@ -53,11 +41,6 @@ class UDPListener:
 
         Returns:
             Reading on success, None on timeout or error.
-
-        Example:
-            >>> reading = listener.receive(1.0)
-            >>> reading.temp_0
-            235
         """
         raw = self._receiver.recv(timeout_s)
         if not raw:

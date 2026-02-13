@@ -2,12 +2,6 @@
 
 Used by both the RS-485 poller and UDP listener to represent
 a single set of temperature readings from a sensor device.
-
-Example:
-    >>> from tmon.reading import Reading
-    >>> r = Reading(addr=3, temp_0=235, temp_1=198, temp_2=None, temp_3=None)
-    >>> r.addr
-    3
 """
 
 from dataclasses import dataclass
@@ -28,12 +22,5 @@ class Reading:
 
 
 def fmt_temp(t: int | None) -> str:
-    """Format a raw int16 temperature for display.
-
-    Example:
-        >>> fmt_temp(235)
-        '23.5'
-        >>> fmt_temp(None)
-        '--.-'
-    """
+    """Format a raw int16 temperature for display."""
     return f"{t / 10:.1f}" if t is not None else "--.-"

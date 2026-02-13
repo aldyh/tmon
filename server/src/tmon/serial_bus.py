@@ -4,12 +4,6 @@ Wraps pyserial to send and receive tmon protocol frames over a
 serial link.  The receive method is frame-aware: it reads the
 4-byte header (START, ADDR, CMD, LEN) to learn the payload
 length, then reads the remaining payload + CRC bytes.
-
-Example:
-    >>> from tmon.serial_bus import SerialBus
-    >>> with SerialBus("/dev/ttyUSB0", 9600) as bus:
-    ...     bus.send(frame_bytes)
-    ...     response = bus.receive()
 """
 
 import serial
@@ -27,11 +21,6 @@ class SerialBus:
     Args:
         port: Serial port device path (e.g. ``"/dev/ttyUSB0"``).
         baudrate: Baud rate for the connection (e.g. ``9600``).
-
-    Example:
-        >>> with SerialBus("/dev/ttyUSB0", 9600) as bus:
-        ...     bus.send(b"\\x01\\x03\\x01\\x00\\x80\\x50")
-        ...     reply = bus.receive()
     """
 
     # Header is START + ADDR + CMD + LEN (4 bytes).
