@@ -6,10 +6,6 @@ can be served by any static HTTP server.
 
 The output mirrors the Flask API structure with pre-rendered JSON
 and CSV responses for every node/range combination.
-
-Example:
-    $ python build_demo.py --db tmon_mock.db --output demo
-    $ cd demo && python -m http.server 8000
 """
 
 import argparse
@@ -208,21 +204,6 @@ def build(db_path: str, output_dir: str) -> None:
     Args:
         db_path: Path to the SQLite database.
         output_dir: Directory to write output files into.
-
-    Example:
-        >>> import tempfile, os, sqlite3
-        >>> db = os.path.join(tempfile.mkdtemp(), "t.db")
-        >>> conn = sqlite3.connect(db)
-        >>> _ = conn.execute(
-        ...     "CREATE TABLE readings (id INTEGER PRIMARY KEY,"
-        ...     " ts INTEGER, addr INTEGER,"
-        ...     " temp_0 INTEGER, temp_1 INTEGER,"
-        ...     " temp_2 INTEGER, temp_3 INTEGER)")
-        >>> conn.commit(); conn.close()
-        >>> out = os.path.join(tempfile.mkdtemp(), "demo")
-        >>> build(db, out)
-        >>> os.path.isfile(os.path.join(out, "index.html"))
-        True
     """
     conn = sqlite3.connect(db_path)
 

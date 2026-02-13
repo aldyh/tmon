@@ -6,10 +6,6 @@ Populates it with 1 year of readings for 3 sensors at 30-second intervals.
 Temperature profiles use sinusoidal daily and seasonal cycles plus
 Gaussian noise to look realistic.  One channel on sensor 3 has
 occasional NULL readings to exercise null handling.
-
-Example:
-    $ python generate_data.py
-    $ python generate_data.py --db custom.db --days 30
 """
 
 import argparse
@@ -53,13 +49,6 @@ def generate(db_path: str, days: int, seed: int) -> int:
         db_path: Path to the SQLite database file.
         days: Number of days of data to generate.
         seed: Random seed for reproducibility.
-
-    Example:
-        >>> import tempfile, os
-        >>> path = os.path.join(tempfile.mkdtemp(), "test.db")
-        >>> n = generate(path, 1, 42)
-        >>> n > 0
-        True
     """
     random.seed(seed)
 

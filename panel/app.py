@@ -6,10 +6,6 @@ so data always feels "live" regardless of when it was generated.
 
 Internally, timestamps are stored as Unix epoch integers.  The API
 converts them to ISO-8601 strings for JSON responses and CSV export.
-
-Example:
-    $ flask --app app run
-    # Then open http://localhost:5000 in a browser.
 """
 
 import csv
@@ -36,11 +32,6 @@ def create_app(db_path: str) -> Flask:
 
     Args:
         db_path: Path to the SQLite database file.
-
-    Example:
-        >>> app = create_app(":memory:")
-        >>> app.name
-        'app'
     """
     app = Flask(__name__)
     app.config["TMON_DB"] = db_path
@@ -169,9 +160,6 @@ def create_app(db_path: str) -> Flask:
 
         Returns a CSV download with columns ts, temp_0 .. temp_3.
         Timestamps are exported as ISO-8601 strings.
-
-        Example:
-            GET /api/export?addr=1&hours=24
         """
         addr = request.args.get("addr", type=int)
         if addr is None:
