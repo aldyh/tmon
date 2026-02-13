@@ -214,6 +214,11 @@ Build 2 generic firmware binaries, patch config at flash time.
 - [X] Verify daemon stores readings correctly in SQLite
 - [X] Verify panel reads SQLite correctly
 
+*** Rename master/slave to server/sensor
+
+- [X] Rename throughout: code, config, docs, directory names, README
+- [X] Verify all tests pass after rename
+
 *** Hardware bring-up (NTC + UDP smoke test)
 
 First real hardware validation.  Do this over UDP since it avoids
@@ -237,10 +242,3 @@ RS-485 wiring complexity.
 - [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
 - [ ] Real bus smoke test with 1 sensor -> then scale to all sensors
-
-*** Rename master/slave to server/sensor
-
-*Last milestone.*  Only after everything else is stable and working.
-
-- [X] Rename throughout: code, config, docs, directory names, README
-- [X] Verify all tests pass after rename
