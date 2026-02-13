@@ -238,6 +238,13 @@ left unwired.
 - [ ] Server polls sensor over serial, receives valid temperature readings
 - [ ] Verify round-trip works reliably (no CRC errors, no timeouts)
 
+*** Full firmware (RS-485)
+
+- [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
+- [ ] Respond to requests; populate payload with temperature readings
+- [ ] Real device responds reliably on a physical RS-485 bus
+- [ ] Real bus smoke test with 1 sensor -> then scale to all sensors
+
 *** Integration + polish
 
 - [X] Document how to add a new sensor (address + wiring + config)
@@ -246,10 +253,3 @@ left unwired.
 - [X] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)
 - [X] Verify flashing a brand-new ESP32 works from a deployed Pi (no dev environment)
 - [X] Final pass: remove unused code, clean up comments, ensure docs match behavior
-
-*** Full firmware (RS-485)
-
-- [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
-- [ ] Respond to requests; populate payload with temperature readings
-- [ ] Real device responds reliably on a physical RS-485 bus
-- [ ] Real bus smoke test with 1 sensor -> then scale to all sensors
