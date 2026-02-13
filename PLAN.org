@@ -227,6 +227,17 @@ RS-485 wiring complexity.
 - [ ] Wire NTC to breadboard on one ESP32
 - [ ] Verify temperatures are sane
 
+*** Serial bring-up (plain UART, no RS-485)
+
+Validate serial protocol on real hardware without RS-485 transceiver
+complexity.  Connect ESP32 TX/RX directly to the Pi UART (GPIO
+crossover).  DE/RE are output-only in the firmware, so they can be
+left unwired.
+
+- [ ] Wire ESP32 TX/RX to Pi UART (crossover: TX->RX, RX->TX, common GND)
+- [ ] Server polls sensor over serial, receives valid temperature readings
+- [ ] Verify round-trip works reliably (no CRC errors, no timeouts)
+
 *** Integration + polish
 
 - [X] Document how to add a new sensor (address + wiring + config)
