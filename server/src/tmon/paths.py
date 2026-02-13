@@ -24,7 +24,7 @@ def resolve_config(name: str) -> str:
 
     Args:
         name: A bare filename (e.g. ``"config-485.toml"``) or a path
-              (e.g. ``"master/config-485.toml"``).
+              (e.g. ``"server/config-485.toml"``).
 
     Raises:
         FileNotFoundError: If the file cannot be found.

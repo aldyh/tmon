@@ -23,8 +23,8 @@ from tmon.storage import Storage
 
 pytestmark = pytest.mark.integration
 
-MASTER_PTY = "/tmp/tmon-test-master"
-SLAVE_PTY = "/tmp/tmon-test-slave"
+SERVER_PTY = "/tmp/tmon-test-server"
+SENSOR_PTY = "/tmp/tmon-test-sensor"
 SIM_ADDR = 3
 TOOLS_DIR = os.path.join(os.path.dirname(__file__), "..", "tools")
 
@@ -51,8 +51,8 @@ def pty_pair():
     socat = subprocess.Popen(
         [
             "socat", "-d", "-d",
-            "PTY,raw,echo=0,link={}".format(MASTER_PTY),
-            "PTY,raw,echo=0,link={}".format(SLAVE_PTY),
+            "PTY,raw,echo=0,link={}".format(SERVER_PTY),
+            "PTY,raw,echo=0,link={}".format(SENSOR_PTY),
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -60,13 +60,13 @@ def pty_pair():
 
     # Wait for PTYs to appear
     for _ in range(40):
-        if os.path.exists(MASTER_PTY) and os.path.exists(SLAVE_PTY):
+        if os.path.exists(SERVER_PTY) and os.path.exists(SENSOR_PTY):
             break
         time.sleep(0.05)
 
     sim = subprocess.Popen(
         [sys.executable, os.path.join(TOOLS_DIR, "serial_simulator.py"),
-         SLAVE_PTY, "9600"],
+         SENSOR_PTY, "9600"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -74,13 +74,13 @@ def pty_pair():
     # Give the simulator a moment to open the port
     time.sleep(0.3)
 
-    yield MASTER_PTY
+    yield SERVER_PTY
 
     sim.terminate()
     sim.wait()
     socat.terminate()
     socat.wait()
-    for p in (MASTER_PTY, SLAVE_PTY):
+    for p in (SERVER_PTY, SENSOR_PTY):
         if os.path.exists(p):
             os.unlink(p)
 

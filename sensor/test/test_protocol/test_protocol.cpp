@@ -1,7 +1,7 @@
 /*
  * test_protocol.c -- Unity tests for tmon protocol encode/decode.
  *
- * Mirrors the Python test coverage in master/tests/test_protocol.py.
+ * Mirrors the Python test coverage in server/tests/test_protocol.py.
  * Run with: pio test -e native
  */
 
@@ -13,7 +13,7 @@
 /* -- CRC-16/MODBUS tests -------------------------------------------------- */
 
 void
-test_crc_example1_poll_slave3 (void)
+test_crc_example1_poll_sensor3 (void)
 {
   /* CRC of [03 01 00] should be 0x5080 (Example 1 in spec). */
   uint8_t body[] = {0x03, 0x01, 0x00};
@@ -21,7 +21,7 @@ test_crc_example1_poll_slave3 (void)
 }
 
 void
-test_crc_example2_reply_slave3 (void)
+test_crc_example2_reply_sensor3 (void)
 {
   /* CRC of Example 2 body should be 0xEB90 (spec). */
   uint8_t body[] = {
@@ -51,9 +51,9 @@ test_crc_single_byte (void)
 /* -- encode_request tests ------------------------------------------------- */
 
 void
-test_encode_example1_poll_slave3 (void)
+test_encode_example1_poll_sensor3 (void)
 {
-  /* POLL for slave 3 should produce the Example 1 frame. */
+  /* POLL for sensor 3 should produce the Example 1 frame. */
   uint8_t expected[] = {0x01, 0x03, 0x01, 0x00, 0x80, 0x50};
   uint8_t buf[64];
   size_t n = tmon_encode_frame (buf, sizeof (buf), 3, TMON_CMD_POLL,
@@ -431,13 +431,13 @@ main (void)
   UNITY_BEGIN ();
 
   /* CRC */
-  RUN_TEST (test_crc_example1_poll_slave3);
-  RUN_TEST (test_crc_example2_reply_slave3);
+  RUN_TEST (test_crc_example1_poll_sensor3);
+  RUN_TEST (test_crc_example2_reply_sensor3);
   RUN_TEST (test_crc_empty_input);
   RUN_TEST (test_crc_single_byte);
 
   /* Encode */
-  RUN_TEST (test_encode_example1_poll_slave3);
+  RUN_TEST (test_encode_example1_poll_sensor3);
   RUN_TEST (test_encode_example2_reply_frame);
   RUN_TEST (test_encode_poll_length_is_6);
   RUN_TEST (test_encode_start_byte);

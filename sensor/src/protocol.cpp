@@ -104,7 +104,7 @@ tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
  * Args:
  *   data:        Raw frame bytes.
  *   len:         Number of bytes in data.
- *   addr:        Output: slave address.
+ *   addr:        Output: sensor address.
  *   cmd:         Output: command byte.
  *   payload:     Output: pointer into data at the payload start.
  *   payload_len: Output: payload length.
