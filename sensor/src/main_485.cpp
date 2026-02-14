@@ -1,5 +1,5 @@
 /*
- * tmon sensor firmware -- UART protocol handler
+ * tmon sensor firmware -- RS-485 transport
  *
  * Listens for POLL requests on UART and responds with temperature readings.
  * Blinks green after each send.
@@ -16,55 +16,36 @@
 
 #include <Arduino.h>
 
+#include "app.h"
 #include "config.h"
 #include "handler.h"
 #include "led.h"
-#include "log.h"
-#include "protocol.h"
-#include "sensors.h"
 
 /* Pin assignments per docs/wiring.org */
 static const int PIN_UART_RX = 16;
 static const int PIN_UART_TX = 17;
 static const int PIN_DE_RE   = 5;
 
-/* Boot button (active LOW, internal pull-up) */
-static const int BOOT_BUTTON = 0;
-
 /* RS-485 bus parameters per docs/protocol.org */
 static const int UART_BAUD = 9600;
 
-/* Receive buffer */
-static const size_t RX_BUF_SIZE = 64;
-static uint8_t rx_buf[RX_BUF_SIZE];
-static size_t rx_len = 0;
+class RS485Sensor : public SensorApp
+{
+  static const size_t RX_BUF_SIZE = 64;
+  uint8_t rx_buf[RX_BUF_SIZE];
+  size_t rx_len = 0;
+  unsigned long last_rx_time = 0;
 
-/* Transmit buffer */
-static const size_t TX_BUF_SIZE = 64;
-static uint8_t tx_buf[TX_BUF_SIZE];
-
-static unsigned long last_rx_time = 0;
-
-/* Button state */
-static unsigned long last_button_ms = 0;
+  void transport_init () override;
+  void transport_loop () override;
+};
 
 void
-setup (void)
+RS485Sensor::transport_init ()
 {
-  /* USB serial for debug output */
-  Serial.begin (115200);
-  /* Wait enough to attach screen to the serial log.  */
-  delay (5000);
-
-  config_init ();
-
   Serial.println ("tmon sensor starting");
   Serial.print ("Address: ");
   Serial.println (config_sensor_addr);
-
-  tmon_sensors_init ();
-  led_init ();
-  pinMode (BOOT_BUTTON, INPUT_PULLUP);
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);
@@ -76,20 +57,9 @@ setup (void)
 }
 
 void
-loop (void)
+RS485Sensor::transport_loop ()
 {
   unsigned long now = millis ();
-
-  /* Check boot button (active LOW) */
-  if (digitalRead (BOOT_BUTTON) == LOW
-      && (now - last_button_ms) >= 500)
-    {
-      last_button_ms = now;
-      led_identify (config_sensor_addr);
-      Serial.print ("Identify: blinking ");
-      Serial.print (config_sensor_addr);
-      Serial.println (" times");
-    }
 
   /* Read incoming bytes */
   while (Serial1.available () && rx_len < RX_BUF_SIZE)
@@ -107,7 +77,7 @@ loop (void)
 
       /* Try to process the accumulated bytes */
       size_t tx_len = tmon_handler_process (config_sensor_addr, rx_buf, rx_len,
-                                            tx_buf, TX_BUF_SIZE);
+                                            tx_buf, BUF_SIZE);
       if (tx_len > 0)
         {
           /* Send response */
@@ -116,14 +86,7 @@ loop (void)
           Serial1.flush ();                /* wait for TX complete */
           digitalWrite (PIN_DE_RE, LOW);   /* back to receive mode */
           led_tx_blink ();
-
-          /* Log temps from the actual response payload */
-          struct tmon_reply_payload parsed;
-          tmon_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
-          Serial.print ("TX REPLY: ");
-          Serial.print (tx_len);
-          Serial.print (" bytes, ");
-          log_temps (parsed.temps);
+          log_reply ("TX REPLY: ", tx_len);
         }
       else
         {
@@ -133,4 +96,18 @@ loop (void)
       /* Reset receive buffer */
       rx_len = 0;
     }
+}
+
+static RS485Sensor sensor;
+
+void
+setup (void)
+{
+  sensor.setup ();
+}
+
+void
+loop (void)
+{
+  sensor.loop ();
 }
