@@ -85,7 +85,7 @@ SensorApp::check_button ()
 }
 
 /*
- * SensorApp::log_reply -- Log a REPLY frame's temperatures to serial.
+ * SensorApp::log_temps -- Log a frame's temperatures to serial.
  *
  * Parses the payload from tx_buf and prints a labelled summary.
  * Call after building a frame into tx_buf.
@@ -95,7 +95,7 @@ SensorApp::check_button ()
  *   len:   Frame length in bytes.
  */
 void
-SensorApp::log_reply (const char *label, size_t len)
+SensorApp::log_temps (const char *label, size_t len)
 {
   struct tmon_proto_reply_payload parsed;
   tmon_proto_parse_reply (&m_tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);

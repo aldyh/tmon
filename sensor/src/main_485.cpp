@@ -84,7 +84,7 @@ RS485Sensor::on_loop ()
           Serial1.flush ();                /* wait for TX complete */
           digitalWrite (PIN_DE_RE, LOW);   /* back to receive mode */
           led_tx_blink ();
-          log_reply ("TX REPLY: ", tx_len);
+          log_temps ("Replying: ", tx_len);
         }
       else
         {

@@ -27,7 +27,7 @@ protected:
   size_t dispatch_frame (uint8_t addr, const uint8_t *data, size_t len);
 
   void check_button ();
-  void log_reply (const char *label, size_t len);
+  void log_temps (const char *label, size_t len);
 
 public:
   void setup ();
