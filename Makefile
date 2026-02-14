@@ -6,7 +6,8 @@
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean \
        firmware \
-       install uninstall clean
+       install uninstall clean \
+       TAGS
 
 SERVER_STAMP := server/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
@@ -117,6 +118,9 @@ install:
 
 uninstall:
 	deploy/uninstall.sh
+
+TAGS:
+	find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.py' | etags -
 
 clean: demo-static-clean
 	rm -rf firmware server/.venv panel/.venv panel/tmon_mock.db
