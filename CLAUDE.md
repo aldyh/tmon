@@ -57,6 +57,7 @@ Commit checklist:
 - Space before parentheses in function calls and definitions: `foo (arg)`,
   `if (cond)`.
 - Space after commas.
+- C++ member variables use `m_` prefix: `m_count`, `m_name`.
 - **Documentation placement**: Headers (`.h`) contain only prototypes and brief
   comments for types/constants. Full function documentation (description, Args,
   Returns) goes in the source (`.c`) file, directly above each function
