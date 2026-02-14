@@ -75,7 +75,7 @@ RS485Sensor::on_loop ()
       Serial.println (" bytes");
 
       /* Try to process the accumulated bytes */
-      size_t tx_len = handle_request (config_sensor_addr, m_rx_buf, m_rx_len);
+      size_t tx_len = dispatch_frame (config_sensor_addr, m_rx_buf, m_rx_len);
       if (tx_len > 0)
         {
           /* Send response */

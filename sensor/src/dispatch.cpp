@@ -1,15 +1,15 @@
 /*
- * handler.cpp -- Protocol message handler for tmon sensor
+ * dispatch.cpp -- Frame dispatch for tmon sensor
  *
- * Processes incoming POLL requests and builds REPLY responses.
+ * Dispatches incoming POLL requests and builds REPLY responses.
  */
 
-#include "handler.h"
+#include "dispatch.h"
 #include "protocol.h"
 #include "sensors.h"
 
 /*
- * tmon_handler_build_reply -- Build a REPLY frame with current temperatures.
+ * tmon_build_reply_frame -- Build a REPLY frame with current temperatures.
  *
  * Reads the current sensor temperatures, packs them into a REPLY
  * payload, and encodes the complete frame.
@@ -23,7 +23,7 @@
  *   Frame length written to buf, or 0 on error.
  */
 size_t
-tmon_handler_build_reply (uint8_t *buf, size_t buf_len, uint8_t addr)
+tmon_build_reply_frame (uint8_t *buf, size_t buf_len, uint8_t addr)
 {
   int16_t temps[TMON_NUM_CHANNELS];
   uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
@@ -35,7 +35,7 @@ tmon_handler_build_reply (uint8_t *buf, size_t buf_len, uint8_t addr)
 }
 
 /*
- * tmon_handler_process -- Process a received frame and build a response.
+ * tmon_dispatch_frame -- Dispatch a received frame and build a response.
  *
  * If the frame is a valid POLL for our address, builds a REPLY with
  * current temperature readings.  Otherwise returns 0.
@@ -51,8 +51,8 @@ tmon_handler_build_reply (uint8_t *buf, size_t buf_len, uint8_t addr)
  *   Length of response written to out, or 0 if no response needed.
  */
 size_t
-tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
-                      uint8_t *out, size_t out_len)
+tmon_dispatch_frame (uint8_t my_addr, const uint8_t *data, size_t len,
+                     uint8_t *out, size_t out_len)
 {
   uint8_t addr, cmd, payload_len;
   const uint8_t *payload;
@@ -69,5 +69,5 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
   if (cmd != TMON_CMD_POLL)
     return 0;
 
-  return tmon_handler_build_reply (out, out_len, my_addr);
+  return tmon_build_reply_frame (out, out_len, my_addr);
 }

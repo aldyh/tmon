@@ -9,7 +9,7 @@
 #include <Arduino.h>
 
 #include "config.h"
-#include "handler.h"
+#include "dispatch.h"
 #include "led.h"
 #include "log.h"
 #include "protocol.h"
@@ -17,16 +17,16 @@
 
 /* Build a REPLY frame into tx_buf. */
 size_t
-SensorApp::build_reply (uint8_t addr)
+SensorApp::build_reply_frame (uint8_t addr)
 {
-  return tmon_handler_build_reply (m_tx_buf, BUF_SIZE, addr);
+  return tmon_build_reply_frame (m_tx_buf, BUF_SIZE, addr);
 }
 
-/* Process an incoming request frame into tx_buf. */
+/* Dispatch an incoming request frame; response goes into tx_buf. */
 size_t
-SensorApp::handle_request (uint8_t addr, const uint8_t *data, size_t len)
+SensorApp::dispatch_frame (uint8_t addr, const uint8_t *data, size_t len)
 {
-  return tmon_handler_process (addr, data, len, m_tx_buf, BUF_SIZE);
+  return tmon_dispatch_frame (addr, data, len, m_tx_buf, BUF_SIZE);
 }
 
 /* Boot button (active LOW, internal pull-up) */

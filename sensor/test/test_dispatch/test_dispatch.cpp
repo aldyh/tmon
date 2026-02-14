@@ -1,5 +1,5 @@
 /*
- * test_handler.c -- Unity tests for tmon message handler.
+ * test_dispatch.c -- Unity tests for tmon frame dispatch.
  *
  * Tests protocol request/response logic using stub sensors.
  * Run with: pio test -e native
@@ -8,17 +8,17 @@
 #include <string.h>
 #include <unity.h>
 
-#include "handler.h"
+#include "dispatch.h"
 #include "protocol.h"
 
 /* External test helper from sensors_stub.c */
 extern void tmon_sensor_stub_set (int16_t t0, int16_t t1, int16_t t2,
                                    int16_t t3);
 
-/* -- Handler tests -------------------------------------------------------- */
+/* -- Dispatch tests ------------------------------------------------------- */
 
 void
-test_handler_responds_to_poll (void)
+test_dispatch_responds_to_poll (void)
 {
   /* Valid POLL for our address should generate a REPLY. */
   uint8_t poll[6];
@@ -29,7 +29,7 @@ test_handler_responds_to_poll (void)
 
   poll_len = tmon_proto_encode_frame (poll, sizeof (poll), 3, TMON_CMD_POLL,
                                   NULL, 0);
-  reply_len = tmon_handler_process (3, poll, poll_len, reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (3, poll, poll_len, reply, sizeof (reply));
 
   /* Should get a 14-byte REPLY frame */
   TEST_ASSERT_EQUAL (14, reply_len);
@@ -53,7 +53,7 @@ test_handler_responds_to_poll (void)
 }
 
 void
-test_handler_ignores_wrong_address (void)
+test_dispatch_ignores_wrong_address (void)
 {
   /* POLL for different address should not generate a response. */
   uint8_t poll[6];
@@ -62,13 +62,13 @@ test_handler_ignores_wrong_address (void)
 
   poll_len = tmon_proto_encode_frame (poll, sizeof (poll), 5, TMON_CMD_POLL,
                                   NULL, 0);
-  reply_len = tmon_handler_process (3, poll, poll_len, reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (3, poll, poll_len, reply, sizeof (reply));
 
   TEST_ASSERT_EQUAL (0, reply_len);
 }
 
 void
-test_handler_ignores_non_poll (void)
+test_dispatch_ignores_non_poll (void)
 {
   /* REPLY command should not generate a response. */
   uint8_t frame[14];
@@ -78,41 +78,41 @@ test_handler_ignores_non_poll (void)
 
   frame_len = tmon_proto_encode_frame (frame, sizeof (frame), 3, TMON_CMD_REPLY,
                                    payload, sizeof (payload));
-  reply_len = tmon_handler_process (3, frame, frame_len, reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (3, frame, frame_len, reply, sizeof (reply));
 
   TEST_ASSERT_EQUAL (0, reply_len);
 }
 
 void
-test_handler_ignores_invalid_frame (void)
+test_dispatch_ignores_invalid_frame (void)
 {
   /* Malformed frame should not generate a response. */
   uint8_t garbage[] = {0x99, 0x03, 0x01, 0x00, 0x00, 0x00};
   uint8_t reply[64];
   size_t reply_len;
 
-  reply_len = tmon_handler_process (3, garbage, sizeof (garbage),
-                                    reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (3, garbage, sizeof (garbage),
+                                   reply, sizeof (reply));
 
   TEST_ASSERT_EQUAL (0, reply_len);
 }
 
 void
-test_handler_ignores_short_frame (void)
+test_dispatch_ignores_short_frame (void)
 {
   /* Frame shorter than minimum should not crash or respond. */
   uint8_t short_data[] = {0x01, 0x03};
   uint8_t reply[64];
   size_t reply_len;
 
-  reply_len = tmon_handler_process (3, short_data, sizeof (short_data),
-                                    reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (3, short_data, sizeof (short_data),
+                                   reply, sizeof (reply));
 
   TEST_ASSERT_EQUAL (0, reply_len);
 }
 
 void
-test_handler_ignores_bad_crc (void)
+test_dispatch_ignores_bad_crc (void)
 {
   /* Frame with bad CRC should not generate a response. */
   uint8_t poll[6];
@@ -123,15 +123,15 @@ test_handler_ignores_bad_crc (void)
                                   NULL, 0);
   poll[5] ^= 0xFF;  /* Corrupt CRC */
 
-  reply_len = tmon_handler_process (3, poll, poll_len, reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (3, poll, poll_len, reply, sizeof (reply));
 
   TEST_ASSERT_EQUAL (0, reply_len);
 }
 
 void
-test_handler_different_temps (void)
+test_dispatch_different_temps (void)
 {
-  /* Verify handler returns whatever sensors report. */
+  /* Verify dispatch returns whatever sensors report. */
   uint8_t poll[6];
   uint8_t reply[64];
   size_t poll_len, reply_len;
@@ -140,7 +140,7 @@ test_handler_different_temps (void)
 
   poll_len = tmon_proto_encode_frame (poll, sizeof (poll), 1, TMON_CMD_POLL,
                                   NULL, 0);
-  reply_len = tmon_handler_process (1, poll, poll_len, reply, sizeof (reply));
+  reply_len = tmon_dispatch_frame (1, poll, poll_len, reply, sizeof (reply));
 
   TEST_ASSERT_EQUAL (14, reply_len);
 
@@ -157,15 +157,15 @@ test_handler_different_temps (void)
 }
 
 void
-test_build_reply (void)
+test_build_reply_frame (void)
 {
-  /* tmon_handler_build_reply should produce a valid REPLY frame. */
+  /* tmon_build_reply_frame should produce a valid REPLY frame. */
   uint8_t buf[64];
   size_t len;
 
   tmon_sensor_stub_set (210, -30, TMON_TEMP_INVALID, 150);
 
-  len = tmon_handler_build_reply (buf, sizeof (buf), 7);
+  len = tmon_build_reply_frame (buf, sizeof (buf), 7);
 
   TEST_ASSERT_EQUAL (14, len);
 
@@ -186,12 +186,12 @@ test_build_reply (void)
 }
 
 void
-test_build_reply_buffer_too_small (void)
+test_build_reply_frame_buffer_too_small (void)
 {
   /* Buffer too small for a REPLY frame should return 0. */
   uint8_t buf[4];
 
-  TEST_ASSERT_EQUAL (0, tmon_handler_build_reply (buf, sizeof (buf), 1));
+  TEST_ASSERT_EQUAL (0, tmon_build_reply_frame (buf, sizeof (buf), 1));
 }
 
 /* -- Unity setup/teardown ------------------------------------------------- */
@@ -213,15 +213,15 @@ main (void)
 {
   UNITY_BEGIN ();
 
-  RUN_TEST (test_handler_responds_to_poll);
-  RUN_TEST (test_handler_ignores_wrong_address);
-  RUN_TEST (test_handler_ignores_non_poll);
-  RUN_TEST (test_handler_ignores_invalid_frame);
-  RUN_TEST (test_handler_ignores_short_frame);
-  RUN_TEST (test_handler_ignores_bad_crc);
-  RUN_TEST (test_handler_different_temps);
-  RUN_TEST (test_build_reply);
-  RUN_TEST (test_build_reply_buffer_too_small);
+  RUN_TEST (test_dispatch_responds_to_poll);
+  RUN_TEST (test_dispatch_ignores_wrong_address);
+  RUN_TEST (test_dispatch_ignores_non_poll);
+  RUN_TEST (test_dispatch_ignores_invalid_frame);
+  RUN_TEST (test_dispatch_ignores_short_frame);
+  RUN_TEST (test_dispatch_ignores_bad_crc);
+  RUN_TEST (test_dispatch_different_temps);
+  RUN_TEST (test_build_reply_frame);
+  RUN_TEST (test_build_reply_frame_buffer_too_small);
 
   return UNITY_END ();
 }

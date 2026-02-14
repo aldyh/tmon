@@ -23,8 +23,8 @@ class SensorApp
 protected:
   uint8_t m_tx_buf[BUF_SIZE];
 
-  size_t build_reply (uint8_t addr);
-  size_t handle_request (uint8_t addr, const uint8_t *data, size_t len);
+  size_t build_reply_frame (uint8_t addr);
+  size_t dispatch_frame (uint8_t addr, const uint8_t *data, size_t len);
 
   void check_button ();
   void log_reply (const char *label, size_t len);

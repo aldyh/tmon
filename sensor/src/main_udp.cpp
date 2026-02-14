@@ -83,8 +83,8 @@ UDPSensor::on_loop ()
   if (WiFi.status () != WL_CONNECTED)
     connect_wifi ();
 
-  /* Build and send REPLY frame */
-  size_t tx_len = build_reply (config_sensor_addr);
+  /* Build and push temperature readings */
+  size_t tx_len = build_reply_frame (config_sensor_addr);
   if (tx_len > 0)
     {
       log_reply ("Sending REPLY: ", tx_len);

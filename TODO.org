@@ -326,7 +326,7 @@ Master side:
 - ~config-wifi.toml~ sample configuration
 
 Slave side:
-- ~handler.c~: Protocol message handler (responds to POLL with REPLY)
+- ~dispatch.cpp~: Frame dispatch (responds to POLL with REPLY)
 - ~sensors.cpp~: NTC thermistor reading with Steinhart-Hart equation
 - ~main.cpp~: UART transport with inter-byte timeout for frame assembly
 - ~main_wifi.cpp~: WiFi transport with auto-reconnect
@@ -625,7 +625,7 @@ transports. Context: home network with "relatively good" reliability.
 | Component        | RS-485                        | UDP                           |
 |------------------+-------------------------------+-------------------------------|
 | Slave firmware   | main.cpp: 127                 | main_udp.cpp: 169             |
-|                  | handler.cpp: 69               | (no handler needed)           |
+|                  | dispatch.cpp: 69              | (no dispatch needed)          |
 |                  | protocol.cpp: 212 (shared)    | protocol.cpp: 212 (shared)    |
 |------------------+-------------------------------+-------------------------------|
 | Slave total      | 408                           | 381                           |
