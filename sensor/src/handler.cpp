@@ -1,5 +1,5 @@
 /*
- * handler.c -- Protocol message handler for tmon sensor
+ * handler.cpp -- Protocol message handler for tmon sensor
  *
  * Processes incoming POLL requests and builds REPLY responses.
  */

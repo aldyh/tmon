@@ -1,5 +1,5 @@
 /*
- * protocol.c -- tmon RS-485 frame encoding/decoding
+ * protocol.cpp -- tmon RS-485 frame encoding/decoding
  *
  * Implements the binary framing format described in docs/protocol.org.
  */

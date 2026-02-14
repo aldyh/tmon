@@ -1,5 +1,5 @@
 /*
- * sensors_stub.c -- Stub temperature reading for native tests
+ * sensors_stub.cpp -- Stub temperature reading for native tests
  *
  * Returns fixed temperatures for testing protocol logic without hardware.
  */
