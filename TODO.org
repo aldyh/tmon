@@ -1039,14 +1039,16 @@ list the index alongside the table definition.
 ** Notes
 Added an "Indexes" subsection after "Column details" in docs/storage.org
 documenting the idx_readings_addr_ts composite index on (addr, ts).
-* TODO Fix uninstall.sh: tmon-patch not removed
+* DONE Fix uninstall.sh: tmon-patch not removed
 ~install.sh~ installs both ~tmon-flash~ and ~tmon-patch~ to
 ~/usr/local/bin/~, but ~uninstall.sh~ only removes ~tmon-flash~ (line
 49).  ~tmon-patch~ is left behind after uninstall.
 
 One-line fix: add ~rm -f /usr/local/bin/tmon-patch~ after the existing
 ~rm -f /usr/local/bin/tmon-flash~ line.
-* TODO Validate sensor address range (1-247) in config.py
+** Notes
+Added ~rm -f /usr/local/bin/tmon-patch~ to uninstall.sh.
+* DONE Validate sensor address range (1-247) in config.py
 ~_require_sensors()~ checks that values are ints and the list is
 non-empty, but does not validate the 1-247 address range.  A typo like
 ~sensors = [0]~ or ~sensors = [300]~ passes config validation and only
@@ -1061,6 +1063,9 @@ for i, v in enumerate(raw["sensors"]):
     if v < 1 or v > 247:
         raise ValueError("sensors[%d] must be 1-247, got %d" % (i, v))
 #+end_example
+** Notes
+Added range check in ~_require_sensors()~ after the type check.
+Two new tests: ~test_sensors_addr_zero~ and ~test_sensors_addr_too_high~.
 * TODO Remove misleading push_interval from config-udp.toml
 ~config-udp.toml~ line 17 contains ~push_interval = 5~ which the server
 config loader silently ignores.  This value only matters on the sensor
@@ -1080,5 +1085,3 @@ Options:
 2. A periodic task (cron or built into the daemon loop) that prunes
    old data.
 3. Document expected growth and manual cleanup in docs/storage.org.
-
-Option 3 for now.
