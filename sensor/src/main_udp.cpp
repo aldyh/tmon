@@ -17,6 +17,7 @@
 #include <WiFiUdp.h>
 
 #include "config.h"
+#include "handler.h"
 #include "led.h"
 #include "log.h"
 #include "protocol.h"
@@ -40,27 +41,6 @@ static WiFiUDP udp;
 
 /* Button state */
 static unsigned long last_button_ms = 0;
-
-/*
- * Build a REPLY frame with current temperatures.
- * Returns frame length.
- */
-static size_t
-build_reply_frame (uint8_t *buf, size_t buf_len)
-{
-  int16_t temps[TMON_NUM_CHANNELS];
-  uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
-
-  /* Read temperatures */
-  tmon_read_temps (temps);
-
-  /* Build payload: 4 x int16-LE */
-  tmon_build_reply_payload (payload, temps);
-
-  /* Encode the REPLY frame */
-  return tmon_encode_frame (buf, buf_len, config_sensor_addr, TMON_CMD_REPLY,
-                              payload, TMON_REPLY_PAYLOAD_LEN);
-}
 
 /*
  * Connect to WiFi, retrying until successful.
@@ -127,7 +107,7 @@ loop (void)
     connect_wifi ();
 
   /* Build and send REPLY frame */
-  size_t tx_len = build_reply_frame (tx_buf, BUF_SIZE);
+  size_t tx_len = tmon_build_reply (tx_buf, BUF_SIZE, config_sensor_addr);
   if (tx_len > 0)
     {
       struct tmon_reply_payload parsed;

@@ -9,6 +9,32 @@
 #include "sensors.h"
 
 /*
+ * tmon_build_reply -- Build a REPLY frame with current temperatures.
+ *
+ * Reads the current sensor temperatures, packs them into a REPLY
+ * payload, and encodes the complete frame.
+ *
+ * Args:
+ *   buf:      Output buffer for the frame.
+ *   buf_len:  Size of the output buffer in bytes.
+ *   addr:     Sensor address (1-247).
+ *
+ * Returns:
+ *   Frame length written to buf, or 0 on error.
+ */
+size_t
+tmon_build_reply (uint8_t *buf, size_t buf_len, uint8_t addr)
+{
+  int16_t temps[TMON_NUM_CHANNELS];
+  uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
+
+  tmon_read_temps (temps);
+  tmon_build_reply_payload (payload, temps);
+  return tmon_encode_frame (buf, buf_len, addr, TMON_CMD_REPLY,
+                            payload, TMON_REPLY_PAYLOAD_LEN);
+}
+
+/*
  * tmon_handler_process -- Process a received frame and build a response.
  *
  * If the frame is a valid POLL for our address, builds a REPLY with
@@ -30,8 +56,6 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
 {
   uint8_t addr, cmd, payload_len;
   const uint8_t *payload;
-  int16_t temps[TMON_NUM_CHANNELS];
-  uint8_t reply_payload[TMON_REPLY_PAYLOAD_LEN];
 
   /* Try to decode the frame */
   if (tmon_decode_frame (data, len, &addr, &cmd, &payload, &payload_len) != 0)
@@ -45,13 +69,5 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
   if (cmd != TMON_CMD_POLL)
     return 0;
 
-  /* Read temperatures from sensors */
-  tmon_read_temps (temps);
-
-  /* Build reply payload: 4 x int16-LE */
-  tmon_build_reply_payload (reply_payload, temps);
-
-  /* Encode the REPLY frame */
-  return tmon_encode_frame (out, out_len, my_addr, TMON_CMD_REPLY,
-                              reply_payload, TMON_REPLY_PAYLOAD_LEN);
+  return tmon_build_reply (out, out_len, my_addr);
 }

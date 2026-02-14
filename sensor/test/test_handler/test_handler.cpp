@@ -156,6 +156,44 @@ test_handler_different_temps (void)
   TEST_ASSERT_EQUAL_INT16 (325, rp.temps[3]);
 }
 
+void
+test_build_reply (void)
+{
+  /* tmon_build_reply should produce a valid REPLY frame. */
+  uint8_t buf[64];
+  size_t len;
+
+  tmon_sensors_stub_set (210, -30, TMON_TEMP_INVALID, 150);
+
+  len = tmon_build_reply (buf, sizeof (buf), 7);
+
+  TEST_ASSERT_EQUAL (14, len);
+
+  uint8_t addr, cmd, plen;
+  const uint8_t *payload;
+  int rc = tmon_decode_frame (buf, len, &addr, &cmd, &payload, &plen);
+  TEST_ASSERT_EQUAL (0, rc);
+  TEST_ASSERT_EQUAL (7, addr);
+  TEST_ASSERT_EQUAL (TMON_CMD_REPLY, cmd);
+  TEST_ASSERT_EQUAL (8, plen);
+
+  struct tmon_reply_payload rp;
+  tmon_parse_reply (payload, plen, &rp);
+  TEST_ASSERT_EQUAL_INT16 (210, rp.temps[0]);
+  TEST_ASSERT_EQUAL_INT16 (-30, rp.temps[1]);
+  TEST_ASSERT_EQUAL_INT16 ((int16_t)TMON_TEMP_INVALID, rp.temps[2]);
+  TEST_ASSERT_EQUAL_INT16 (150, rp.temps[3]);
+}
+
+void
+test_build_reply_buffer_too_small (void)
+{
+  /* Buffer too small for a REPLY frame should return 0. */
+  uint8_t buf[4];
+
+  TEST_ASSERT_EQUAL (0, tmon_build_reply (buf, sizeof (buf), 1));
+}
+
 /* -- Unity setup/teardown ------------------------------------------------- */
 
 void
@@ -182,6 +220,8 @@ main (void)
   RUN_TEST (test_handler_ignores_short_frame);
   RUN_TEST (test_handler_ignores_bad_crc);
   RUN_TEST (test_handler_different_temps);
+  RUN_TEST (test_build_reply);
+  RUN_TEST (test_build_reply_buffer_too_small);
 
   return UNITY_END ();
 }
