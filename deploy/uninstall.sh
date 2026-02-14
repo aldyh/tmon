@@ -45,8 +45,9 @@ systemctl daemon-reload
 # Remove flash tool
 # ------------------------------------------------------------------
 
-echo "Removing /usr/local/bin/tmon-flash..."
+echo "Removing /usr/local/bin/tmon-flash and tmon-patch..."
 rm -f /usr/local/bin/tmon-flash
+rm -f /usr/local/bin/tmon-patch
 
 # ------------------------------------------------------------------
 # Remove venv and panel (always)
