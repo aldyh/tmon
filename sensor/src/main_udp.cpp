@@ -32,8 +32,8 @@ class UDPSensor : public SensorApp
   WiFiUDP udp;
 
   void connect_wifi ();
-  void transport_init () override;
-  void transport_loop () override;
+  void on_init () override;
+  void on_loop () override;
 };
 
 void
@@ -65,7 +65,7 @@ UDPSensor::connect_wifi ()
 }
 
 void
-UDPSensor::transport_init ()
+UDPSensor::on_init ()
 {
   Serial.println ("tmon UDP push sensor starting");
   Serial.print ("Address: ");
@@ -78,7 +78,7 @@ UDPSensor::transport_init ()
 }
 
 void
-UDPSensor::transport_loop ()
+UDPSensor::on_loop ()
 {
   /* Reconnect if WiFi dropped */
   if (WiFi.status () != WL_CONNECTED)

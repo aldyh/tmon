@@ -21,8 +21,8 @@ static const int BOOT_BUTTON = 0;
  * SensorApp::setup -- Common hardware init, then transport-specific init.
  *
  * Initializes serial debug output, configuration, temperature sensors,
- * status LED, and boot button.  Subclasses add transport setup in
- * transport_init().
+ * status LED, and boot button.  Subclasses add their own setup in
+ * on_init().
  */
 void
 SensorApp::setup ()
@@ -35,17 +35,17 @@ SensorApp::setup ()
   led_init ();
   pinMode (BOOT_BUTTON, INPUT_PULLUP);
 
-  transport_init ();
+  on_init ();
 }
 
 /*
- * SensorApp::loop -- Check boot button, then run transport loop.
+ * SensorApp::loop -- Check boot button, then run subclass loop.
  */
 void
 SensorApp::loop ()
 {
   check_button ();
-  transport_loop ();
+  on_loop ();
 }
 
 /*

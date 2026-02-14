@@ -2,8 +2,8 @@
  * app.h -- Sensor application base class
  *
  * Shared setup/loop skeleton for tmon sensor firmware.
- * Transport-specific subclasses override transport_init and
- * transport_loop to implement RS-485 or UDP communication.
+ * Subclasses override on_init and on_loop to implement their
+ * communication strategy (poll-response, push, etc.).
  */
 
 #ifndef TMON_APP_H
@@ -16,8 +16,8 @@ class SensorApp
 {
   unsigned long last_button_ms;
 
-  virtual void transport_init () = 0;
-  virtual void transport_loop () = 0;
+  virtual void on_init () = 0;
+  virtual void on_loop () = 0;
 
 protected:
   static const size_t BUF_SIZE = 64;

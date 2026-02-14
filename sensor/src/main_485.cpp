@@ -36,12 +36,12 @@ class RS485Sensor : public SensorApp
   size_t rx_len = 0;
   unsigned long last_rx_time = 0;
 
-  void transport_init () override;
-  void transport_loop () override;
+  void on_init () override;
+  void on_loop () override;
 };
 
 void
-RS485Sensor::transport_init ()
+RS485Sensor::on_init ()
 {
   Serial.println ("tmon sensor starting");
   Serial.print ("Address: ");
@@ -57,7 +57,7 @@ RS485Sensor::transport_init ()
 }
 
 void
-RS485Sensor::transport_loop ()
+RS485Sensor::on_loop ()
 {
   unsigned long now = millis ();
 
