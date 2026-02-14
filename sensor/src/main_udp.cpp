@@ -28,7 +28,7 @@ static const unsigned long TICK_MS = 10;
 
 class UDPSensor : public SensorApp
 {
-  WiFiUDP udp;
+  WiFiUDP m_udp;
 
   void connect_wifi ();
   void on_init () override;
@@ -88,9 +88,9 @@ UDPSensor::on_loop ()
   if (tx_len > 0)
     {
       log_reply ("Sending REPLY: ", tx_len);
-      udp.beginPacket (config_host, config_server_port);
-      udp.write (tx_buf, tx_len);
-      udp.endPacket ();
+      m_udp.beginPacket (config_host, config_server_port);
+      m_udp.write (m_tx_buf, tx_len);
+      m_udp.endPacket ();
       led_tx_blink ();
     }
   else

@@ -31,9 +31,9 @@ static const int UART_BAUD = 9600;
 class RS485Sensor : public SensorApp
 {
   static const size_t RX_BUF_SIZE = 64;
-  uint8_t rx_buf[RX_BUF_SIZE];
-  size_t rx_len = 0;
-  unsigned long last_rx_time = 0;
+  uint8_t m_rx_buf[RX_BUF_SIZE];
+  size_t m_rx_len = 0;
+  unsigned long m_last_rx_time = 0;
 
   void on_init () override;
   void on_loop () override;
@@ -61,26 +61,26 @@ RS485Sensor::on_loop ()
   unsigned long now = millis ();
 
   /* Read incoming bytes */
-  while (Serial1.available () && rx_len < RX_BUF_SIZE)
+  while (Serial1.available () && m_rx_len < RX_BUF_SIZE)
     {
-      rx_buf[rx_len++] = Serial1.read ();
-      last_rx_time = now;
+      m_rx_buf[m_rx_len++] = Serial1.read ();
+      m_last_rx_time = now;
     }
 
   /* Check for inter-byte timeout (frame boundary) */
-  if (rx_len > 0 && (now - last_rx_time) > 50)
+  if (m_rx_len > 0 && (now - m_last_rx_time) > 50)
     {
       Serial.print ("RX frame: ");
-      Serial.print (rx_len);
+      Serial.print (m_rx_len);
       Serial.println (" bytes");
 
       /* Try to process the accumulated bytes */
-      size_t tx_len = handle_request (config_sensor_addr, rx_buf, rx_len);
+      size_t tx_len = handle_request (config_sensor_addr, m_rx_buf, m_rx_len);
       if (tx_len > 0)
         {
           /* Send response */
           digitalWrite (PIN_DE_RE, HIGH);  /* transmit mode */
-          Serial1.write (tx_buf, tx_len);
+          Serial1.write (m_tx_buf, tx_len);
           Serial1.flush ();                /* wait for TX complete */
           digitalWrite (PIN_DE_RE, LOW);   /* back to receive mode */
           led_tx_blink ();
@@ -92,7 +92,7 @@ RS485Sensor::on_loop ()
         }
 
       /* Reset receive buffer */
-      rx_len = 0;
+      m_rx_len = 0;
     }
 }
 

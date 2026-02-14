@@ -19,14 +19,14 @@
 size_t
 SensorApp::build_reply (uint8_t addr)
 {
-  return tmon_handler_build_reply (tx_buf, BUF_SIZE, addr);
+  return tmon_handler_build_reply (m_tx_buf, BUF_SIZE, addr);
 }
 
 /* Process an incoming request frame into tx_buf. */
 size_t
 SensorApp::handle_request (uint8_t addr, const uint8_t *data, size_t len)
 {
-  return tmon_handler_process (addr, data, len, tx_buf, BUF_SIZE);
+  return tmon_handler_process (addr, data, len, m_tx_buf, BUF_SIZE);
 }
 
 /* Boot button (active LOW, internal pull-up) */
@@ -74,9 +74,9 @@ SensorApp::check_button ()
 {
   unsigned long now = millis ();
   if (digitalRead (BOOT_BUTTON) == LOW
-      && (now - last_button_ms) >= 500)
+      && (now - m_last_button_ms) >= 500)
     {
-      last_button_ms = now;
+      m_last_button_ms = now;
       led_identify (config_sensor_addr);
       Serial.print ("Identify: blinking ");
       Serial.print (config_sensor_addr);
@@ -98,7 +98,7 @@ void
 SensorApp::log_reply (const char *label, size_t len)
 {
   struct tmon_proto_reply_payload parsed;
-  tmon_proto_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
+  tmon_proto_parse_reply (&m_tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
   Serial.print (label);
   Serial.print (len);
   Serial.print (" bytes, ");

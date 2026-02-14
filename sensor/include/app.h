@@ -15,13 +15,13 @@
 class SensorApp
 {
   static const size_t BUF_SIZE = 64;
-  unsigned long last_button_ms;
+  unsigned long m_last_button_ms;
 
   virtual void on_init () = 0;
   virtual void on_loop () = 0;
 
 protected:
-  uint8_t tx_buf[BUF_SIZE];
+  uint8_t m_tx_buf[BUF_SIZE];
 
   size_t build_reply (uint8_t addr);
   size_t handle_request (uint8_t addr, const uint8_t *data, size_t len);
