@@ -32,7 +32,6 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
   const uint8_t *payload;
   int16_t temps[TMON_NUM_CHANNELS];
   uint8_t reply_payload[TMON_REPLY_PAYLOAD_LEN];
-  int i;
 
   /* Try to decode the frame */
   if (tmon_decode_frame (data, len, &addr, &cmd, &payload, &payload_len) != 0)
@@ -50,11 +49,7 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
   tmon_read_temps (temps);
 
   /* Build reply payload: 4 x int16-LE */
-  for (i = 0; i < TMON_NUM_CHANNELS; i++)
-    {
-      reply_payload[i * 2]     = (uint8_t)(temps[i] & 0xFF);
-      reply_payload[i * 2 + 1] = (uint8_t)((temps[i] >> 8) & 0xFF);
-    }
+  tmon_build_reply_payload (reply_payload, temps);
 
   /* Encode the REPLY frame */
   return tmon_encode_frame (out, out_len, my_addr, TMON_CMD_REPLY,

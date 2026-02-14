@@ -156,6 +156,30 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
 }
 
 /*
+ * tmon_build_reply_payload -- Pack temperatures into a REPLY payload.
+ *
+ * Encodes TMON_NUM_CHANNELS int16 values into payload as little-endian
+ * byte pairs.  The output is always TMON_REPLY_PAYLOAD_LEN bytes.
+ * This is the inverse of tmon_parse_reply.
+ *
+ * Args:
+ *   payload: Output buffer (must be at least TMON_REPLY_PAYLOAD_LEN bytes).
+ *   temps:   Array of TMON_NUM_CHANNELS int16 temperature values.
+ */
+
+void
+tmon_build_reply_payload (uint8_t *payload, const int16_t *temps)
+{
+  int i;
+
+  for (i = 0; i < TMON_NUM_CHANNELS; i++)
+    {
+      payload[i * 2]     = (uint8_t)(temps[i] & 0xFF);
+      payload[i * 2 + 1] = (uint8_t)((temps[i] >> 8) & 0xFF);
+    }
+}
+
+/*
  * tmon_parse_reply -- Parse an 8-byte REPLY payload.
  *
  * Unpacks four int16-LE temperature values into a tmon_reply_payload

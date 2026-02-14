@@ -50,6 +50,9 @@ int tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
                        uint8_t *cmd, const uint8_t **payload,
                        uint8_t *payload_len);
 
+void tmon_build_reply_payload (uint8_t *payload,
+                               const int16_t *temps);
+
 int tmon_parse_reply (const uint8_t *payload, uint8_t payload_len,
                       struct tmon_reply_payload *out);
 

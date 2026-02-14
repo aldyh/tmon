@@ -413,6 +413,68 @@ test_parse_wrong_length_long (void)
   TEST_ASSERT_EQUAL (-1, tmon_parse_reply (pl, 9, &rp));
 }
 
+/* -- build_reply_payload tests --------------------------------------------- */
+
+void
+test_build_reply_roundtrip (void)
+{
+  /* Build payload then parse it; temps should match. */
+  int16_t input[TMON_NUM_CHANNELS] = {235, 198, 0, 325};
+  uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
+  struct tmon_reply_payload parsed;
+  int i;
+
+  tmon_build_reply_payload (payload, input);
+  TEST_ASSERT_EQUAL (0, tmon_parse_reply (payload, TMON_REPLY_PAYLOAD_LEN,
+                                          &parsed));
+  for (i = 0; i < TMON_NUM_CHANNELS; i++)
+    TEST_ASSERT_EQUAL_INT16 (input[i], parsed.temps[i]);
+}
+
+void
+test_build_reply_known_values (void)
+{
+  /* Example 2 values: 235, 198, INVALID, INVALID -> known bytes. */
+  int16_t temps[TMON_NUM_CHANNELS] = {
+    235, 198, (int16_t)TMON_TEMP_INVALID, (int16_t)TMON_TEMP_INVALID
+  };
+  uint8_t expected[] = {
+    0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F
+  };
+  uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
+
+  tmon_build_reply_payload (payload, temps);
+  TEST_ASSERT_EQUAL_HEX8_ARRAY (expected, payload, TMON_REPLY_PAYLOAD_LEN);
+}
+
+void
+test_build_reply_negative_temps (void)
+{
+  /* Negative values should encode correctly as two's complement LE. */
+  int16_t temps[TMON_NUM_CHANNELS] = {-100, -50, -1, 0};
+  uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
+  struct tmon_reply_payload parsed;
+  int i;
+
+  tmon_build_reply_payload (payload, temps);
+
+  /* -100 = 0xFF9C -> LE: 0x9C, 0xFF */
+  TEST_ASSERT_EQUAL_HEX8 (0x9C, payload[0]);
+  TEST_ASSERT_EQUAL_HEX8 (0xFF, payload[1]);
+  /* -50 = 0xFFCE -> LE: 0xCE, 0xFF */
+  TEST_ASSERT_EQUAL_HEX8 (0xCE, payload[2]);
+  TEST_ASSERT_EQUAL_HEX8 (0xFF, payload[3]);
+  /* -1 = 0xFFFF -> LE: 0xFF, 0xFF */
+  TEST_ASSERT_EQUAL_HEX8 (0xFF, payload[4]);
+  TEST_ASSERT_EQUAL_HEX8 (0xFF, payload[5]);
+
+  /* Roundtrip check */
+  TEST_ASSERT_EQUAL (0, tmon_parse_reply (payload, TMON_REPLY_PAYLOAD_LEN,
+                                          &parsed));
+  for (i = 0; i < TMON_NUM_CHANNELS; i++)
+    TEST_ASSERT_EQUAL_INT16 (temps[i], parsed.temps[i]);
+}
+
 /* -- Unity setup/teardown ------------------------------------------------- */
 
 void
@@ -467,6 +529,11 @@ main (void)
   RUN_TEST (test_parse_negative_temperature);
   RUN_TEST (test_parse_wrong_length_short);
   RUN_TEST (test_parse_wrong_length_long);
+
+  /* Build reply payload */
+  RUN_TEST (test_build_reply_roundtrip);
+  RUN_TEST (test_build_reply_known_values);
+  RUN_TEST (test_build_reply_negative_temps);
 
   return UNITY_END ();
 }

@@ -55,11 +55,7 @@ build_reply_frame (uint8_t *buf, size_t buf_len)
   tmon_read_temps (temps);
 
   /* Build payload: 4 x int16-LE */
-  for (int i = 0; i < TMON_NUM_CHANNELS; i++)
-    {
-      payload[i * 2]     = (uint8_t) (temps[i] & 0xFF);
-      payload[i * 2 + 1] = (uint8_t) ((temps[i] >> 8) & 0xFF);
-    }
+  tmon_build_reply_payload (payload, temps);
 
   /* Encode the REPLY frame */
   return tmon_encode_frame (buf, buf_len, config_sensor_addr, TMON_CMD_REPLY,
