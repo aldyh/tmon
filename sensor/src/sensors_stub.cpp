@@ -10,13 +10,13 @@
 static int16_t stub_temps[TMON_NUM_CHANNELS] = {235, 198, TMON_TEMP_INVALID, TMON_TEMP_INVALID};
 
 void
-tmon_sensors_init (void)
+tmon_sensor_init (void)
 {
   /* Nothing to initialize in stub */
 }
 
 void
-tmon_read_temps (int16_t temps[TMON_NUM_CHANNELS])
+tmon_sensor_read_temps (int16_t temps[TMON_NUM_CHANNELS])
 {
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)
@@ -30,7 +30,7 @@ tmon_read_temps (int16_t temps[TMON_NUM_CHANNELS])
  * Not declared in header -- only for test code.
  */
 void
-tmon_sensors_stub_set (int16_t t0, int16_t t1, int16_t t2, int16_t t3)
+tmon_sensor_stub_set (int16_t t0, int16_t t1, int16_t t2, int16_t t3)
 {
   stub_temps[0] = t0;
   stub_temps[1] = t1;

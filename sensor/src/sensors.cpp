@@ -31,12 +31,12 @@ static const int ADC_MIN_VALID = 100;         /* Below this = shorted */
 static const int ADC_MAX_VALID = 3995;        /* Above this = open */
 
 /*
- * tmon_sensors_init -- Initialize ADC for temperature reading.
+ * tmon_sensor_init -- Initialize ADC for temperature reading.
  *
- * Call once at startup before tmon_read_temps().
+ * Call once at startup before tmon_sensor_read_temps().
  */
 void
-tmon_sensors_init (void)
+tmon_sensor_init (void)
 {
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)
@@ -86,7 +86,7 @@ adc_to_temp (int adc_value)
 }
 
 /*
- * tmon_read_temps -- Read temperatures from all 4 channels.
+ * tmon_sensor_read_temps -- Read temperatures from all 4 channels.
  *
  * Reads ADC values, converts to temperature using B parameter equation.
  * Unconnected channels (ADC reads 0 or near-max) report TMON_TEMP_INVALID.
@@ -95,7 +95,7 @@ adc_to_temp (int adc_value)
  *   temps: Output array of 4 int16_t values (tenths of degree C).
  */
 void
-tmon_read_temps (int16_t temps[TMON_NUM_CHANNELS])
+tmon_sensor_read_temps (int16_t temps[TMON_NUM_CHANNELS])
 {
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)

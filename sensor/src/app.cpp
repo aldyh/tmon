@@ -19,7 +19,7 @@
 size_t
 SensorApp::build_reply (uint8_t addr)
 {
-  return tmon_build_reply (tx_buf, BUF_SIZE, addr);
+  return tmon_handler_build_reply (tx_buf, BUF_SIZE, addr);
 }
 
 /* Process an incoming request frame into tx_buf. */
@@ -46,7 +46,7 @@ SensorApp::setup ()
   delay (5000);
 
   config_init ();
-  tmon_sensors_init ();
+  tmon_sensor_init ();
   led_init ();
   pinMode (BOOT_BUTTON, INPUT_PULLUP);
 
@@ -97,8 +97,8 @@ SensorApp::check_button ()
 void
 SensorApp::log_reply (const char *label, size_t len)
 {
-  struct tmon_reply_payload parsed;
-  tmon_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
+  struct tmon_proto_reply_payload parsed;
+  tmon_proto_parse_reply (&tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);
   Serial.print (label);
   Serial.print (len);
   Serial.print (" bytes, ");

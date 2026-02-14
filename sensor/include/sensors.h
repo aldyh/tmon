@@ -11,7 +11,7 @@
 #include <stdint.h>
 #include "protocol.h"
 
-void tmon_sensors_init (void);
-void tmon_read_temps (int16_t temps[TMON_NUM_CHANNELS]);
+void tmon_sensor_init (void);
+void tmon_sensor_read_temps (int16_t temps[TMON_NUM_CHANNELS]);
 
 #endif /* TMON_SENSORS_H */

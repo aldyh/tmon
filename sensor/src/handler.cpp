@@ -9,7 +9,7 @@
 #include "sensors.h"
 
 /*
- * tmon_build_reply -- Build a REPLY frame with current temperatures.
+ * tmon_handler_build_reply -- Build a REPLY frame with current temperatures.
  *
  * Reads the current sensor temperatures, packs them into a REPLY
  * payload, and encodes the complete frame.
@@ -23,14 +23,14 @@
  *   Frame length written to buf, or 0 on error.
  */
 size_t
-tmon_build_reply (uint8_t *buf, size_t buf_len, uint8_t addr)
+tmon_handler_build_reply (uint8_t *buf, size_t buf_len, uint8_t addr)
 {
   int16_t temps[TMON_NUM_CHANNELS];
   uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
 
-  tmon_read_temps (temps);
-  tmon_build_reply_payload (payload, temps);
-  return tmon_encode_frame (buf, buf_len, addr, TMON_CMD_REPLY,
+  tmon_sensor_read_temps (temps);
+  tmon_proto_build_reply_payload (payload, temps);
+  return tmon_proto_encode_frame (buf, buf_len, addr, TMON_CMD_REPLY,
                             payload, TMON_REPLY_PAYLOAD_LEN);
 }
 
@@ -58,7 +58,7 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
   const uint8_t *payload;
 
   /* Try to decode the frame */
-  if (tmon_decode_frame (data, len, &addr, &cmd, &payload, &payload_len) != 0)
+  if (tmon_proto_decode_frame (data, len, &addr, &cmd, &payload, &payload_len) != 0)
     return 0;
 
   /* Ignore if not for us */
@@ -69,5 +69,5 @@ tmon_handler_process (uint8_t my_addr, const uint8_t *data, size_t len,
   if (cmd != TMON_CMD_POLL)
     return 0;
 
-  return tmon_build_reply (out, out_len, my_addr);
+  return tmon_handler_build_reply (out, out_len, my_addr);
 }

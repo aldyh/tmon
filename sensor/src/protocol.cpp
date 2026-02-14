@@ -9,7 +9,7 @@
 #include <string.h>
 
 /*
- * tmon_crc16 -- Compute CRC-16/MODBUS over a byte buffer.
+ * tmon_proto_crc16 -- Compute CRC-16/MODBUS over a byte buffer.
  *
  * Uses polynomial 0x8005 with initial value 0xFFFF and reflected
  * input/output (standard MODBUS CRC).
@@ -23,7 +23,7 @@
  */
 
 uint16_t
-tmon_crc16 (const uint8_t *data, size_t len)
+tmon_proto_crc16 (const uint8_t *data, size_t len)
 {
   uint16_t crc = 0xFFFF;
   size_t i;
@@ -44,7 +44,7 @@ tmon_crc16 (const uint8_t *data, size_t len)
 }
 
 /*
- * tmon_encode_frame -- Build a complete protocol frame into buf.
+ * tmon_proto_encode_frame -- Build a complete protocol frame into buf.
  *
  * Constructs: START + ADDR + CMD + LEN + PAYLOAD + CRC_LO + CRC_HI.
  * CRC is computed over ADDR + CMD + LEN + PAYLOAD.
@@ -62,7 +62,7 @@ tmon_crc16 (const uint8_t *data, size_t len)
  */
 
 size_t
-tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
+tmon_proto_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
                      const uint8_t *payload, uint8_t payload_len)
 {
   size_t frame_len;
@@ -85,7 +85,7 @@ tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
     memcpy (&buf[4], payload, payload_len);
 
   /* CRC over ADDR + CMD + LEN + PAYLOAD */
-  crc = tmon_crc16 (&buf[1], 3 + payload_len);
+  crc = tmon_proto_crc16 (&buf[1], 3 + payload_len);
 
   pos = 4 + payload_len;
   buf[pos]     = (uint8_t)(crc & 0xFF);
@@ -95,7 +95,7 @@ tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
 }
 
 /*
- * tmon_decode_frame -- Decode a raw frame and extract fields.
+ * tmon_proto_decode_frame -- Decode a raw frame and extract fields.
  *
  * Validates START byte, length field, CRC, and address range.
  * On success the payload pointer points into the input data buffer
@@ -114,7 +114,7 @@ tmon_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd,
  */
 
 int
-tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
+tmon_proto_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
                    uint8_t *cmd, const uint8_t **payload,
                    uint8_t *payload_len)
 {
@@ -137,7 +137,7 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
   /* CRC is stored LE at the end of the frame */
   crc_received = (uint16_t)data[4 + plen]
                | ((uint16_t)data[4 + plen + 1] << 8);
-  crc_computed = tmon_crc16 (&data[1], 3 + plen);
+  crc_computed = tmon_proto_crc16 (&data[1], 3 + plen);
   if (crc_received != crc_computed)
     return -1;
 
@@ -156,11 +156,11 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
 }
 
 /*
- * tmon_build_reply_payload -- Pack temperatures into a REPLY payload.
+ * tmon_proto_build_reply_payload -- Pack temperatures into a REPLY payload.
  *
  * Encodes TMON_NUM_CHANNELS int16 values into payload as little-endian
  * byte pairs.  The output is always TMON_REPLY_PAYLOAD_LEN bytes.
- * This is the inverse of tmon_parse_reply.
+ * This is the inverse of tmon_proto_parse_reply.
  *
  * Args:
  *   payload: Output buffer (must be at least TMON_REPLY_PAYLOAD_LEN bytes).
@@ -168,7 +168,7 @@ tmon_decode_frame (const uint8_t *data, size_t len, uint8_t *addr,
  */
 
 void
-tmon_build_reply_payload (uint8_t *payload, const int16_t *temps)
+tmon_proto_build_reply_payload (uint8_t *payload, const int16_t *temps)
 {
   int i;
 
@@ -180,9 +180,9 @@ tmon_build_reply_payload (uint8_t *payload, const int16_t *temps)
 }
 
 /*
- * tmon_parse_reply -- Parse an 8-byte REPLY payload.
+ * tmon_proto_parse_reply -- Parse an 8-byte REPLY payload.
  *
- * Unpacks four int16-LE temperature values into a tmon_reply_payload
+ * Unpacks four int16-LE temperature values into a tmon_proto_reply_payload
  * struct.  Invalid channels have the value TMON_TEMP_INVALID.
  *
  * Args:
@@ -195,8 +195,8 @@ tmon_build_reply_payload (uint8_t *payload, const int16_t *temps)
  */
 
 int
-tmon_parse_reply (const uint8_t *payload, uint8_t payload_len,
-                  struct tmon_reply_payload *out)
+tmon_proto_parse_reply (const uint8_t *payload, uint8_t payload_len,
+                  struct tmon_proto_reply_payload *out)
 {
   int i;
 
