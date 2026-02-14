@@ -6,6 +6,10 @@ the default ``make check-server`` run (marker: ``integration``).
 Run with::
 
     make check-integration
+
+Note: these tests verify that the expected number of rows appear in
+SQLite storage, but do not read back individual column values to
+confirm that the stored temperatures match what the simulator produced.
 """
 
 import os

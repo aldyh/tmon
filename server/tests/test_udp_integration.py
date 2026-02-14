@@ -4,6 +4,10 @@ Tests the full push cycle over localhost UDP:
 - UDPReceiver listening on localhost
 - Simulated sensor pushing REPLY frames
 - UDPListener receives and stores readings
+
+Note: these tests verify exact values on the Reading object returned
+by the receiver, but do not read them back from SQLite to confirm
+that the stored values match what was sent.
 """
 
 import socket
