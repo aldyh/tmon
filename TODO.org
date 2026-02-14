@@ -1066,7 +1066,7 @@ for i, v in enumerate(raw["sensors"]):
 ** Notes
 Added range check in ~_require_sensors()~ after the type check.
 Two new tests: ~test_sensors_addr_zero~ and ~test_sensors_addr_too_high~.
-* TODO Remove misleading push_interval from config-udp.toml
+* DONE Remove misleading push_interval from config-udp.toml
 ~config-udp.toml~ line 17 contains ~push_interval = 5~ which the server
 config loader silently ignores.  This value only matters on the sensor
 side (patched into firmware by ~tmon-patch~).  Having it in a server

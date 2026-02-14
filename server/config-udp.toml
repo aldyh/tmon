@@ -13,5 +13,6 @@ db = "tmon.db"
 [udp]
 # UDP port to listen on for incoming readings
 port = 5555
-# How often sensors push readings (seconds)
+# How often sensors push readings (seconds).  Only used by tmon-flash
+# when patching firmware; the server just listens passively.
 push_interval = 5
