@@ -18,7 +18,6 @@
 
 #include "app.h"
 #include "config.h"
-#include "handler.h"
 #include "led.h"
 
 /* Pin assignments per docs/wiring.org */
@@ -76,8 +75,7 @@ RS485Sensor::on_loop ()
       Serial.println (" bytes");
 
       /* Try to process the accumulated bytes */
-      size_t tx_len = tmon_handler_process (config_sensor_addr, rx_buf, rx_len,
-                                            tx_buf, BUF_SIZE);
+      size_t tx_len = handle_request (config_sensor_addr, rx_buf, rx_len);
       if (tx_len > 0)
         {
           /* Send response */

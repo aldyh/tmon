@@ -18,7 +18,6 @@
 
 #include "app.h"
 #include "config.h"
-#include "handler.h"
 #include "led.h"
 
 /* WiFi connection timeout (ms) */
@@ -85,7 +84,7 @@ UDPSensor::on_loop ()
     connect_wifi ();
 
   /* Build and send REPLY frame */
-  size_t tx_len = tmon_build_reply (tx_buf, BUF_SIZE, config_sensor_addr);
+  size_t tx_len = build_reply (config_sensor_addr);
   if (tx_len > 0)
     {
       log_reply ("Sending REPLY: ", tx_len);
