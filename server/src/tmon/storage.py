@@ -6,10 +6,13 @@ One row per successful REPLY frame, storing raw int16 temperatures
 integers (seconds since 1970-01-01 00:00:00 UTC).
 """
 
+import logging
 import sqlite3
 import time
 from pathlib import Path
 
+
+log = logging.getLogger(__name__)
 
 _NUM_CHANNELS = 4
 
@@ -86,6 +89,22 @@ class Storage:
 
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         self.close()
+
+    def purge(self, days: int) -> int:
+        """Delete readings older than *days* days and vacuum.
+
+        Returns the number of deleted rows.
+        """
+        cutoff = int(time.time()) - days * 86400
+        cursor = self._conn.execute(
+            "DELETE FROM readings WHERE ts < ?", (cutoff,)
+        )
+        deleted = cursor.rowcount
+        self._conn.commit()
+        if deleted > 0:
+            self._conn.execute("VACUUM")
+            log.info("purged %d readings older than %d days", deleted, days)
+        return deleted
 
     def close(self) -> None:
         """Close the database connection."""

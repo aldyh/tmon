@@ -1075,13 +1075,7 @@ from the server.
 
 Either remove it from the file, or add a comment making clear it is
 informational only and has no effect on the server.
-* TODO Add database retention / cleanup mechanism
-The SQLite database grows without bound.  At 4 sensors polling every
-30 seconds, that's ~4.2M rows/year (~200MB).  After a few years this
-becomes unwieldy.
-
-Options:
-1. A CLI command or daemon flag that deletes rows older than N days.
-2. A periodic task (cron or built into the daemon loop) that prunes
-   old data.
-3. Document expected growth and manual cleanup in docs/storage.org.
+* DONE Add database retention / cleanup mechanism
+The daemon purges readings older than 365 days on startup, then
+vacuums to reclaim disk space.  See ~Storage.purge()~ in
+~server/src/tmon/storage.py~.

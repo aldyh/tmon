@@ -7,7 +7,10 @@ server poller.
 - *Database file:* ~tmon.db~ (configurable in ~config-485.toml~, resolved by ~tmon.paths~).
 - *Engine:* SQLite 3
 - *Write pattern:* one INSERT per successful poll reply.
-- *No deletes or updates* during normal operation.
+- *Retention:* on startup the daemon deletes readings older than 365
+  days and vacuums the database to reclaim disk space.
+- *No deletes or updates* during normal operation (apart from the
+  startup purge above).
 - *Failed polls:* no row is inserted. Timeouts, CRC errors, and other
   failures result in timestamp gaps rather than placeholder rows. This
   is intentional -- gaps keep the data clean and are easy to detect by

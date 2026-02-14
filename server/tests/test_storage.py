@@ -1,6 +1,7 @@
 """Tests for tmon.storage."""
 
 import re
+import time
 
 import pytest
 
@@ -140,4 +141,60 @@ class TestStorageContextManager:
         """__enter__ returns the Storage instance."""
         store = Storage(":memory:")
         assert store.__enter__() is store
+        store.close()
+
+
+class TestPurge:
+    """Tests for Storage.purge."""
+
+    def _insert_at(self, store, ts: int, addr: int) -> None:
+        """Insert a reading with a specific timestamp."""
+        store._conn.execute(
+            "INSERT INTO readings (ts, addr, temp_0) VALUES (?, ?, ?)",
+            (ts, addr, 200),
+        )
+        store._conn.commit()
+
+    def test_purge_deletes_old_rows(self):
+        """purge removes rows older than the given number of days."""
+        store = Storage(":memory:")
+        now = int(time.time())
+        self._insert_at(store, now - 400 * 86400, 1)  # 400 days ago
+        self._insert_at(store, now - 10 * 86400, 1)   # 10 days ago
+        deleted = store.purge(365)
+        assert deleted == 1
+        rows = store.fetch(10)
+        assert len(rows) == 1
+        store.close()
+
+    def test_purge_keeps_recent_rows(self):
+        """purge does not delete rows within the retention period."""
+        store = Storage(":memory:")
+        now = int(time.time())
+        self._insert_at(store, now - 100 * 86400, 1)
+        self._insert_at(store, now - 200 * 86400, 2)
+        deleted = store.purge(365)
+        assert deleted == 0
+        rows = store.fetch(10)
+        assert len(rows) == 2
+        store.close()
+
+    def test_purge_returns_zero_on_empty_db(self):
+        """purge on an empty database returns 0."""
+        store = Storage(":memory:")
+        deleted = store.purge(365)
+        assert deleted == 0
+        store.close()
+
+    def test_purge_deletes_all_old(self):
+        """purge removes multiple old rows at once."""
+        store = Storage(":memory:")
+        now = int(time.time())
+        for i in range(5):
+            self._insert_at(store, now - (400 + i) * 86400, 1)
+        self._insert_at(store, now, 1)  # recent
+        deleted = store.purge(365)
+        assert deleted == 5
+        rows = store.fetch(10)
+        assert len(rows) == 1
         store.close()

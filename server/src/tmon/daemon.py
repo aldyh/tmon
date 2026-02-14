@@ -21,6 +21,8 @@ from tmon.storage import Storage
 from tmon.udp_listener import UDPListener
 from tmon.udp_receiver import UDPReceiver
 
+_RETENTION_DAYS = 365
+
 log = logging.getLogger(__name__)
 
 _shutdown = threading.Event()
@@ -95,6 +97,7 @@ def main() -> None:
     transport = cfg["transport"]
 
     storage = Storage(cfg["db"])
+    storage.purge(_RETENTION_DAYS)
     signal.signal(signal.SIGINT, _on_signal)
     signal.signal(signal.SIGTERM, _on_signal)
 
