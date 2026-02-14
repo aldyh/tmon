@@ -1039,3 +1039,46 @@ list the index alongside the table definition.
 ** Notes
 Added an "Indexes" subsection after "Column details" in docs/storage.org
 documenting the idx_readings_addr_ts composite index on (addr, ts).
+* TODO Fix uninstall.sh: tmon-patch not removed
+~install.sh~ installs both ~tmon-flash~ and ~tmon-patch~ to
+~/usr/local/bin/~, but ~uninstall.sh~ only removes ~tmon-flash~ (line
+49).  ~tmon-patch~ is left behind after uninstall.
+
+One-line fix: add ~rm -f /usr/local/bin/tmon-patch~ after the existing
+~rm -f /usr/local/bin/tmon-flash~ line.
+* TODO Validate sensor address range (1-247) in config.py
+~_require_sensors()~ checks that values are ints and the list is
+non-empty, but does not validate the 1-247 address range.  A typo like
+~sensors = [0]~ or ~sensors = [300]~ passes config validation and only
+fails at protocol encode time deep in the poll loop.
+
+Add a range check in ~_require_sensors()~:
+
+#+begin_example
+for i, v in enumerate(raw["sensors"]):
+    if not isinstance(v, int):
+        raise ValueError(...)
+    if v < 1 or v > 247:
+        raise ValueError("sensors[%d] must be 1-247, got %d" % (i, v))
+#+end_example
+* TODO Remove misleading push_interval from config-udp.toml
+~config-udp.toml~ line 17 contains ~push_interval = 5~ which the server
+config loader silently ignores.  This value only matters on the sensor
+side (patched into firmware by ~tmon-patch~).  Having it in a server
+config file misleads users into thinking they can change the push rate
+from the server.
+
+Either remove it from the file, or add a comment making clear it is
+informational only and has no effect on the server.
+* TODO Add database retention / cleanup mechanism
+The SQLite database grows without bound.  At 4 sensors polling every
+30 seconds, that's ~4.2M rows/year (~200MB).  After a few years this
+becomes unwieldy.
+
+Options:
+1. A CLI command or daemon flag that deletes rows older than N days.
+2. A periodic task (cron or built into the daemon loop) that prunes
+   old data.
+3. Document expected growth and manual cleanup in docs/storage.org.
+
+Option 3 for now.
