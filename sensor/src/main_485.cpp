@@ -29,8 +29,7 @@ static const int PIN_UART_TX = 17;
 static const int PIN_DE_RE   = 5;
 
 /* Boot button (active LOW, internal pull-up) */
-static const int PIN_BUTTON = 0;
-static const unsigned long BUTTON_DEBOUNCE_MS = 500;
+static const int BOOT_BUTTON = 0;
 
 /* RS-485 bus parameters per docs/protocol.org */
 static const int UART_BAUD = 9600;
@@ -44,8 +43,6 @@ static size_t rx_len = 0;
 static const size_t TX_BUF_SIZE = 64;
 static uint8_t tx_buf[TX_BUF_SIZE];
 
-/* Inter-byte timeout (ms) for frame assembly */
-static const unsigned long FRAME_TIMEOUT_MS = 50;
 static unsigned long last_rx_time = 0;
 
 /* Button state */
@@ -67,7 +64,7 @@ setup (void)
 
   tmon_sensors_init ();
   led_init ();
-  pinMode (PIN_BUTTON, INPUT_PULLUP);
+  pinMode (BOOT_BUTTON, INPUT_PULLUP);
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);
@@ -84,8 +81,8 @@ loop (void)
   unsigned long now = millis ();
 
   /* Check boot button (active LOW) */
-  if (digitalRead (PIN_BUTTON) == LOW
-      && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
+  if (digitalRead (BOOT_BUTTON) == LOW
+      && (now - last_button_ms) >= 500)
     {
       last_button_ms = now;
       led_identify (config_sensor_addr);
@@ -94,8 +91,15 @@ loop (void)
       Serial.println (" times");
     }
 
+  /* Read incoming bytes */
+  while (Serial1.available () && rx_len < RX_BUF_SIZE)
+    {
+      rx_buf[rx_len++] = Serial1.read ();
+      last_rx_time = now;
+    }
+
   /* Check for inter-byte timeout (frame boundary) */
-  if (rx_len > 0 && (now - last_rx_time) > FRAME_TIMEOUT_MS)
+  if (rx_len > 0 && (now - last_rx_time) > 50)
     {
       Serial.print ("RX frame: ");
       Serial.print (rx_len);
@@ -128,12 +132,5 @@ loop (void)
 
       /* Reset receive buffer */
       rx_len = 0;
-    }
-
-  /* Read incoming bytes */
-  while (Serial1.available () && rx_len < RX_BUF_SIZE)
-    {
-      rx_buf[rx_len++] = Serial1.read ();
-      last_rx_time = now;
     }
 }

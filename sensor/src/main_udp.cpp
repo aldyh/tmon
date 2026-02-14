@@ -23,8 +23,7 @@
 #include "sensors.h"
 
 /* Boot button (active LOW, internal pull-up) */
-static const int PIN_BUTTON = 0;
-static const unsigned long BUTTON_DEBOUNCE_MS = 500;
+static const int BOOT_BUTTON = 0;
 
 /* WiFi connection timeout (ms) */
 static const unsigned long WIFI_TIMEOUT_MS = 10000;
@@ -112,7 +111,7 @@ setup (void)
   tmon_sensors_init ();
   led_init ();
 
-  pinMode (PIN_BUTTON, INPUT_PULLUP);
+  pinMode (BOOT_BUTTON, INPUT_PULLUP);
 
   Serial.println ("tmon UDP push sensor starting");
   Serial.print ("Address: ");
@@ -159,8 +158,8 @@ loop (void)
       unsigned long now = millis ();
 
       /* Check boot button (active LOW) */
-      if (digitalRead (PIN_BUTTON) == LOW
-          && (now - last_button_ms) >= BUTTON_DEBOUNCE_MS)
+      if (digitalRead (BOOT_BUTTON) == LOW
+          && (now - last_button_ms) >= 500)
         {
           last_button_ms = now;
           led_identify (config_sensor_addr);
