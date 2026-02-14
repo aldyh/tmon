@@ -138,6 +138,30 @@ class TestLoadConfig:
         with pytest.raises(ValueError, match="sensors"):
             load_config(path)
 
+    def test_sensors_addr_zero(self, tmp_path):
+        """Address 0 in sensors raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
+            'sensors = [0]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+        ))
+        with pytest.raises(ValueError, match="sensors.*1-247"):
+            load_config(path)
+
+    def test_sensors_addr_too_high(self, tmp_path):
+        """Address 248 in sensors raises ValueError."""
+        path = _write_toml(tmp_path, (
+            'port = "/dev/ttyUSB0"\n'
+            'baudrate = 9600\n'
+            'sensors = [1, 248]\n'
+            'db = "test.db"\n'
+            'interval = 10\n'
+        ))
+        with pytest.raises(ValueError, match="sensors.*1-247"):
+            load_config(path)
+
     def test_sensors_empty(self, tmp_path):
         """Empty 'sensors' list raises ValueError."""
         path = _write_toml(tmp_path, (

@@ -64,6 +64,8 @@ def _require_sensors(raw: dict[str, object]) -> None:
     for i, v in enumerate(raw["sensors"]):
         if not isinstance(v, int):
             raise ValueError("sensors[%d] must be int, got %s" % (i, type(v).__name__))
+        if v < 1 or v > 247:
+            raise ValueError("sensors[%d] must be 1-247, got %d" % (i, v))
     if len(raw["sensors"]) == 0:
         raise ValueError("sensors must not be empty")
 
