@@ -11,9 +11,37 @@
 #include "config.h"
 #include "dispatch.h"
 #include "led.h"
-#include "log.h"
 #include "protocol.h"
 #include "sensors.h"
+
+/*
+ * print_temps -- Print temperature readings to serial.
+ *
+ * Prints temps in human-readable format: temps=[23.4, 25.1, --.-, 22.0]
+ */
+static void
+print_temps (const int16_t *temps)
+{
+  Serial.print ("temps=[");
+  for (int i = 0; i < TMON_NUM_CHANNELS; i++)
+    {
+      if (i > 0)
+        Serial.print (", ");
+      if (temps[i] == TMON_TEMP_INVALID)
+        Serial.print ("--.-");
+      else
+        {
+          /* -9..-1 represent -0.9..-0.1 C; division truncates to 0,
+             losing the sign.  Print it explicitly. */
+          if (temps[i] < 0 && temps[i] > -10)
+            Serial.print ("-");
+          Serial.print (temps[i] / 10);
+          Serial.print (".");
+          Serial.print (abs (temps[i]) % 10);
+        }
+    }
+  Serial.println ("]");
+}
 
 /* Build a REPLY frame into tx_buf. */
 size_t
@@ -102,5 +130,5 @@ SensorApp::log_temps (const char *label, size_t len)
   Serial.print (label);
   Serial.print (len);
   Serial.print (" bytes, ");
-  log_temps (parsed.temps);
+  print_temps (parsed.temps);
 }
