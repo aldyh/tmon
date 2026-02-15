@@ -11,9 +11,6 @@
 #include <stddef.h>
 #include <stdint.h>
 
-/* Frame delimiter */
-#define TMON_START_BYTE  0x01
-
 /* Command bytes */
 #define TMON_CMD_POLL   0x01
 #define TMON_CMD_REPLY  0x02
@@ -23,9 +20,6 @@
 
 /* Sentinel value for invalid/unconnected temperature channels */
 #define TMON_TEMP_INVALID  0x7FFF
-
-/* Frame overhead: START + ADDR + CMD + LEN + CRC_LO + CRC_HI */
-#define TMON_FRAME_OVERHEAD  6
 
 /* Number of temperature channels per sensor */
 #define TMON_NUM_CHANNELS  4
@@ -39,8 +33,6 @@ struct tmon_proto_reply_payload
 {
   int16_t temps[TMON_NUM_CHANNELS];
 };
-
-uint16_t tmon_proto_crc16 (const uint8_t *data, size_t len);
 
 size_t tmon_proto_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr,
                             uint8_t cmd, const uint8_t *payload,

@@ -8,6 +8,12 @@
 
 #include <string.h>
 
+/* Frame delimiter */
+#define TMON_START_BYTE  0x01
+
+/* Frame overhead: START + ADDR + CMD + LEN + CRC_LO + CRC_HI */
+#define TMON_FRAME_OVERHEAD  6
+
 /*
  * tmon_proto_crc16 -- Compute CRC-16/MODBUS over a byte buffer.
  *
@@ -22,7 +28,7 @@
  *   16-bit CRC value.
  */
 
-uint16_t
+static uint16_t
 tmon_proto_crc16 (const uint8_t *data, size_t len)
 {
   uint16_t crc = 0xFFFF;

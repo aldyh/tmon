@@ -10,44 +10,6 @@
 
 #include "protocol.h"
 
-/* -- CRC-16/MODBUS tests -------------------------------------------------- */
-
-void
-test_crc_example1_poll_sensor3 (void)
-{
-  /* CRC of [03 01 00] should be 0x5080 (Example 1 in spec). */
-  uint8_t body[] = {0x03, 0x01, 0x00};
-  TEST_ASSERT_EQUAL_HEX16 (0x5080, tmon_proto_crc16 (body, sizeof (body)));
-}
-
-void
-test_crc_example2_reply_sensor3 (void)
-{
-  /* CRC of Example 2 body should be 0xEB90 (spec). */
-  uint8_t body[] = {
-    0x03, 0x02, 0x08,
-    0xEB, 0x00, 0xC6, 0x00, 0xFF, 0x7F, 0xFF, 0x7F,
-  };
-  TEST_ASSERT_EQUAL_HEX16 (0xEB90, tmon_proto_crc16 (body, sizeof (body)));
-}
-
-void
-test_crc_empty_input (void)
-{
-  /* CRC of empty data should be the initial value 0xFFFF. */
-  TEST_ASSERT_EQUAL_HEX16 (0xFFFF, tmon_proto_crc16 (NULL, 0));
-}
-
-void
-test_crc_single_byte (void)
-{
-  /* CRC of a single zero byte should not be 0xFFFF. */
-  uint8_t data[] = {0x00};
-  uint16_t crc = tmon_proto_crc16 (data, 1);
-  TEST_ASSERT_NOT_EQUAL (0xFFFF, crc);
-  TEST_ASSERT_TRUE (crc <= 0xFFFF);
-}
-
 /* -- encode_request tests ------------------------------------------------- */
 
 void
@@ -95,10 +57,10 @@ test_encode_poll_length_is_6 (void)
 void
 test_encode_start_byte (void)
 {
-  /* First byte of any frame is TMON_START_BYTE. */
+  /* First byte of any frame is the START byte (0x01). */
   uint8_t buf[64];
   tmon_proto_encode_frame (buf, sizeof (buf), 1, TMON_CMD_POLL, NULL, 0);
-  TEST_ASSERT_EQUAL_HEX8 (TMON_START_BYTE, buf[0]);
+  TEST_ASSERT_EQUAL_HEX8 (0x01, buf[0]);
 }
 
 void
@@ -309,19 +271,10 @@ void
 test_decode_error_addr_zero (void)
 {
   /* Address 0 in a frame should be rejected.
-   * Craft a frame with addr=0 and valid CRC. */
-  uint8_t body[] = {0x00, TMON_CMD_POLL, 0x00};
-  uint16_t crc = tmon_proto_crc16 (body, sizeof (body));
-  uint8_t raw[6];
+   * Hand-crafted frame: START=0x01, addr=0, cmd=POLL, len=0, CRC=0x5070. */
+  uint8_t raw[] = {0x01, 0x00, TMON_CMD_POLL, 0x00, 0x70, 0x50};
   uint8_t addr, cmd, plen;
   const uint8_t *payload;
-
-  raw[0] = TMON_START_BYTE;
-  raw[1] = 0x00;
-  raw[2] = TMON_CMD_POLL;
-  raw[3] = 0x00;
-  raw[4] = (uint8_t)(crc & 0xFF);
-  raw[5] = (uint8_t)(crc >> 8);
 
   TEST_ASSERT_EQUAL (-1, tmon_proto_decode_frame (raw, sizeof (raw), &addr, &cmd,
                                             &payload, &plen));
@@ -491,12 +444,6 @@ int
 main (void)
 {
   UNITY_BEGIN ();
-
-  /* CRC */
-  RUN_TEST (test_crc_example1_poll_sensor3);
-  RUN_TEST (test_crc_example2_reply_sensor3);
-  RUN_TEST (test_crc_empty_input);
-  RUN_TEST (test_crc_single_byte);
 
   /* Encode */
   RUN_TEST (test_encode_example1_poll_sensor3);
