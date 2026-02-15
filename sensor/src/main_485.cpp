@@ -60,7 +60,7 @@ RS485Sensor::on_loop ()
 {
   unsigned long now = millis ();
 
-  /* Read incoming bytes */
+  /* Accumulate incoming bytes into frame buffer */
   while (Serial1.available () && m_rx_len < RX_BUF_SIZE)
     {
       m_rx_buf[m_rx_len++] = Serial1.read ();
@@ -74,7 +74,7 @@ RS485Sensor::on_loop ()
       Serial.print (m_rx_len);
       Serial.println (" bytes");
 
-      /* Try to process the accumulated bytes */
+      /* Dispatch the received frame */
       size_t tx_len = dispatch_frame (config_sensor_addr, m_rx_buf, m_rx_len);
       if (tx_len > 0)
         {
