@@ -153,14 +153,17 @@ class TestIntegration:
         config_path = os.path.join(str(tmp_path), "test.toml")
 
         with open(config_path, "w") as f:
+            f.write('db = "%s"\n' % db_path)
+            f.write("\n")
+            f.write("[rs485]\n")
             f.write('port = "%s"\n' % pty_pair)
             f.write("baudrate = 9600\n")
             f.write("clients = [%d]\n" % SIM_ADDR)
-            f.write('db = "%s"\n' % db_path)
             f.write("interval = 1\n")
 
         proc = subprocess.Popen(
-            [sys.executable, "-m", "tmon.daemon", config_path, "-v"],
+            [sys.executable, "-m", "tmon.daemon", config_path,
+             "--transport", "rs485", "-v"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
