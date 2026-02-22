@@ -187,20 +187,13 @@ UART) and the serial console:
 
 ** Transport: WiFi (UDP push)
 
-The sensor firmware can use WiFi instead of RS-485.  In this mode the
-ESP32 stays connected to WiFi and pushes readings to the server over
-UDP at a regular interval.
+WiFi sensors need only the common wiring (thermistors + power) -- no
+MAX485 module, no UART wiring, no bus cable.  The ESP32 connects to
+your WiFi network and pushes readings to the server over UDP.
 
-WiFi sensors use the following from the common wiring section:
-- Power: 3.3V and GND
-- NTC thermistor inputs (GPIO 1-4) with voltage dividers
-- Status LED (built-in, no wiring needed)
-
-The UART pins (GPIO 16/17) and RS-485 pins (GPIO 5, MAX485 module)
-are unused.
-
-WiFi credentials are read from ~server/wifi.toml~ (copy from
-~wifi.toml.example~).
+WiFi credentials are configured in ~/etc/tmon/wifi.toml~ (copy from
+~wifi.toml.example~ and fill in your SSID and password).  See the
+[[file:../README.org][README]] for configuration details.
 
 ** Parts list (reference setup)
 
