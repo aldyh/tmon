@@ -1,8 +1,8 @@
-"""Server daemon -- collects readings from sensors and stores them.
+"""Server daemon -- collects readings from clients and stores them.
 
 Supports two modes:
-- Poll mode (RS-485): actively polls sensors on a schedule
-- Push mode (UDP): passively receives readings pushed by sensors
+- Poll mode (RS-485): actively polls clients on a schedule
+- Push mode (UDP): passively receives readings pushed by clients
 
 Foreground loop driven by a TOML config file.  Shuts down cleanly
 on SIGINT or SIGTERM.
@@ -36,18 +36,18 @@ def _on_signal(signum: int, frame) -> None:
 def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
     """Run the poll loop until *shutdown* is set.
 
-    Polls all sensors, sleeps for ``cfg["interval"]`` seconds, and
+    Polls all clients, sleeps for ``cfg["interval"]`` seconds, and
     repeats.  Returns the number of completed cycles.
     """
-    poller = Poller(bus, storage, cfg["sensors"])
+    poller = Poller(bus, storage, cfg["clients"])
     cycles = 0
 
     while not shutdown.is_set():
         results = poller.poll_all()
         cycles += 1
         log.info(
-            "cycle %d: %d/%d sensors responded",
-            cycles, len(results), len(cfg["sensors"]),
+            "cycle %d: %d/%d clients responded",
+            cycles, len(results), len(cfg["clients"]),
         )
         remaining = cfg["interval"]
         if remaining > 0:
@@ -59,7 +59,7 @@ def run_poller(cfg: dict, bus, storage, shutdown: threading.Event) -> int:
 def run_listener(receiver, storage, shutdown: threading.Event) -> int:
     """Run the push receiver loop until *shutdown* is set.
 
-    Receives readings pushed by sensors via UDP and stores them.
+    Receives readings pushed by clients via UDP and stores them.
     Returns the number of readings received.
     """
     listener = UDPListener(receiver, storage)
@@ -116,9 +116,9 @@ def main() -> None:
     else:
         # RS-485 poll transport
         log.info(
-            "starting: transport=rs485 port=%s baudrate=%d sensors=%s db=%s "
+            "starting: transport=rs485 port=%s baudrate=%d clients=%s db=%s "
             "interval=%ds",
-            cfg["port"], cfg["baudrate"], cfg["sensors"], cfg["db"],
+            cfg["port"], cfg["baudrate"], cfg["clients"], cfg["db"],
             cfg["interval"],
         )
         bus = SerialBus(cfg["port"], cfg["baudrate"])

@@ -1,6 +1,6 @@
-"""Poll loop for querying sensor devices.
+"""Poll loop for querying client devices.
 
-Sends POLL requests to each configured sensor, decodes REPLY frames,
+Sends POLL requests to each configured client, decodes REPLY frames,
 and stores raw int16 temperature readings in Storage.
 """
 
@@ -20,28 +20,28 @@ log = logging.getLogger(__name__)
 
 
 class Poller:
-    """Polls sensor devices and stores readings.
+    """Polls client devices and stores readings.
 
-    Sends a POLL frame to each sensor address, waits for a REPLY,
+    Sends a POLL frame to each client address, waits for a REPLY,
     unpacks the raw int16 temperatures from the payload, and
     inserts them into storage.
 
     Args:
         bus: Object with ``send(data)`` and ``receive()`` methods.
         storage: Object with ``insert(addr, temps)``.
-        sensors: List of integer sensor addresses to poll.
+        clients: List of integer client addresses to poll.
     """
 
 
 
-    def __init__(self, bus, storage, sensors: list[int]):
+    def __init__(self, bus, storage, clients: list[int]):
         """Initialize the poller."""
         self._bus = bus
         self._storage = storage
-        self._sensors = list(sensors)
+        self._clients = list(clients)
 
     def poll(self, addr: int) -> Reading | None:
-        """Poll a single sensor and return a Reading or None.
+        """Poll a single client and return a Reading or None.
 
         Sends a POLL frame, validates the REPLY, and unpacks raw int16
         temperatures.  Returns None on timeout or protocol error.
@@ -52,13 +52,13 @@ class Poller:
 
         # All error conditions return None; details go to the log.
         if not raw:
-            log.debug("timeout polling sensor %d", addr)
+            log.debug("timeout polling client %d", addr)
             return None
 
         try:
             reply = decode_frame(raw)
         except ValueError as exc:
-            log.debug("bad frame from sensor %d: %s", addr, exc)
+            log.debug("bad frame from client %d: %s", addr, exc)
             return None
 
         if reply.addr != addr:
@@ -69,14 +69,14 @@ class Poller:
 
         if reply.cmd != PROTO_CMD_REPLY:
             log.debug(
-                "unexpected cmd from sensor %d: 0x%02X", addr, reply.cmd
+                "unexpected cmd from client %d: 0x%02X", addr, reply.cmd
             )
             return None
 
         payload = reply.payload
         if len(payload) != PROTO_REPLY_PAYLOAD_LEN:
             log.debug(
-                "bad payload length from sensor %d: %d",
+                "bad payload length from client %d: %d",
                 addr, len(payload),
             )
             return None
@@ -84,7 +84,7 @@ class Poller:
         temps = parse_reply(payload)
 
         log.info(
-            "sensor %d: temps=[%s, %s, %s, %s]",
+            "client %d: temps=[%s, %s, %s, %s]",
             addr,
             fmt_temp(temps[0]), fmt_temp(temps[1]),
             fmt_temp(temps[2]), fmt_temp(temps[3]),
@@ -99,13 +99,13 @@ class Poller:
         )
 
     def poll_all(self) -> list[Reading]:
-        """Poll all sensors and store successful readings.
+        """Poll all clients and store successful readings.
 
         Returns:
             list[Reading]: Readings collected this cycle.
         """
         results = []
-        for addr in self._sensors:
+        for addr in self._clients:
             reading = self.poll(addr)
             if reading is not None:
                 self._storage.insert(

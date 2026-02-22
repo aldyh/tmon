@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Virtual serial sensor simulator for tmon.
+"""Virtual serial client simulator for tmon.
 
 Listens on a serial port (typically a socat PTY) and responds to
 POLL frames with REPLY frames containing synthetic temperatures.
@@ -13,7 +13,7 @@ Usage:
     python serial_simulator.py <port> <baudrate>
 
 Args:
-    port: Serial port path (e.g. /tmp/tmon-sensor).
+    port: Serial port path (e.g. /tmp/tmon-client).
     baudrate: Baud rate (e.g. 9600).
 """
 

@@ -1,6 +1,6 @@
-"""Push-based reading listener for receiving sensor readings via UDP.
+"""Push-based reading listener for receiving client readings via UDP.
 
-Sensors push REPLY frames periodically; this listener receives them,
+Clients push REPLY frames periodically; this listener receives them,
 decodes temperatures, and stores to the database. No polling needed.
 """
 
@@ -18,9 +18,9 @@ log = logging.getLogger(__name__)
 
 
 class UDPListener:
-    """Receives pushed readings from sensors via UDP.
+    """Receives pushed readings from clients via UDP.
 
-    Listens for REPLY frames pushed by sensors, decodes temperatures,
+    Listens for REPLY frames pushed by clients, decodes temperatures,
     and stores them.
 
     Args:
@@ -68,7 +68,7 @@ class UDPListener:
         addr = frame.addr
 
         log.info(
-            "sensor %d: temps=[%s, %s, %s, %s]",
+            "client %d: temps=[%s, %s, %s, %s]",
             addr,
             fmt_temp(temps[0]), fmt_temp(temps[1]),
             fmt_temp(temps[2]), fmt_temp(temps[3]),

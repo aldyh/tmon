@@ -1,7 +1,7 @@
 """Transport-neutral temperature reading dataclass.
 
 Used by both the RS-485 poller and UDP listener to represent
-a single set of temperature readings from a sensor device.
+a single set of temperature readings from a client device.
 """
 
 from dataclasses import dataclass
@@ -9,7 +9,7 @@ from dataclasses import dataclass
 
 @dataclass
 class Reading:
-    """A single temperature reading from a sensor device.
+    """A single temperature reading from a client device.
 
     Temperatures are in tenths of a degree C, or None if invalid.
     """

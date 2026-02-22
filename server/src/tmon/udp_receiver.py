@@ -1,16 +1,16 @@
 """UDP receiver for pushed readings.
 
-Sensors push REPLY frames via UDP; server just listens and stores.
-No connection state, no polling -- sensors control timing.
+Clients push REPLY frames via UDP; server just listens and stores.
+No connection state, no polling -- clients control timing.
 """
 
 import socket
 
 
 class UDPReceiver:
-    """UDP socket for receiving sensor readings.
+    """UDP socket for receiving client readings.
 
-    Binds to a UDP port and receives frames pushed by sensors.
+    Binds to a UDP port and receives frames pushed by clients.
     Each frame is a complete protocol REPLY (START, ADDR, CMD, LEN,
     payload, CRC).
 

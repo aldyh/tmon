@@ -15,7 +15,7 @@ def load_config(path: str) -> dict:
 
     Common keys: ``transport`` (str, "rs485" or "udp"), ``db`` (str).
 
-    For rs485: ``sensors`` (list[int]), ``interval`` (int), ``port`` (str),
+    For rs485: ``clients`` (list[int]), ``interval`` (int), ``port`` (str),
     ``baudrate`` (int).
     For udp: ``[udp]`` section with ``port`` (int).
 
@@ -42,12 +42,12 @@ def load_config(path: str) -> dict:
         _require_udp_section(raw)
         result["udp_port"] = raw["udp"]["port"]
     else:
-        # RS-485 needs sensors, interval, port, baudrate
+        # RS-485 needs clients, interval, port, baudrate
         _require_int(raw, "interval")
-        _require_sensors(raw)
+        _require_clients(raw)
         _require_str(raw, "port")
         _require_int(raw, "baudrate")
-        result["sensors"] = raw["sensors"]
+        result["clients"] = raw["clients"]
         result["interval"] = raw["interval"]
         result["port"] = raw["port"]
         result["baudrate"] = raw["baudrate"]
@@ -55,19 +55,19 @@ def load_config(path: str) -> dict:
     return result
 
 
-def _require_sensors(raw: dict[str, object]) -> None:
-    """Validate that sensors exists and is a non-empty list of ints."""
-    if "sensors" not in raw:
-        raise ValueError("missing required key: sensors")
-    if not isinstance(raw["sensors"], list):
-        raise ValueError("sensors must be a list of ints")
-    for i, v in enumerate(raw["sensors"]):
+def _require_clients(raw: dict[str, object]) -> None:
+    """Validate that clients exists and is a non-empty list of ints."""
+    if "clients" not in raw:
+        raise ValueError("missing required key: clients")
+    if not isinstance(raw["clients"], list):
+        raise ValueError("clients must be a list of ints")
+    for i, v in enumerate(raw["clients"]):
         if not isinstance(v, int):
-            raise ValueError("sensors[%d] must be int, got %s" % (i, type(v).__name__))
+            raise ValueError("clients[%d] must be int, got %s" % (i, type(v).__name__))
         if v < 1 or v > 247:
-            raise ValueError("sensors[%d] must be 1-247, got %d" % (i, v))
-    if len(raw["sensors"]) == 0:
-        raise ValueError("sensors must not be empty")
+            raise ValueError("clients[%d] must be 1-247, got %d" % (i, v))
+    if len(raw["clients"]) == 0:
+        raise ValueError("clients must not be empty")
 
 
 def _require_udp_section(raw: dict[str, object]) -> None:
