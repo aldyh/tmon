@@ -26,7 +26,7 @@ usage () {
   echo ""
   echo "Options:"
   echo "  --mode=MODE   Transport mode: serial or udp"
-  echo "  --addr=N      Sensor address (1-247)"
+  echo "  --addr=N      Client address (1-247)"
   echo "  --port=DEV    Serial port (auto-detected if omitted)"
   echo "  --dry-run     Print esptool command without executing"
   exit 1
