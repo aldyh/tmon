@@ -3,8 +3,8 @@
 Resolves config and database paths for both development and production
 contexts:
 
-  Dev:        ./config-485.toml       -> ./data/tmon.db
-  Production: /etc/tmon/config-485.toml -> /var/lib/tmon/tmon.db
+  Dev:        ./tmon.toml       -> ./data/tmon.db
+  Production: /etc/tmon/tmon.toml -> /var/lib/tmon/tmon.db
 """
 
 import os
@@ -23,8 +23,8 @@ def resolve_config(name: str) -> str:
     first, then ``/etc/tmon/``.  The first match is returned.
 
     Args:
-        name: A bare filename (e.g. ``"config-485.toml"``) or a path
-              (e.g. ``"server/config-485.toml"``).
+        name: A bare filename (e.g. ``"tmon.toml"``) or a path
+              (e.g. ``"server/tmon.toml"``).
 
     Raises:
         FileNotFoundError: If the file cannot be found.
