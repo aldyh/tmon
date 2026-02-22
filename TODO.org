@@ -1104,7 +1104,14 @@ Merged config-485.toml and config-udp.toml into a single tmon.toml with
 flag (not stored in the TOML).  Updated config loader, daemon CLI, all
 tests, deploy scripts (tmon-flash, install.sh, systemd units), Makefile,
 and docs (README.org, storage.org, PLAN.org).
-* TODO flesh out Configuration section in README
+* DONE flesh out Configuration section in README
 The config file descriptions list the files but don't guide the user
 on what to actually change (e.g. adding client addresses, picking the
 right serial port).  Add brief instructions or examples.
+
+** Notes
+Added annotated tmon.toml example (all fields with inline comments),
+wifi.toml setup instructions (cp from example, fill in SSID/password/
+server IP), and clarifying notes on which fields matter where (e.g.
+push_interval only affects firmware at flash time).  Also fixed stale
+"sensor" -> "client" in wifi.toml.example.
