@@ -47,7 +47,7 @@ def _downsample(rows: list, max_points: int) -> list:
 
 
 def _query_sensors(conn: sqlite3.Connection) -> list:
-    """Return sorted list of distinct sensor addresses."""
+    """Return sorted list of distinct client addresses."""
     rows = conn.execute(
         "SELECT DISTINCT addr FROM readings ORDER BY addr"
     ).fetchall()
@@ -55,7 +55,7 @@ def _query_sensors(conn: sqlite3.Connection) -> list:
 
 
 def _query_current(conn: sqlite3.Connection) -> list:
-    """Return the latest reading per sensor as a list of dicts."""
+    """Return the latest reading per client as a list of dicts."""
     rows = conn.execute(
         "SELECT addr, ts, temp_0, temp_1, temp_2, temp_3"
         " FROM readings WHERE ts = ("
@@ -156,7 +156,7 @@ def _transform_html(html: str, sensors: list) -> str:
 
     Args:
         html: Original index.html content.
-        sensors: List of sensor address integers.
+        sensors: List of client address integers.
 
     Returns:
         Transformed HTML string.

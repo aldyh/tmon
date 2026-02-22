@@ -41,14 +41,14 @@ class TestIndex:
 class TestApiCurrent:
     """GET /api/current endpoint."""
 
-    def test_returns_latest_per_sensor(self, client):
-        """Each sensor appears once with its most recent reading."""
+    def test_returns_latest_per_client(self, client):
+        """Each client appears once with its most recent reading."""
         resp = client.get("/api/current")
         assert resp.status_code == 200
         data = json.loads(resp.data)
         addrs = [r["addr"] for r in data]
         assert sorted(addrs) == [1, 2]
-        # Latest for sensor 1 is the 12:01:00 row
+        # Latest for client 1 is the 12:01:00 row
         s1 = [r for r in data if r["addr"] == 1][0]
         assert s1["temp_0"] == 222
 
@@ -73,14 +73,14 @@ class TestApiHistory:
         assert resp.status_code == 400
 
     def test_returns_history(self, client):
-        """Returns readings for the specified sensor within the time window."""
+        """Returns readings for the specified client within the time window."""
         resp = client.get("/api/history?addr=1&hours=1")
         assert resp.status_code == 200
         data = json.loads(resp.data)
-        assert len(data) == 3  # 3 rows for sensor 1
+        assert len(data) == 3  # 3 rows for client 1
 
-    def test_empty_for_unknown_sensor(self, client):
-        """Unknown sensor address returns empty list."""
+    def test_empty_for_unknown_client(self, client):
+        """Unknown client address returns empty list."""
         resp = client.get("/api/history?addr=99&hours=24")
         assert resp.status_code == 200
         assert json.loads(resp.data) == []
@@ -106,7 +106,7 @@ class TestApiHistory:
         """Null temperature values are preserved as null in JSON."""
         resp = client.get("/api/history?addr=1&hours=1")
         data = json.loads(resp.data)
-        # Sensor 1 has temp_3 = None
+        # Client 1 has temp_3 = None
         assert all(r["temp_3"] is None for r in data)
 
     def test_empty_db_history(self, empty_client):
@@ -119,8 +119,8 @@ class TestApiHistory:
 class TestApiSensors:
     """GET /api/sensors endpoint."""
 
-    def test_returns_sensor_list(self, client):
-        """Returns distinct sensor addresses."""
+    def test_returns_client_list(self, client):
+        """Returns distinct client addresses."""
         resp = client.get("/api/sensors")
         assert resp.status_code == 200
         assert json.loads(resp.data) == [1, 2]

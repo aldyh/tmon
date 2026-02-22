@@ -82,7 +82,7 @@ class TestJsonOutput:
         assert data == [1, 2]
 
     def test_current(self, demo_dir):
-        """current.json contains latest reading per sensor."""
+        """current.json contains latest reading per client."""
         with open(os.path.join(demo_dir, "api", "current.json")) as f:
             data = json.load(f)
         addrs = sorted(r["addr"] for r in data)

@@ -1,10 +1,10 @@
 """Generate mock temperature data for the demo dashboard.
 
 Creates tmon_mock.db with the readings table schema from tmon.storage.
-Populates it with 1 year of readings for 3 sensors at 30-second intervals.
+Populates it with 1 year of readings for 3 clients at 30-second intervals.
 
 Temperature profiles use sinusoidal daily and seasonal cycles plus
-Gaussian noise to look realistic.  One channel on sensor 3 has
+Gaussian noise to look realistic.  One channel on client 3 has
 occasional NULL readings to exercise null handling.
 """
 
@@ -86,7 +86,7 @@ def generate(db_path: str, days: int, seed: int) -> int:
                 if ch >= num_channels:
                     temps.append(None)
                 elif addr == 3 and ch == 1 and random.random() < 0.05:
-                    # 5% null rate on sensor 3, channel 1
+                    # 5% null rate on client 3, channel 1
                     temps.append(None)
                 else:
                     # Each channel gets a slight offset
