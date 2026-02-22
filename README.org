@@ -55,6 +55,18 @@ sudo make install
 
 The installer copies default config files to ~/etc/tmon/~, pre-built firmware binaries to ~/var/lib/tmon/firmware/~, and supporting files to ~/var/lib/tmon/~.  The servers are meant to be run from systemd and are installed but *not* enabled -- see [[*Running][Running]].
 
+* Uninstalling
+
+To uninstall:
+
+#+begin_example
+# Keep /etc/tmon, /var/lib/tmon and other configury
+sudo make uninstall
+
+# Remove everything.
+sudo deploy/uninstall.sh --purge
+#+end_example
+
 * Configuration
 
 Edit ~/etc/tmon/tmon.toml~ to match your setup:
@@ -63,7 +75,7 @@ Edit ~/etc/tmon/tmon.toml~ to match your setup:
 db = "tmon.db"
 
 [rs485]
-clients = [1, 2, 3]       # addresses to poll -- must match what you flashed
+clients = [1, 4, 5]       # addresses to poll -- must match what you flashed
 interval = 5              # seconds between poll cycles
 port = "/dev/ttyUSB0"     # USB-RS485 adapter (try: ls /dev/ttyUSB*)
 baudrate = 9600
@@ -133,18 +145,6 @@ The built-in LED on each ESP32 signals operational status:
 Pressing the boot button triggers the identify sequence: the LED
 blinks yellow N times, where N is the client address.  This lets you
 verify which address a device has after flashing.
-
-* Uninstalling
-
-To uninstall:
-
-#+begin_example
-# Keep /etc/tmon, /var/lib/tmon and other configury
-sudo make uninstall
-
-# Remove everything.
-sudo deploy/uninstall.sh --purge
-#+end_example
 
 * Build and test
 
