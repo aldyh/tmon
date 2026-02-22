@@ -214,7 +214,7 @@ Build 2 generic firmware binaries, patch config at flash time.
 - [X] Verify daemon stores readings correctly in SQLite
 - [X] Verify panel reads SQLite correctly
 
-*** Rename master/slave to server/client
+*** Rename to server/client terminology
 
 - [X] Rename throughout: code, config, docs, directory names, README
 - [X] Verify all tests pass after rename

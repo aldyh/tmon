@@ -4,7 +4,7 @@
        demo-setup \
        check check-server check-client check-integration check-demo \
        demo-generate demo-server \
-       demo-static demo-static-tar demo-static-upload demo-static-clean \
+       demo-static demo-static-tar demo-static-clean \
        firmware \
        install uninstall clean \
        TAGS
@@ -83,10 +83,6 @@ demo-static: demo-generate
 
 demo-static-tar: demo-static
 	tar czf tmon-demo.tar.gz --transform='s,^panel/demo,tmon-demo,' panel/demo
-
-demo-static-upload: demo-static-tar
-	scp tmon-demo.tar.gz quesejoda.com:
-	ssh quesejoda.com 'rm -rf ~/quesejoda.com/tmon-demo/ && cd ~/quesejoda.com && tar xzf ~/tmon-demo.tar.gz && chmod -R a+rX ~/quesejoda.com/tmon-demo/'
 
 demo-static-clean:
 	rm -rf panel/demo tmon-demo.tar.gz

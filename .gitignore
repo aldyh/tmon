@@ -19,5 +19,8 @@ tmon-demo.tar.gz
 # PlatformIO
 .pio/
 
+# Generated docs
+README.html
+
 # Tags
 TAGS
