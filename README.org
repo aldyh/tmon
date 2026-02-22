@@ -57,12 +57,33 @@ The installer copies default config files to ~/etc/tmon/~, pre-built firmware bi
 
 * Configuration
 
-Config files live in ~/etc/tmon/~:
+Edit ~/etc/tmon/tmon.toml~ to match your setup:
 
-- ~tmon.toml~ -- Main configuration: database path, ~[rs485]~ section (serial port, baud rate, client list, polling interval), ~[udp]~ section (listen port, push interval).
-- ~wifi.toml~ -- WiFi credentials for UDP clients (copy from ~wifi.toml.example~ and fill in).
+#+begin_example
+db = "tmon.db"
 
-The ~--transport~ flag on the daemon CLI selects which transport to use (rs485 or udp).  The transport is not stored in the config file.
+[rs485]
+clients = [1, 2, 3]       # addresses to poll -- must match what you flashed
+interval = 5              # seconds between poll cycles
+port = "/dev/ttyUSB0"     # USB-RS485 adapter (try: ls /dev/ttyUSB*)
+baudrate = 9600
+
+[udp]
+port = 5555               # UDP listen port
+push_interval = 5         # how often clients push readings (seconds)
+#+end_example
+
+For WiFi/UDP clients, you also need ~/etc/tmon/wifi.toml~ with your network credentials:
+
+#+begin_example
+cp /etc/tmon/wifi.toml.example /etc/tmon/wifi.toml
+#+end_example
+
+#+begin_example
+ssid = "your_wifi_ssid"
+password = "your_wifi_password"
+server_host = "192.168.1.100"    # IP of your Raspberry Pi
+#+end_example
 
 * Running
 

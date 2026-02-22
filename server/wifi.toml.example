@@ -1,4 +1,4 @@
-# WiFi credentials for sensor firmware
+# WiFi credentials for client firmware
 #
 # Copy this file to wifi.toml and fill in your credentials.
 # wifi.toml is gitignored to prevent committing secrets.
