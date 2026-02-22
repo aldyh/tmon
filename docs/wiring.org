@@ -116,18 +116,19 @@ Pi (USB-RS485)       Sensor 1        Sensor 2        Sensor N
   well within RS-485 limits.
 - At 9600 baud there is generous margin for cable length and noise.
 
-*** Bias resistors (optional)
+*** Bias resistors (optional -- skip for most home installs)
 
-When the bus is idle (between poll cycles), no device drives the A/B
-lines and they float.  Electrical noise can produce garbage bytes.
+For a short home bus you can skip this section entirely.  The protocol
+uses CRC error checking and the poll loop retries automatically, so
+occasional noise on the bus is harmless.  Only add bias resistors if
+you see frequent CRC errors in the server log.
 
-Failsafe biasing holds the bus in the UART idle state (mark) by
-pulling the idle-high line toward VCC and the other toward GND with
-560 ohm resistors at the server end.  A/B naming varies between
-manufacturers -- check your transceiver datasheet for which line is
-high at idle.
+*What they do:* When no device is transmitting, the A/B lines float
+and electrical noise can produce garbage bytes.  Two 560-ohm resistors
+at the server end hold the bus in a known-good idle state: one pulls A
+toward VCC, the other pulls B toward GND.
 
-Shown for MAX485 convention (A high at idle):
+Shown for the MAX485 (A is the high line at idle):
 
 #+begin_example
          VCC (3.3V or 5V)
@@ -146,9 +147,8 @@ Shown for MAX485 convention (A high at idle):
          GND
 #+end_example
 
-For a short home bus you can skip these.  CRC catches any garbage
-and the poll loop self-heals within seconds.  Add them only if you
-see frequent CRC errors.
+Check your transceiver datasheet if you are not using a MAX485 -- A/B
+naming varies between manufacturers.
 
 *** Server side
 
