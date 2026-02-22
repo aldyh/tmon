@@ -42,10 +42,10 @@ endif
 	deploy/tmon-flash --mode=udp --addr=$(CLIENT_ADDR)
 
 run-server-485: $(SERVER_STAMP)
-	cd server && . .venv/bin/activate && tmon config-485.toml
+	cd server && . .venv/bin/activate && tmon tmon.toml --transport rs485
 
 run-server-udp: $(SERVER_STAMP)
-	cd server && . .venv/bin/activate && tmon config-udp.toml
+	cd server && . .venv/bin/activate && tmon tmon.toml --transport udp
 
 demo-setup: $(PANEL_STAMP)
 
