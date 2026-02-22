@@ -1,9 +1,9 @@
 /*
- * tmon sensor firmware -- UDP push transport
+ * tmon client firmware -- UDP push transport
  *
  * Stays connected to WiFi and pushes temperature readings periodically.
  * Blinks red on WiFi failure; blinks green after each send.
- * Boot button (GPIO 0) blinks yellow N times (N = config_sensor_addr).
+ * Boot button (GPIO 0) blinks yellow N times (N = config_client_addr).
  *
  * Protocol defined in docs/protocol.org.
  * Debug output on USB serial (115200 baud).
@@ -26,7 +26,7 @@ static const unsigned long WIFI_TIMEOUT_MS = 10000;
 /* Polling tick interval (ms) */
 static const unsigned long TICK_MS = 10;
 
-class UDPSensor : public SensorApp
+class UDPClient : public ClientApp
 {
   WiFiUDP m_udp;
 
@@ -36,7 +36,7 @@ class UDPSensor : public SensorApp
 };
 
 void
-UDPSensor::connect_wifi ()
+UDPClient::connect_wifi ()
 {
   for (;;)
     {
@@ -64,11 +64,11 @@ UDPSensor::connect_wifi ()
 }
 
 void
-UDPSensor::on_init ()
+UDPClient::on_init ()
 {
-  Serial.println ("tmon UDP push sensor starting");
+  Serial.println ("tmon UDP push client starting");
   Serial.print ("Address: ");
-  Serial.println (config_sensor_addr);
+  Serial.println (config_client_addr);
   Serial.print ("Push interval: ");
   Serial.print (config_push_interval);
   Serial.println ("s");
@@ -77,14 +77,14 @@ UDPSensor::on_init ()
 }
 
 void
-UDPSensor::on_loop ()
+UDPClient::on_loop ()
 {
   /* Reconnect if WiFi dropped */
   if (WiFi.status () != WL_CONNECTED)
     connect_wifi ();
 
   /* Build and push temperature readings */
-  size_t tx_len = build_reply_frame (config_sensor_addr);
+  size_t tx_len = build_reply_frame (config_client_addr);
   if (tx_len > 0)
     {
       log_temps ("Pushing readings: ", tx_len);
@@ -107,16 +107,16 @@ UDPSensor::on_loop ()
     }
 }
 
-static UDPSensor sensor;
+static UDPClient client;
 
 void
 setup (void)
 {
-  sensor.setup ();
+  client.setup ();
 }
 
 void
 loop (void)
 {
-  sensor.loop ();
+  client.loop ();
 }

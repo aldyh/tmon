@@ -1,5 +1,5 @@
 /*
- * dispatch.h -- Frame dispatch for tmon sensor
+ * dispatch.h -- Frame dispatch for tmon client
  *
  * Dispatches incoming POLL requests and builds REPLY responses.
  * Transport-agnostic: works with UART or WiFi.

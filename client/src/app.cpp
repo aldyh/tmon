@@ -1,5 +1,5 @@
 /*
- * app.cpp -- Sensor application base class
+ * app.cpp -- Client application base class
  *
  * Shared setup/loop skeleton and helpers used by all transports.
  */
@@ -45,14 +45,14 @@ print_temps (const int16_t *temps)
 
 /* Build a REPLY frame into tx_buf. */
 size_t
-SensorApp::build_reply_frame (uint8_t addr)
+ClientApp::build_reply_frame (uint8_t addr)
 {
   return tmon_build_reply_frame (m_tx_buf, BUF_SIZE, addr);
 }
 
 /* Dispatch an incoming request frame; response goes into tx_buf. */
 size_t
-SensorApp::dispatch_frame (uint8_t addr, const uint8_t *data, size_t len)
+ClientApp::dispatch_frame (uint8_t addr, const uint8_t *data, size_t len)
 {
   return tmon_dispatch_frame (addr, data, len, m_tx_buf, BUF_SIZE);
 }
@@ -61,14 +61,14 @@ SensorApp::dispatch_frame (uint8_t addr, const uint8_t *data, size_t len)
 static const int BOOT_BUTTON = 0;
 
 /*
- * SensorApp::setup -- Common hardware init, then transport-specific init.
+ * ClientApp::setup -- Common hardware init, then transport-specific init.
  *
  * Initializes serial debug output, configuration, temperature sensors,
  * status LED, and boot button.  Subclasses add their own setup in
  * on_init().
  */
 void
-SensorApp::setup ()
+ClientApp::setup ()
 {
   Serial.begin (115200);
   delay (5000);
@@ -82,38 +82,38 @@ SensorApp::setup ()
 }
 
 /*
- * SensorApp::loop -- Check boot button, then run subclass loop.
+ * ClientApp::loop -- Check boot button, then run subclass loop.
  */
 void
-SensorApp::loop ()
+ClientApp::loop ()
 {
   check_button ();
   on_loop ();
 }
 
 /*
- * SensorApp::check_button -- Debounced boot-button check.
+ * ClientApp::check_button -- Debounced boot-button check.
  *
  * If the boot button is pressed and at least 500 ms have elapsed since
- * the last press, blinks the LED to identify this sensor's address.
+ * the last press, blinks the LED to identify this client's address.
  */
 void
-SensorApp::check_button ()
+ClientApp::check_button ()
 {
   unsigned long now = millis ();
   if (digitalRead (BOOT_BUTTON) == LOW
       && (now - m_last_button_ms) >= 500)
     {
       m_last_button_ms = now;
-      led_identify (config_sensor_addr);
+      led_identify (config_client_addr);
       Serial.print ("Identify: blinking ");
-      Serial.print (config_sensor_addr);
+      Serial.print (config_client_addr);
       Serial.println (" times");
     }
 }
 
 /*
- * SensorApp::log_temps -- Log a frame's temperatures to serial.
+ * ClientApp::log_temps -- Log a frame's temperatures to serial.
  *
  * Parses the payload from tx_buf and prints a labelled summary.
  * Call after building a frame into tx_buf.
@@ -123,7 +123,7 @@ SensorApp::check_button ()
  *   len:   Frame length in bytes.
  */
 void
-SensorApp::log_temps (const char *label, size_t len)
+ClientApp::log_temps (const char *label, size_t len)
 {
   struct tmon_proto_reply_payload parsed;
   tmon_proto_parse_reply (&m_tx_buf[4], TMON_REPLY_PAYLOAD_LEN, &parsed);

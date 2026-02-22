@@ -1,9 +1,9 @@
 /*
- * tmon sensor firmware -- RS-485 transport
+ * tmon client firmware -- RS-485 transport
  *
  * Listens for POLL requests on UART and responds with temperature readings.
  * Blinks green after each send.
- * Boot button (GPIO 0) blinks yellow N times (N = config_sensor_addr).
+ * Boot button (GPIO 0) blinks yellow N times (N = config_client_addr).
  * Protocol defined in docs/protocol.org.
  *
  * Wiring (with MAX485):
@@ -28,7 +28,7 @@ static const int PIN_DE_RE   = 5;
 /* RS-485 bus parameters per docs/protocol.org */
 static const int UART_BAUD = 9600;
 
-class RS485Sensor : public SensorApp
+class RS485Client : public ClientApp
 {
   static const size_t RX_BUF_SIZE = 64;
   uint8_t m_rx_buf[RX_BUF_SIZE];
@@ -40,11 +40,11 @@ class RS485Sensor : public SensorApp
 };
 
 void
-RS485Sensor::on_init ()
+RS485Client::on_init ()
 {
-  Serial.println ("tmon sensor starting");
+  Serial.println ("tmon client starting");
   Serial.print ("Address: ");
-  Serial.println (config_sensor_addr);
+  Serial.println (config_client_addr);
 
   /* DE/RE pin: LOW = receive, HIGH = transmit */
   pinMode (PIN_DE_RE, OUTPUT);
@@ -56,7 +56,7 @@ RS485Sensor::on_init ()
 }
 
 void
-RS485Sensor::on_loop ()
+RS485Client::on_loop ()
 {
   unsigned long now = millis ();
 
@@ -75,7 +75,7 @@ RS485Sensor::on_loop ()
       Serial.println (" bytes");
 
       /* Dispatch the received frame */
-      size_t tx_len = dispatch_frame (config_sensor_addr, m_rx_buf, m_rx_len);
+      size_t tx_len = dispatch_frame (config_client_addr, m_rx_buf, m_rx_len);
       if (tx_len > 0)
         {
           /* Send response */
@@ -96,16 +96,16 @@ RS485Sensor::on_loop ()
     }
 }
 
-static RS485Sensor sensor;
+static RS485Client client;
 
 void
 setup (void)
 {
-  sensor.setup ();
+  client.setup ();
 }
 
 void
 loop (void)
 {
-  sensor.loop ();
+  client.loop ();
 }

@@ -1,5 +1,5 @@
 /*
- * dispatch.cpp -- Frame dispatch for tmon sensor
+ * dispatch.cpp -- Frame dispatch for tmon client
  *
  * Dispatches incoming POLL requests and builds REPLY responses.
  */
@@ -11,13 +11,13 @@
 /*
  * tmon_build_reply_frame -- Build a REPLY frame with current temperatures.
  *
- * Reads the current sensor temperatures, packs them into a REPLY
- * payload, and encodes the complete frame.
+ * Reads the current temperatures, packs them into a REPLY payload,
+ * and encodes the complete frame.
  *
  * Args:
  *   buf:      Output buffer for the frame.
  *   buf_len:  Size of the output buffer in bytes.
- *   addr:     Sensor address (1-247).
+ *   addr:     Client address (1-247).
  *
  * Returns:
  *   Frame length written to buf, or 0 on error.
@@ -41,7 +41,7 @@ tmon_build_reply_frame (uint8_t *buf, size_t buf_len, uint8_t addr)
  * current temperature readings.  Otherwise returns 0.
  *
  * Args:
- *   my_addr:  This sensor's address (1-247).
+ *   my_addr:  This client's address (1-247).
  *   data:     Raw received frame bytes.
  *   len:      Number of bytes in data.
  *   out:      Output buffer for response frame.

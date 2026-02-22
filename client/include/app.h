@@ -1,7 +1,7 @@
 /*
- * app.h -- Sensor application base class
+ * app.h -- Client application base class
  *
- * Shared setup/loop skeleton for tmon sensor firmware.
+ * Shared setup/loop skeleton for tmon client firmware.
  * Subclasses override on_init and on_loop to implement their
  * communication strategy (poll-response, push, etc.).
  */
@@ -12,7 +12,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-class SensorApp
+class ClientApp
 {
   static const size_t BUF_SIZE = 64;
   unsigned long m_last_button_ms;

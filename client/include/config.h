@@ -1,5 +1,5 @@
 /*
- * config.h -- Binary-patchable configuration for tmon sensor
+ * config.h -- Binary-patchable configuration for tmon client
  *
  * Marker arrays are initialized with @@MARKER_XXX@@ strings at compile
  * time.  The deploy/tmon-patch script overwrites these markers with real
@@ -15,7 +15,7 @@
 #include <stdint.h>
 
 /* Parsed configuration -- set by config_init() */
-extern uint8_t  config_sensor_addr;
+extern uint8_t  config_client_addr;
 extern char     config_ssid[33];
 extern char     config_pass[65];
 extern char     config_host[65];
