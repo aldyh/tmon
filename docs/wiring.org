@@ -165,9 +165,13 @@ The adapter typically appears as ~/dev/ttyUSB0~.
 
 You can test the full RS-485 firmware path without any transceiver
 hardware.  Wire the ESP32 UART pins (GPIO 17 TX, GPIO 16 RX) directly
-to the Pi's GPIO UART (GPIO 14 TX, GPIO 15 RX), crossing TX/RX as
-usual.  Leave GPIO 5 (DE/RE) unconnected -- the firmware toggles it
-but nothing reads it without a transceiver on the other end.
+to the Pi's GPIO UART, crossing TX/RX as usual:
+
+- ESP32 GPIO 17 (TX) --> Pi GPIO 15 / pin 10 (RX)
+- ESP32 GPIO 16 (RX) <-- Pi GPIO 14 / pin 8  (TX)
+
+Leave GPIO 5 (DE/RE) unconnected -- the firmware toggles it but
+nothing reads it without a transceiver on the other end.
 
 To enable the Pi's GPIO UART, disable Bluetooth (which shares the
 UART) and the serial console:
@@ -181,8 +185,8 @@ UART) and the serial console:
 2. Edit ~/boot/firmware/cmdline.txt~: remove ~console=serial0,115200~
    if present.
 
-3. Reboot.  ~/dev/serial0~ is now available on GPIO 14 (TX) / GPIO 15
-   (RX).
+3. Reboot.  ~/dev/serial0~ is now available on GPIO 14 / pin 8 (TX)
+   and GPIO 15 / pin 10 (RX).
 
 ** Transport: WiFi (UDP push)
 
