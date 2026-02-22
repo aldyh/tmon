@@ -20,6 +20,7 @@ Prefer straightforward designs over cleverness or over-engineering.  Keep APIs l
 - If a task spans multiple commits, keep them reviewable and ordered.
 - When I review your code, amend the specific commits being reviewed via interactive rebase, rather than adding fix-up commits on top.
 - Use fast-forward merges: `git merge <branch>` (no `--no-ff`).
+- Delete topic branches after merging to master: `git branch -d <branch>`.
 
 ## Progress tracking
 
