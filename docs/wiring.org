@@ -26,12 +26,7 @@ ground.
 
 *** NTC thermistor inputs
 
-| Function       | ESP32 GPIO |
-|----------------+------------|
-| NTC channel 0  | GPIO 1     |
-| NTC channel 1  | GPIO 2     |
-| NTC channel 2  | GPIO 3     |
-| NTC channel 3  | GPIO 4     |
+Channels 0 through 3 on GPIO 1 through 4:
 
 *Fewer than 4 thermistors?*  Wire any unused GPIO directly to GND.
 The firmware detects this and reports the channel as unavailable.
@@ -69,11 +64,11 @@ can reduce noise on the reading.
 
 *** Pin assignments
 
-| Function     | ESP32 GPIO | Notes                      |
-|--------------+------------+----------------------------|
-| UART TX      | GPIO 17    | To MAX485 DI               |
-| UART RX      | GPIO 16    | From MAX485 RO             |
-| RS-485 DE/RE | GPIO 5     | To MAX485 DE and RE (tied) |
+| ESP32 Pin        | Connects to           |
+|------------------+-----------------------|
+| GPIO 17 (TX)     | MAX485 DI             |
+| GPIO 16 (RX)     | MAX485 RO             |
+| GPIO 5  (DE/RE)  | MAX485 DE + RE (tied) |
 
 *** MAX485 wiring
 
