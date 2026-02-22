@@ -1,11 +1,11 @@
 # tmon UDP push configuration
 #
-# Use this for UDP push transport. Sensors push readings periodically
+# Use this for UDP push transport. Clients push readings periodically
 # instead of being polled.
 #
 # Run with: tmon config-udp.toml
 #
-# WiFi credentials for sensors are in wifi.toml (copy from wifi.toml.example).
+# WiFi credentials for clients are in wifi.toml (copy from wifi.toml.example).
 
 transport = "udp"
 db = "tmon.db"
@@ -13,6 +13,6 @@ db = "tmon.db"
 [udp]
 # UDP port to listen on for incoming readings
 port = 5555
-# How often sensors push readings (seconds).  Only used by tmon-flash
+# How often clients push readings (seconds).  Only used by tmon-flash
 # when patching firmware; the server just listens passively.
 push_interval = 5
