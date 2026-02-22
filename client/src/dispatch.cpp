@@ -6,7 +6,7 @@
 
 #include "dispatch.h"
 #include "protocol.h"
-#include "sensors.h"
+#include "ntc.h"
 
 /*
  * tmon_build_reply_frame -- Build a REPLY frame with current temperatures.
@@ -28,7 +28,7 @@ tmon_build_reply_frame (uint8_t *buf, size_t buf_len, uint8_t addr)
   int16_t temps[TMON_NUM_CHANNELS];
   uint8_t payload[TMON_REPLY_PAYLOAD_LEN];
 
-  tmon_sensor_read_temps (temps);
+  tmon_ntc_read_temps (temps);
   tmon_proto_build_reply_payload (payload, temps);
   return tmon_proto_encode_frame (buf, buf_len, addr, TMON_CMD_REPLY,
                             payload, TMON_REPLY_PAYLOAD_LEN);

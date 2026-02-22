@@ -1,5 +1,5 @@
 /*
- * sensors.cpp -- NTC thermistor temperature reading (ESP32)
+ * ntc.cpp -- NTC thermistor temperature reading (ESP32)
  *
  * Reads 4 NTC thermistors on ADC1 channels (GPIO 1-4 on ESP32-S3).
  * Uses B parameter equation for temperature conversion.
@@ -9,7 +9,7 @@
  *   Voltage drops as temperature rises (NTC resistance decreases).
  */
 
-#include "sensors.h"
+#include "ntc.h"
 #include <Arduino.h>
 #include <math.h>
 
@@ -31,12 +31,12 @@ static const int ADC_MIN_VALID = 100;         /* Below this = shorted */
 static const int ADC_MAX_VALID = 3995;        /* Above this = open */
 
 /*
- * tmon_sensor_init -- Initialize ADC for temperature reading.
+ * tmon_ntc_init -- Initialize ADC for temperature reading.
  *
- * Call once at startup before tmon_sensor_read_temps().
+ * Call once at startup before tmon_ntc_read_temps().
  */
 void
-tmon_sensor_init (void)
+tmon_ntc_init (void)
 {
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)
@@ -86,7 +86,7 @@ adc_to_temp (int adc_value)
 }
 
 /*
- * tmon_sensor_read_temps -- Read temperatures from all 4 channels.
+ * tmon_ntc_read_temps -- Read temperatures from all 4 channels.
  *
  * Reads ADC values, converts to temperature using B parameter equation.
  * Unconnected channels (ADC reads 0 or near-max) report TMON_TEMP_INVALID.
@@ -95,7 +95,7 @@ adc_to_temp (int adc_value)
  *   temps: Output array of 4 int16_t values (tenths of degree C).
  */
 void
-tmon_sensor_read_temps (int16_t temps[TMON_NUM_CHANNELS])
+tmon_ntc_read_temps (int16_t temps[TMON_NUM_CHANNELS])
 {
   int i;
   for (i = 0; i < TMON_NUM_CHANNELS; i++)

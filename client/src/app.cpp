@@ -12,7 +12,7 @@
 #include "dispatch.h"
 #include "led.h"
 #include "protocol.h"
-#include "sensors.h"
+#include "ntc.h"
 
 /*
  * print_temps -- Print temperature readings to serial.
@@ -74,7 +74,7 @@ ClientApp::setup ()
   delay (5000);
 
   config_init ();
-  tmon_sensor_init ();
+  tmon_ntc_init ();
   led_init ();
   pinMode (BOOT_BUTTON, INPUT_PULLUP);
 

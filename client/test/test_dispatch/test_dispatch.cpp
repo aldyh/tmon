@@ -11,9 +11,9 @@
 #include "dispatch.h"
 #include "protocol.h"
 
-/* External test helper from sensors_stub.c */
-extern void tmon_sensor_stub_set (int16_t t0, int16_t t1, int16_t t2,
-                                   int16_t t3);
+/* External test helper from ntc_stub.cpp */
+extern void tmon_ntc_stub_set (int16_t t0, int16_t t1, int16_t t2,
+                                int16_t t3);
 
 /* -- Dispatch tests ------------------------------------------------------- */
 
@@ -25,7 +25,7 @@ test_dispatch_responds_to_poll (void)
   uint8_t reply[64];
   size_t poll_len, reply_len;
 
-  tmon_sensor_stub_set (235, 198, TMON_TEMP_INVALID, TMON_TEMP_INVALID);
+  tmon_ntc_stub_set (235, 198, TMON_TEMP_INVALID, TMON_TEMP_INVALID);
 
   poll_len = tmon_proto_encode_frame (poll, sizeof (poll), 3, TMON_CMD_POLL,
                                   NULL, 0);
@@ -136,7 +136,7 @@ test_dispatch_different_temps (void)
   uint8_t reply[64];
   size_t poll_len, reply_len;
 
-  tmon_sensor_stub_set (100, -50, 0, 325);
+  tmon_ntc_stub_set (100, -50, 0, 325);
 
   poll_len = tmon_proto_encode_frame (poll, sizeof (poll), 1, TMON_CMD_POLL,
                                   NULL, 0);
@@ -163,7 +163,7 @@ test_build_reply_frame (void)
   uint8_t buf[64];
   size_t len;
 
-  tmon_sensor_stub_set (210, -30, TMON_TEMP_INVALID, 150);
+  tmon_ntc_stub_set (210, -30, TMON_TEMP_INVALID, 150);
 
   len = tmon_build_reply_frame (buf, sizeof (buf), 7);
 
@@ -200,7 +200,7 @@ void
 setUp (void)
 {
   /* Reset stub temps before each test */
-  tmon_sensor_stub_set (0, 0, 0, 0);
+  tmon_ntc_stub_set (0, 0, 0, 0);
 }
 
 void
