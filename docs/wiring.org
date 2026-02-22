@@ -19,23 +19,22 @@ Read the [[file:../README.org][README]] first for an overview of the system.
 
 *Board:* esp32-s3-devkitc-1
 
-All nodes must share a common ground.
+Each ESP32 reads up to 4 NTC thermistors through a voltage divider
+powered from the board's 3.3V pin.  If you are connecting multiple
+ESP32 nodes to a shared RS-485 bus, they must all share a common
+ground.
 
 *** NTC thermistor inputs
 
-| Function       | ESP32 GPIO | Notes    |
-|----------------+------------+----------|
-| NTC channel 0  | GPIO 1     | ADC1_CH0 |
-| NTC channel 1  | GPIO 2     | ADC1_CH1 |
-| NTC channel 2  | GPIO 3     | ADC1_CH2 |
-| NTC channel 3  | GPIO 4     | ADC1_CH3 |
+| Function       | ESP32 GPIO |
+|----------------+------------|
+| NTC channel 0  | GPIO 1     |
+| NTC channel 1  | GPIO 2     |
+| NTC channel 2  | GPIO 3     |
+| NTC channel 3  | GPIO 4     |
 
-*Why ADC1?*  ADC2 cannot be used while WiFi is active.  All
-thermistor inputs are on ADC1 so WiFi remains available if needed.
-
-*Unused channels:* To permanently disable a channel, wire the GPIO
-directly to GND.  The firmware detects this and reports the channel as
-unavailable.
+*Fewer than 4 thermistors?*  Wire any unused GPIO directly to GND.
+The firmware detects this and reports the channel as unavailable.
 
 *** NTC voltage divider
 
