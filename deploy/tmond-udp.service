@@ -7,7 +7,7 @@ Type=simple
 User=tmon
 Group=tmon
 WorkingDirectory=/etc/tmon
-ExecStart=/var/lib/tmon/venv/bin/tmon config-udp.toml
+ExecStart=/var/lib/tmon/venv/bin/tmon tmon.toml --transport udp
 Restart=on-failure
 RestartSec=5
 

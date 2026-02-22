@@ -7,7 +7,7 @@ Type=simple
 User=tmon
 Group=tmon
 WorkingDirectory=/etc/tmon
-ExecStart=/var/lib/tmon/venv/bin/tmon config-485.toml
+ExecStart=/var/lib/tmon/venv/bin/tmon tmon.toml --transport rs485
 Restart=on-failure
 RestartSec=5
 

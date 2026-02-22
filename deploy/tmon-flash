@@ -147,7 +147,7 @@ if [ "${MODE}" = "udp" ]; then
   fi
 
   WIFI_TOML="${CFG_DIR}/wifi.toml"
-  UDP_TOML="${CFG_DIR}/config-udp.toml"
+  UDP_TOML="${CFG_DIR}/tmon.toml"
 
   for f in "${WIFI_TOML}" "${UDP_TOML}"; do
     if [ ! -f "${f}" ]; then

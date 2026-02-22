@@ -75,8 +75,7 @@ echo "Installing esptool..."
 # ------------------------------------------------------------------
 
 echo "Copying config files to ${ETC_DIR}..."
-cp -n server/config-485.toml "${ETC_DIR}/config-485.toml" 2>/dev/null || true
-cp -n server/config-udp.toml "${ETC_DIR}/config-udp.toml" 2>/dev/null || true
+cp -n server/tmon.toml "${ETC_DIR}/tmon.toml" 2>/dev/null || true
 cp -n server/wifi.toml.example "${ETC_DIR}/wifi.toml.example" 2>/dev/null || true
 
 chown -R tmon:tmon "${ETC_DIR}"
@@ -142,7 +141,7 @@ echo "  Firmware: ${FW_DIR}/"
 echo "  Flash:    /usr/local/bin/tmon-flash, tmon-patch"
 echo ""
 echo "Next steps:"
-echo "  1. Edit ${ETC_DIR}/config-485.toml (or config-udp.toml) for your setup"
+echo "  1. Edit ${ETC_DIR}/tmon.toml for your setup"
 echo "  2. Enable a daemon transport:"
 echo "       sudo systemctl enable --now tmond-serial"
 echo "       sudo systemctl enable --now tmond-udp"
