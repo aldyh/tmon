@@ -2,10 +2,10 @@
 * Wiring Reference
 
 This system monitors temperatures across multiple floors using ESP32
-sensor nodes connected to a Raspberry Pi server.
+clients connected to a Raspberry Pi server.
 
-This document describes how to wire ESP32-S3 sensor nodes with NTC
-thermistors.  Two transport options connect sensors to the server:
+This document describes how to wire ESP32-S3 clients with NTC
+thermistors.  Two transport options connect clients to the server:
 
 | Transport  | Use case             | Server connection |
 |------------+----------------------+-------------------|
@@ -91,11 +91,11 @@ GPIO  5      ------> DE + RE (tied)
 
 *** Bus topology
 
-All nodes (server USB adapter + ESP32 sensors) share a single
+All nodes (server USB adapter + ESP32 clients) share a single
 twisted pair plus ground.
 
 #+begin_example
-Pi (USB-RS485)       Sensor 1        Sensor 2        Sensor N
+Pi (USB-RS485)       Client 1        Client 2        Client N
    A ----+-----------+- A --+---------+- A --+-- ... --+- A
    B ----+-----------+- B --+---------+- B --+-- ... --+- B
   GND ---+-----------+- GND-+---------+- GND-+-- ... --+- GND
@@ -185,7 +185,7 @@ UART) and the serial console:
 
 ** Transport: WiFi (UDP push)
 
-WiFi sensors need only the common wiring (thermistors + power) -- no
+WiFi clients need only the common wiring (thermistors + power) -- no
 MAX485 module, no UART wiring, no bus cable.  The ESP32 connects to
 your WiFi network and pushes readings to the server over UDP.
 
@@ -198,7 +198,7 @@ WiFi credentials are configured in ~/etc/tmon/wifi.toml~ (copy from
 This bill of materials covers the reference setup: 3 floors with 4
 thermistors per floor, using RS-485 transport.
 
-*** Sensor nodes (3 total, one per floor)
+*** Client nodes (3 total, one per floor)
 
 | Qty | Part                      | Notes                          |
 |-----+---------------------------+--------------------------------|
