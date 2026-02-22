@@ -1,5 +1,6 @@
 #+STARTUP: showall
-* Storage specification
+#+OPTIONS: num:1
+#+TITLE: Storage specification
 
 SQLite database for persisting temperature readings collected by the
 server poller.
@@ -16,15 +17,15 @@ server poller.
   is intentional -- gaps keep the data clean and are easy to detect by
   checking timestamp intervals.
 
-** Schema
+* Schema
 
-*** ~readings~ table
+** ~readings~ table
 
 Stores one row per successful REPLY frame received from a sensor.
 
 The authoritative schema is embedded in [[file:../server/src/tmon/storage.py][storage.py]].
 
-*** Column details
+** Column details
 
 | Column | Type    | Description                                                                         |
 |--------+---------+-------------------------------------------------------------------------------------|
@@ -36,14 +37,14 @@ The authoritative schema is embedded in [[file:../server/src/tmon/storage.py][st
 | temp_2 | INTEGER | Channel 2 reading, same encoding as temp_0.                                         |
 | temp_3 | INTEGER | Channel 3 reading, same encoding as temp_0.                                         |
 
-*** Indexes
+** Indexes
 
 | Index                | Columns    | Purpose                                            |
 |----------------------+------------+----------------------------------------------------|
 | idx_readings_addr_ts | (addr, ts) | Speeds up queries that filter by sensor address and |
 |                      |            | time range -- the panel's primary access pattern.  |
 
-** Path resolution
+* Path resolution
 
 The database path in ~config-485.toml~ is a bare filename (e.g. ~tmon.db~).
 The daemon resolves it to an absolute path based on the config file location:

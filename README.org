@@ -1,8 +1,8 @@
 #+STARTUP: showall
+#+OPTIONS: num:1
+#+TITLE: tmon: A temperature monitoring system
 
-* tmon: A temperature monitoring system
-
-** Overview
+* Overview
 
 A small, home-use *Raspberry Pi + ESP32* setup for monitoring
 temperatures over *RS-485* or *WiFi*.
@@ -16,7 +16,7 @@ temperatures over *RS-485* or *WiFi*.
 
 Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[*Flashing client firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
 
-** Architecture
+* Architecture
 
 #+begin_example
                 Raspberry Pi
@@ -40,7 +40,7 @@ Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP d
 
 See the [[file:docs/wiring.org][Wiring Reference]] for how to connect the ESP32 clients, thermistors, and RS-485 bus.
 
-** Installation
+* Installation
 
 Installation is meant to be done on the Raspberry Pi, since that is
 where you will likely deploy.  You can do so with:
@@ -55,7 +55,7 @@ sudo make install
 
 The installer copies default config files to ~/etc/tmon/~, pre-built firmware binaries to ~/var/lib/tmon/firmware/~, and supporting files to ~/var/lib/tmon/~.  The servers are meant to be run from systemd and are installed but *not* enabled -- see [[*Running][Running]].
 
-** Configuration
+* Configuration
 
 Config files live in ~/etc/tmon/~:
 
@@ -63,7 +63,7 @@ Config files live in ~/etc/tmon/~:
 - ~config-udp.toml~ -- UDP transport: listen port, push interval.
 - ~wifi.toml~ -- WiFi credentials for UDP clients (copy from ~wifi.toml.example~ and fill in).
 
-** Running
+* Running
 
 Enable the two daemons (one for UDP and one for serial):
 
@@ -87,7 +87,7 @@ journalctl -u tmond-serial -f
 journalctl -u tmond-udp -f
 #+end_example
 
-** Flashing client firmware
+* Flashing client firmware
 
 Connect an ESP32 to the Pi via USB, then use ~tmon-flash~ to flash it.  Each client must have a unique address:
 
@@ -112,7 +112,7 @@ Pressing the boot button triggers the identify sequence: the LED
 blinks yellow N times, where N is the client address.  This lets you
 verify which address a device has after flashing.
 
-** Uninstalling
+* Uninstalling
 
 To uninstall:
 
@@ -124,19 +124,17 @@ sudo make uninstall
 sudo deploy/uninstall.sh --purge
 #+end_example
 
-** Development
+* Build and test
 
 For local hacking -- these targets use local venvs and do not require
 a system-wide install.
-
-*** Build and test
 
 #+begin_example
 make                  # create venvs + deps
 make check            # run all test suites (no hardware needed)
 #+end_example
 
-*** Run locally
+* Run locally
 
 To run the servers on the development environment without installing first:
 
@@ -146,7 +144,7 @@ make run-server-udp   # UDP push (uses server/config-udp.toml)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example
 
-*** Building firmware from source
+* Building firmware from source
 
 The pre-built firmware is included in the repository, but if you need to rebuild it (requires [[https://platformio.org/][PlatformIO]] on an x86 machine):
 
@@ -158,7 +156,7 @@ scp -r firmware/ pi:~/tmon/
 
 Then re-run ~sudo make install~ on the Pi to update the installed firmware.
 
-** Documentation
+* Documentation
 
 - [[file:docs/protocol.org][Protocol Specification]]
 - [[file:docs/wiring.org][Wiring Reference]]

@@ -1,5 +1,6 @@
 #+STARTUP: showall
-* Wiring Reference
+#+OPTIONS: num:1
+#+TITLE: Wiring Reference
 
 This system monitors temperatures across multiple floors using ESP32
 clients connected to a Raspberry Pi server.
@@ -15,7 +16,7 @@ thermistors.  Two transport options connect clients to the server:
 Both use the same binary protocol.  Choose based on your setup.
 Read the [[file:../README.org][README]] first for an overview of the system.
 
-** Common wiring (all transports)
+* Common wiring (all transports)
 
 *Board:* esp32-s3-devkitc-1
 
@@ -24,14 +25,14 @@ powered from the board's 3.3V pin.  If you are connecting multiple
 ESP32 nodes to a shared RS-485 bus, they must all share a common
 ground.
 
-*** NTC thermistor inputs
+** NTC thermistor inputs
 
 Channels 0 through 3 on GPIO 1 through 4:
 
 *Fewer than 4 thermistors?*  Wire any unused GPIO directly to GND.
 The firmware detects this and reports the channel as unavailable.
 
-*** NTC voltage divider
+** NTC voltage divider
 
 Each NTC thermistor is read through a voltage divider against a
 fixed 10k-ohm reference resistor.
@@ -60,9 +61,9 @@ resistance drops).
 *Optional:* a 100 nF ceramic capacitor from the ADC input to GND
 can reduce noise on the reading.
 
-** Transport: RS-485 (default)
+* Transport: RS-485 (default)
 
-*** Pin assignments
+** Pin assignments
 
 | ESP32 Pin        | Connects to           |
 |------------------+-----------------------|
@@ -70,7 +71,7 @@ can reduce noise on the reading.
 | GPIO 16 (RX)     | MAX485 RO             |
 | GPIO 5  (DE/RE)  | MAX485 DE + RE (tied) |
 
-*** MAX485 wiring
+** MAX485 wiring
 
 The MAX485 is a half-duplex RS-485 transceiver.  DE and RE are tied
 together so a single GPIO controls bus direction.
@@ -89,7 +90,7 @@ GPIO  5      ------> DE + RE (tied)
 
 *DE/RE signal:* HIGH = transmit, LOW = receive.
 
-*** Bus topology
+** Bus topology
 
 All nodes (server USB adapter + ESP32 clients) share a single
 twisted pair plus ground.
@@ -110,7 +111,7 @@ Pi (USB-RS485)       Client 1        Client 2        Client N
   well within RS-485 limits.
 - At 9600 baud there is generous margin for cable length and noise.
 
-*** Bias resistors (optional -- skip for most home installs)
+** Bias resistors (optional -- skip for most home installs)
 
 For a short home bus you can skip this section entirely.  The protocol
 uses CRC error checking and the poll loop retries automatically, so
@@ -144,7 +145,7 @@ Shown for the MAX485 (A is the high line at idle):
 Check your transceiver datasheet if you are not using a MAX485 -- A/B
 naming varies between manufacturers.
 
-*** Server side
+** Server side
 
 The server uses a USB-to-RS-485 adapter.  No additional wiring is
 needed on the Pi beyond plugging in the adapter and connecting A, B,
@@ -156,7 +157,7 @@ an external termination resistor at the other end.
 
 The adapter typically appears as ~/dev/ttyUSB0~.
 
-*** Testing without the MAX485 module
+** Testing without the MAX485 module
 
 You can test the full RS-485 firmware path without any transceiver
 hardware.  Wire the ESP32 UART pins (GPIO 17 TX, GPIO 16 RX) directly
@@ -183,7 +184,7 @@ UART) and the serial console:
 3. Reboot.  ~/dev/serial0~ is now available on GPIO 14 / pin 8 (TX)
    and GPIO 15 / pin 10 (RX).
 
-** Transport: WiFi (UDP push)
+* Transport: WiFi (UDP push)
 
 WiFi clients need only the common wiring (thermistors + power) -- no
 MAX485 module, no UART wiring, no bus cable.  The ESP32 connects to
@@ -193,12 +194,12 @@ WiFi credentials are configured in ~/etc/tmon/wifi.toml~ (copy from
 ~wifi.toml.example~ and fill in your SSID and password).  See the
 [[file:../README.org][README]] for configuration details.
 
-** Parts list (reference setup)
+* Parts list (reference setup)
 
 This bill of materials covers the reference setup: 3 floors with 4
 thermistors per floor, using RS-485 transport.
 
-*** Client nodes (3 total, one per floor)
+** Client nodes (3 total, one per floor)
 
 | Qty | Part                      | Notes                          |
 |-----+---------------------------+--------------------------------|
@@ -212,13 +213,13 @@ thermistors per floor, using RS-485 transport.
 target the S3 specifically.  Other ESP32 variants (original, C3, S2)
 are not compatible without rebuilding from source.
 
-*** Server (Raspberry Pi)
+** Server (Raspberry Pi)
 
 | Qty | Part                | Notes                                  |
 |-----+---------------------+----------------------------------------|
 |   1 | USB-to-RS485 adapter | Most have built-in 120 ohm termination |
 
-*** RS-485 bus
+** RS-485 bus
 
 | Qty | Part               | Notes                                   |
 |-----+--------------------+-----------------------------------------|

@@ -1,18 +1,19 @@
 #+STARTUP: showall
-* Protocol specification
+#+OPTIONS: num:1
+#+TITLE: Protocol specification
 
 Binary protocol for temperature monitoring.
 
-** Transport modes
+* Transport modes
 
-*** Poll mode (RS-485)
+** Poll mode (RS-485)
 
 - *Bus:* RS-485 half-duplex, 9600 baud, 8N1.
 - *Topology:* Single server (Raspberry Pi), 1-247 sensors (ESP32).
 - *Flow:* Server sends a POLL; addressed sensor replies with a REPLY.
   All other sensors stay silent.
 
-*** Push mode (UDP)
+** Push mode (UDP)
 
 - *Transport:* UDP over WiFi.
 - *Topology:* Single server listening on a UDP port, sensors push.
@@ -20,7 +21,7 @@ Binary protocol for temperature monitoring.
   the server, then return to deep sleep.  No POLL needed.
 - *Addressing:* The ADDR byte in the REPLY identifies the sensor.
 
-** Frame format
+* Frame format
 
 Every frame (both directions) uses the same envelope:
 
@@ -38,25 +39,25 @@ Every frame (both directions) uses the same envelope:
 | CRC_LO  | 1 byte  | CRC-16/MODBUS, low byte                               |
 | CRC_HI  | 1 byte  | CRC-16/MODBUS, high byte                              |
 
-*** CRC
+** CRC
 
 CRC-16/MODBUS computed over ~ADDR + CMD + LEN + PAYLOAD~ (everything
 between START and CRC).  Transmitted little-endian (low byte first).
 
 Polynomial: 0x8005, initial value: 0xFFFF, reflected input and output.
 
-** Commands
+* Commands
 
 | Command  | Value  | Direction       | Payload             |
 |----------+--------+-----------------+---------------------|
 | POLL     | ~0x01~ | Server -> Sensor | None (LEN = 0)     |
 | REPLY    | ~0x02~ | Sensor -> Server | 8 bytes (see below) |
 
-*** POLL (0x01)
+** POLL (0x01)
 
 Server requests a reading from the addressed sensor.  No payload.
 
-*** REPLY (0x02)
+** REPLY (0x02)
 
 Sensor responds with its current temperature readings.  Fixed 8-byte
 payload:
@@ -73,19 +74,19 @@ payload:
 - Invalid or unconnected channels: temp value ~0x7FFF~ (sentinel).
 - int16 range covers -3276.8 to +3276.7 C -- more than sufficient.
 
-** Timing
+* Timing
 
 - After sending POLL, the server waits up to *200 ms* for a REPLY.
 - No response within the timeout means the sensor is offline.  The
   server logs the event and moves to the next sensor.
 
-** Error handling
+* Error handling
 
 - *CRC mismatch:* frame is silently discarded.
 - *Unknown command:* sensor ignores the frame (no reply).
 - *Unexpected length:* frame is discarded.
 
-** Constants
+* Constants
 
 For reference when implementing:
 
@@ -100,9 +101,9 @@ TEMP_INVALID       = 0x7FFF
 POLL_TIMEOUT_MS    = 200
 #+end_example
 
-** Worked examples
+* Worked examples
 
-*** Example 1: server polls sensor 3
+** Example 1: server polls sensor 3
 
 Frame bytes (hex):
 
@@ -118,7 +119,7 @@ Frame bytes (hex):
 
 Total: 6 bytes.
 
-*** Example 2: sensor 3 replies, channels 0 and 1 valid
+** Example 2: sensor 3 replies, channels 0 and 1 valid
 
 Channel 0: 23.5 C (235 = 0x00EB), channel 1: 19.8 C (198 = 0x00C6).
 Channels 2 and 3 invalid (0x7FFF).
