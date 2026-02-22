@@ -1079,3 +1079,15 @@ informational only and has no effect on the server.
 The daemon purges readings older than 365 days on startup, then
 vacuums to reclaim disk space.  See ~Storage.purge()~ in
 ~server/src/tmon/storage.py~.
+* TODO sensor / client rename
+Similar to what we did in the README.org
+Make sure the makefile targets and the docs are updated as well.
+* TODO one toml to rule them all
+I hate that we have config-485.toml and config-udp.toml.  These should
+be merged so we have a config.toml (that has udp and 485 settigs).  it's confusing having two.  though I don't know how the make system will be able to distinguish between the 2.
+
+however, we should have a wifi.toml.example separately.
+* TODO flesh out Configuration section in README
+The config file descriptions list the files but don't guide the user
+on what to actually change (e.g. adding client addresses, picking the
+right serial port).  Add brief instructions or examples.
