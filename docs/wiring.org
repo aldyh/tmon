@@ -5,15 +5,15 @@ This system monitors temperatures across multiple floors using ESP32
 sensor nodes connected to a Raspberry Pi server.
 
 This document describes how to wire ESP32-S3 sensor nodes with NTC
-thermistors.  Three transport options connect sensors to the server:
+thermistors.  Two transport options connect sensors to the server:
 
-| Transport  | Use case                | Server connection        |
-|------------+-------------------------+--------------------------|
-| RS-485     | Production (default)    | USB-RS485 adapter        |
-| Bare UART  | Testing without RS-485  | Pi GPIO UART             |
-| WiFi (UDP) | Wireless alternative    | UDP over network         |
+| Transport  | Use case             | Server connection |
+|------------+----------------------+-------------------|
+| RS-485     | Production (default) | USB-RS485 adapter |
+| WiFi (UDP) | Wireless alternative | UDP over network  |
 
-All three use the same binary protocol.  Choose based on your setup.
+Both use the same binary protocol.  Choose based on your setup.
+Read the [[file:../README.org][README]] first for an overview of the system.
 
 ** Common wiring (all transports)
 
@@ -162,33 +162,16 @@ an external termination resistor at the other end.
 
 The adapter typically appears as ~/dev/ttyUSB0~.
 
-** Transport: Bare UART (testing)
+*** Testing without the MAX485 module
 
-The sensor firmware can be tested without RS-485 transceivers by
-connecting the ESP32 UART directly to the Pi's GPIO UART.  No code
-changes are required.
+You can test the full RS-485 firmware path without any transceiver
+hardware.  Wire the ESP32 UART pins (GPIO 17 TX, GPIO 16 RX) directly
+to the Pi's GPIO UART (GPIO 14 TX, GPIO 15 RX), crossing TX/RX as
+usual.  Leave GPIO 5 (DE/RE) unconnected -- the firmware toggles it
+but nothing reads it without a transceiver on the other end.
 
-*Why this works:* The DE/RE pin (GPIO 5) is configured as output-only.
-The firmware toggles it, but nothing ever reads it.  When left
-floating, the GPIO simply switches into thin air.  The UART bytes flow
-identically whether they pass through a MAX485 or over a direct wire.
-
-*** Pin assignments
-
-| Function     | ESP32 GPIO | Notes                   |
-|--------------+------------+-------------------------|
-| UART TX      | GPIO 17    | Connect to test UART RX |
-| UART RX      | GPIO 16    | Connect to test UART TX |
-| RS-485 DE/RE | GPIO 5     | Leave floating          |
-
-Once testing passes, move the wires to the MAX485 module
-(GPIO 17 -> DI, GPIO 16 <- RO, GPIO 5 -> DE+RE).
-
-*** Pi GPIO UART
-
-The Pi's GPIO UART can provide a direct serial connection for testing.
-This requires disabling Bluetooth (which uses the same UART) and the
-serial console.
+To enable the Pi's GPIO UART, disable Bluetooth (which shares the
+UART) and the serial console:
 
 1. Edit ~/boot/firmware/config.txt~:
    #+begin_example
