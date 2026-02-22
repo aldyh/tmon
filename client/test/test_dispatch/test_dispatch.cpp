@@ -1,7 +1,7 @@
 /*
  * test_dispatch.c -- Unity tests for tmon frame dispatch.
  *
- * Tests protocol request/response logic using stub sensors.
+ * Tests protocol request/response logic using NTC stubs.
  * Run with: pio test -e native
  */
 
@@ -131,7 +131,7 @@ test_dispatch_ignores_bad_crc (void)
 void
 test_dispatch_different_temps (void)
 {
-  /* Verify dispatch returns whatever sensors report. */
+  /* Verify dispatch returns whatever NTC stubs report. */
   uint8_t poll[6];
   uint8_t reply[64];
   size_t poll_len, reply_len;

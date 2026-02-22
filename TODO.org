@@ -1079,9 +1079,19 @@ informational only and has no effect on the server.
 The daemon purges readings older than 365 days on startup, then
 vacuums to reclaim disk space.  See ~Storage.purge()~ in
 ~server/src/tmon/storage.py~.
-* TODO sensor / client rename
+* DONE sensor / client rename
 Similar to what we did in the README.org
 Make sure the makefile targets and the docs are updated as well.
+** Notes
+Renamed throughout in branch claude/074-sensor-client-rename:
+- sensor/ directory -> client/
+- Makefile targets: build-sensor-* -> build-client-*, check-sensor -> check-client
+- C++ classes: SensorApp -> ClientApp, RS485Sensor -> RS485Client, UDPSensor -> UDPClient
+- sensors.h/cpp -> ntc.h/cpp (NTC thermistor code)
+- Python: config key sensors -> clients, all docstrings/comments
+- TOML: sensors = [...] -> clients = [...]
+- Panel code and tests
+- All documentation (protocol.org, storage.org, wiring.org, PLAN.org)
 * TODO one toml to rule them all
 I hate that we have config-485.toml and config-udp.toml.  These should
 be merged so we have a config.toml (that has udp and 485 settigs).  it's confusing having two.  though I don't know how the make system will be able to distinguish between the 2.

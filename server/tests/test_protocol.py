@@ -58,11 +58,11 @@ class TestIsValidAddress:
 class TestCrc16Modbus:
     """CRC-16/MODBUS computation tests."""
 
-    def test_example1_poll_sensor3(self):
+    def test_example1_poll_client3(self):
         """CRC of [03 01 00] should be 0x5080 (Example 1 in spec)."""
         assert crc16_modbus(bytes([0x03, 0x01, 0x00])) == 0x5080
 
-    def test_example2_reply_sensor3(self):
+    def test_example2_reply_client3(self):
         """CRC of Example 2 body should be 0xEB90 (spec)."""
         body = bytes([
             0x03, 0x02, 0x08,
@@ -87,8 +87,8 @@ class TestCrc16Modbus:
 class TestEncodeRequest:
     """Tests for the general frame encoder."""
 
-    def test_example1_poll_sensor3(self):
-        """POLL for sensor 3 should produce the Example 1 frame."""
+    def test_example1_poll_client3(self):
+        """POLL for client 3 should produce the Example 1 frame."""
         expected = bytes([0x01, 0x03, 0x01, 0x00, 0x80, 0x50])
         assert encode_frame(3, PROTO_CMD_POLL, b"") == expected
 

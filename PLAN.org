@@ -6,7 +6,7 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 
 ** Assumptions
 
-- 1-4 ESP32 sensors, each with up to 4 NTC thermistors.
+- 1-4 ESP32 clients, each with up to 4 NTC thermistors.
 - A USB <-> RS-485 adapter on the Pi.
 - SQLite is sufficient
 - Protocol is custom binary as defined in ~docs/protocol.org~.
@@ -18,7 +18,7 @@ Goal: a small, robust temperature monitoring system where a Raspberry Pi polls a
 - *Testing:*
   - Unit tests: ~pytest~ with fakes/mocks (no hardware).
   - Integration tests: ~socat~ + serial simulator (~server/tools~).
-- *Firmware (sensor):* PlatformIO + Arduino framework; keep firmware straightforward.
+- *Firmware (client):* PlatformIO + Arduino framework; keep firmware straightforward.
 
 ** Milestones
 
@@ -55,7 +55,7 @@ so something simple.
 *** Setup skeleton test
 
 - [X] Setup bare stubs for entire project (no API, just stubs)
-- [X] Add stub tests so that we can "run" tests for sensor, server, etc, even if just placeholders.
+- [X] Add stub tests so that we can "run" tests for client, server, etc, even if just placeholders.
 - [X] We can build the entire system and tests pass.
 - [X] Flesh out "Quick Start" section in README.org.
 
@@ -77,14 +77,14 @@ so something simple.
 
 *** Unified test runner
 
-- [X] Add root Makefile with ~check~, ~check-server~, ~check-sensor~ targets
+- [X] Add root Makefile with ~check~, ~check-server~, ~check-client~ targets
 - [X] Simplify README.org testing section to point at ~make check~
-- [X] Add ~all~, ~build-server~, ~build-sensor~ targets to Makefile
+- [X] Add ~all~, ~build-server~, ~build-client~ targets to Makefile
 - [X] Rewrite README Quick Start to use make targets
 
 *** Simulator (x86)
 
-- [X] Implement a simple "virtual sensor" that speaks the protocol over a pseudo-serial port
+- [X] Implement a simple "virtual client" that speaks the protocol over a pseudo-serial port
 - [X] Integration test: server talks to simulator and receives stable readings
 - [X] Server can poll simulator end-to-end without hardware
 
@@ -127,7 +127,7 @@ so something simple.
 - [X] Makefile targets: ~demo-static~, ~demo-static-tar~, ~demo-static-clean~
 - [X] Documentation (panel/README.org, PLAN.org)
 
-*** ESP32 firmware: sensors + RS-485
+*** ESP32 firmware: NTC + RS-485
 
 **** Blink test (verify toolchain)
 - [X] Update platformio.ini for ESP32-S3
@@ -145,9 +145,9 @@ so something simple.
 - [X] Server: Listener for decoding/storing
 - [X] Server: Config transport selection (rs485 or udp)
 - [X] Server: UDP integration tests
-- [X] Sensor: NTC thermistor reading (Steinhart-Hart)
-- [X] Sensor: UDP push with deep sleep
-- [X] Sensor: Build environments (uart vs udp)
+- [X] Client: NTC thermistor reading (Steinhart-Hart)
+- [X] Client: UDP push with deep sleep
+- [X] Client: Build environments (uart vs udp)
 - [X] Makefile targets for UDP builds
 - [X] Remove obsolete TCP WiFi transport
 
@@ -193,7 +193,7 @@ Build 2 generic firmware binaries, patch config at flash time.
 - [X] Remove ~slave_addr.py~ and ~wifi_config.py~
 - [X] ~deploy/tmon-patch~: find markers, overwrite with real values
 - [X] ~tmon-flash~: generic binary name, patch step, TOML reading for UDP
-- [X] ~Makefile~: 2 generic builds, ~flash-sensor*~ calls ~tmon-flash~
+- [X] ~Makefile~: 2 generic builds, ~flash-client*~ calls ~tmon-flash~
 - [X] ~install.sh~: install ~tmon-patch~, generic firmware names
 
 *** Verify installation works on x86
@@ -214,7 +214,7 @@ Build 2 generic firmware binaries, patch config at flash time.
 - [X] Verify daemon stores readings correctly in SQLite
 - [X] Verify panel reads SQLite correctly
 
-*** Rename master/slave to server/sensor
+*** Rename master/slave to server/client
 
 - [X] Rename throughout: code, config, docs, directory names, README
 - [X] Verify all tests pass after rename
@@ -235,7 +235,7 @@ crossover).  DE/RE are output-only in the firmware, so they can be
 left unwired.
 
 - [ ] Wire ESP32 TX/RX to Pi UART (crossover: TX->RX, RX->TX, common GND)
-- [ ] Server polls sensor over serial, receives valid temperature readings
+- [ ] Server polls client over serial, receives valid temperature readings
 - [ ] Verify round-trip works reliably (no CRC errors, no timeouts)
 
 *** Full firmware (RS-485)
@@ -243,11 +243,11 @@ left unwired.
 - [ ] RS-485 transceiver enable/disable control (DE/RE) with correct timing
 - [ ] Respond to requests; populate payload with temperature readings
 - [ ] Real device responds reliably on a physical RS-485 bus
-- [ ] Real bus smoke test with 1 sensor -> then scale to all sensors
+- [ ] Real bus smoke test with 1 client -> then scale to all clients
 
 *** Integration + polish
 
-- [X] Document how to add a new sensor (address + wiring + config)
+- [X] Document how to add a new client (address + wiring + config)
 - [X] Confirm error handling (CRC errors, timeouts, missing devices) is reasonable
 - [X] Check LED behavior sanity (stub vs real hardware alignment)
 - [X] Add readings table index (~CREATE INDEX idx_readings_addr_ts ON readings(addr, ts)~)

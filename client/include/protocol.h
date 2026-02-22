@@ -2,7 +2,7 @@
  * protocol.h -- tmon RS-485 frame encoding/decoding
  *
  * Binary framing as described in docs/protocol.org.
- * Shared between sensor firmware modules.
+ * Shared between client firmware modules.
  */
 
 #ifndef TMON_PROTOCOL_H
@@ -21,7 +21,7 @@
 /* Sentinel value for invalid/unconnected temperature channels */
 #define TMON_TEMP_INVALID  0x7FFF
 
-/* Number of temperature channels per sensor */
+/* Number of temperature channels per client */
 #define TMON_NUM_CHANNELS  4
 
 /*

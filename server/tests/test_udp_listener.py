@@ -77,7 +77,7 @@ class TestReceiveOne:
         storage.close()
 
     def test_multiple_readings(self) -> None:
-        """Multiple readings from different sensors."""
+        """Multiple readings from different clients."""
         frame1 = make_reply(1, 100, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         frame2 = make_reply(2, 200, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         receiver = FakeReceiver([frame1, frame2])

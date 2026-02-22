@@ -58,7 +58,7 @@ tmon_proto_crc16 (const uint8_t *data, size_t len)
  * Args:
  *   buf:         Output buffer (caller-provided).
  *   buf_len:     Size of the output buffer in bytes.
- *   addr:        Sensor address (1-247).
+ *   addr:        Client address (1-247).
  *   cmd:         Command byte.
  *   payload:     Payload bytes (may be NULL when payload_len is 0).
  *   payload_len: Number of payload bytes.
@@ -110,7 +110,7 @@ tmon_proto_encode_frame (uint8_t *buf, size_t buf_len, uint8_t addr, uint8_t cmd
  * Args:
  *   data:        Raw frame bytes.
  *   len:         Number of bytes in data.
- *   addr:        Output: sensor address.
+ *   addr:        Output: client address.
  *   cmd:         Output: command byte.
  *   payload:     Output: pointer into data at the payload start.
  *   payload_len: Output: payload length.

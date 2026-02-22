@@ -46,7 +46,7 @@ class TestSerialBusReceive:
         mock_ser = MagicMock()
         mock_serial_cls.return_value = mock_ser
 
-        # Build a valid REPLY frame for sensor 3
+        # Build a valid REPLY frame for client 3
         payload = struct.pack("<Bhhhh", 0x03, 235, 198, 0x7FFF, 0x7FFF)
         frame = encode_frame(3, PROTO_CMD_REPLY, payload)
 

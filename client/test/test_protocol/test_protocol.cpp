@@ -13,9 +13,9 @@
 /* -- encode_request tests ------------------------------------------------- */
 
 void
-test_encode_example1_poll_sensor3 (void)
+test_encode_example1_poll_client3 (void)
 {
-  /* POLL for sensor 3 should produce the Example 1 frame. */
+  /* POLL for client 3 should produce the Example 1 frame. */
   uint8_t expected[] = {0x01, 0x03, 0x01, 0x00, 0x80, 0x50};
   uint8_t buf[64];
   size_t n = tmon_proto_encode_frame (buf, sizeof (buf), 3, TMON_CMD_POLL,
@@ -446,7 +446,7 @@ main (void)
   UNITY_BEGIN ();
 
   /* Encode */
-  RUN_TEST (test_encode_example1_poll_sensor3);
+  RUN_TEST (test_encode_example1_poll_client3);
   RUN_TEST (test_encode_example2_reply_frame);
   RUN_TEST (test_encode_poll_length_is_6);
   RUN_TEST (test_encode_start_byte);

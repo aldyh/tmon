@@ -9,17 +9,17 @@ Binary protocol for temperature monitoring.
 ** Poll mode (RS-485)
 
 - *Bus:* RS-485 half-duplex, 9600 baud, 8N1.
-- *Topology:* Single server (Raspberry Pi), 1-247 sensors (ESP32).
-- *Flow:* Server sends a POLL; addressed sensor replies with a REPLY.
-  All other sensors stay silent.
+- *Topology:* Single server (Raspberry Pi), 1-247 clients (ESP32).
+- *Flow:* Server sends a POLL; addressed client replies with a REPLY.
+  All other clients stay silent.
 
 ** Push mode (UDP)
 
 - *Transport:* UDP over WiFi.
-- *Topology:* Single server listening on a UDP port, sensors push.
-- *Flow:* Sensors wake periodically, send a REPLY frame via UDP to
+- *Topology:* Single server listening on a UDP port, clients push.
+- *Flow:* Clients wake periodically, send a REPLY frame via UDP to
   the server, then return to deep sleep.  No POLL needed.
-- *Addressing:* The ADDR byte in the REPLY identifies the sensor.
+- *Addressing:* The ADDR byte in the REPLY identifies the client.
 
 * Frame format
 
@@ -32,7 +32,7 @@ Every frame (both directions) uses the same envelope:
 | Field   | Size    | Description                                           |
 |---------+---------+-------------------------------------------------------|
 | START   | 1 byte  | ~0x01~ (SOH) -- frame delimiter                      |
-| ADDR    | 1 byte  | Sensor address, 1-247                                 |
+| ADDR    | 1 byte  | Client address, 1-247                                 |
 | CMD     | 1 byte  | Command byte (see below)                              |
 | LEN     | 1 byte  | Payload length in bytes (0-255)                       |
 | PAYLOAD | 0-N     | Command-specific data                                 |
@@ -50,16 +50,16 @@ Polynomial: 0x8005, initial value: 0xFFFF, reflected input and output.
 
 | Command  | Value  | Direction       | Payload             |
 |----------+--------+-----------------+---------------------|
-| POLL     | ~0x01~ | Server -> Sensor | None (LEN = 0)     |
-| REPLY    | ~0x02~ | Sensor -> Server | 8 bytes (see below) |
+| POLL     | ~0x01~ | Server -> Client | None (LEN = 0)     |
+| REPLY    | ~0x02~ | Client -> Server | 8 bytes (see below) |
 
 ** POLL (0x01)
 
-Server requests a reading from the addressed sensor.  No payload.
+Server requests a reading from the addressed client.  No payload.
 
 ** REPLY (0x02)
 
-Sensor responds with its current temperature readings.  Fixed 8-byte
+Client responds with its current temperature readings.  Fixed 8-byte
 payload:
 
 | Offset | Size     | Field   | Description                               |
@@ -77,13 +77,13 @@ payload:
 * Timing
 
 - After sending POLL, the server waits up to *200 ms* for a REPLY.
-- No response within the timeout means the sensor is offline.  The
-  server logs the event and moves to the next sensor.
+- No response within the timeout means the client is offline.  The
+  server logs the event and moves to the next client.
 
 * Error handling
 
 - *CRC mismatch:* frame is silently discarded.
-- *Unknown command:* sensor ignores the frame (no reply).
+- *Unknown command:* client ignores the frame (no reply).
 - *Unexpected length:* frame is discarded.
 
 * Constants
@@ -103,7 +103,7 @@ POLL_TIMEOUT_MS    = 200
 
 * Worked examples
 
-** Example 1: server polls sensor 3
+** Example 1: server polls client 3
 
 Frame bytes (hex):
 
@@ -119,7 +119,7 @@ Frame bytes (hex):
 
 Total: 6 bytes.
 
-** Example 2: sensor 3 replies, channels 0 and 1 valid
+** Example 2: client 3 replies, channels 0 and 1 valid
 
 Channel 0: 23.5 C (235 = 0x00EB), channel 1: 19.8 C (198 = 0x00C6).
 Channels 2 and 3 invalid (0x7FFF).
