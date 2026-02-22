@@ -213,11 +213,9 @@ thermistors per floor, using RS-485 transport.
 |  12 | 10k NTC thermistor        | 4 per floor (B=3950 type)      |
 |  12 | 100nF ceramic capacitor   | 4 per floor (optional, noise)  |
 
-*Why ESP32-S3?*  The firmware, partition table, and flash tool
-(~tmon-flash~) are built for ESP32-S3.  Other ESP32 variants (original,
-C3, S2) have different bootloader offsets and pin mappings.  Using a
-different chip requires changes to ~platformio.ini~, ~tmon-flash~, and
-the pin assignments above.
+*Why ESP32-S3?*  The pre-built firmware and the ~tmon-flash~ tool
+target the S3 specifically.  Other ESP32 variants (original, C3, S2)
+are not compatible without rebuilding from source.
 
 *** Server (Raspberry Pi)
 
