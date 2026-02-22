@@ -1,0 +1,18 @@
+# tmon configuration
+#
+# Run with: tmon tmon.toml --transport rs485
+#           tmon tmon.toml --transport udp
+
+db = "tmon.db"
+
+[rs485]
+clients = [1, 2, 3]
+interval = 5
+port = "/dev/ttyUSB0"
+baudrate = 9600
+
+[udp]
+port = 5555
+# How often clients push readings (seconds). Only used by tmon-flash
+# when patching firmware; the server just listens passively.
+push_interval = 5

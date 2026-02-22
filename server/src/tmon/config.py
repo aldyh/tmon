@@ -10,26 +10,26 @@ import tomllib
 TIMEOUT_MS = 200
 
 
-def load_config(path: str) -> dict:
+def load_config(path: str, transport: str) -> dict:
     """Read a TOML config file and validate required keys.
 
-    Common keys: ``transport`` (str, "rs485" or "udp"), ``db`` (str).
+    The *transport* selects which section to validate: ``[rs485]`` or
+    ``[udp]``.  The transport is not read from the TOML file itself.
 
-    For rs485: ``clients`` (list[int]), ``interval`` (int), ``port`` (str),
-    ``baudrate`` (int).
+    Common keys: ``db`` (str).
+
+    For rs485: ``[rs485]`` section with ``clients`` (list[int]),
+    ``interval`` (int), ``port`` (str), ``baudrate`` (int).
     For udp: ``[udp]`` section with ``port`` (int).
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
     """
-    with open(path, "rb") as f:
-        raw = tomllib.load(f)
-
-    transport = raw.get("transport", "rs485")
-    if not isinstance(transport, str):
-        raise ValueError("transport must be str, got %s" % type(transport).__name__)
     if transport not in ("rs485", "udp"):
         raise ValueError("transport must be 'rs485' or 'udp', got '%s'" % transport)
+
+    with open(path, "rb") as f:
+        raw = tomllib.load(f)
 
     _require_str(raw, "db")
 
@@ -42,15 +42,17 @@ def load_config(path: str) -> dict:
         _require_udp_section(raw)
         result["udp_port"] = raw["udp"]["port"]
     else:
-        # RS-485 needs clients, interval, port, baudrate
-        _require_int(raw, "interval")
-        _require_clients(raw)
-        _require_str(raw, "port")
-        _require_int(raw, "baudrate")
-        result["clients"] = raw["clients"]
-        result["interval"] = raw["interval"]
-        result["port"] = raw["port"]
-        result["baudrate"] = raw["baudrate"]
+        section = raw.get("rs485")
+        if not isinstance(section, dict):
+            raise ValueError("rs485 transport requires [rs485] section")
+        _require_clients(section)
+        _require_int(section, "interval")
+        _require_str(section, "port")
+        _require_int(section, "baudrate")
+        result["clients"] = section["clients"]
+        result["interval"] = section["interval"]
+        result["port"] = section["port"]
+        result["baudrate"] = section["baudrate"]
 
     return result
 

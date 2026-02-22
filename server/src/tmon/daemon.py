@@ -81,6 +81,10 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="tmon temperature monitor")
     parser.add_argument("config", help="path to TOML config file")
     parser.add_argument(
+        "--transport", required=True, choices=("rs485", "udp"),
+        help="transport mode",
+    )
+    parser.add_argument(
         "-v", "--verbose", action="store_true", help="enable debug logging",
     )
     args = parser.parse_args()
@@ -92,7 +96,7 @@ def main() -> None:
     )
 
     config_path = resolve_config(args.config)
-    cfg = load_config(config_path)
+    cfg = load_config(config_path, args.transport)
     cfg["db"] = resolve_db(config_path, cfg["db"])
     transport = cfg["transport"]
 
