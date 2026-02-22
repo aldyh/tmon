@@ -24,10 +24,10 @@ $(SERVER_STAMP): server/.venv server/pyproject.toml
 	touch $(SERVER_STAMP)
 
 build-sensor-485:
-	cd sensor && pio run -e uart
+	cd client && pio run -e uart
 
 build-sensor-udp:
-	cd sensor && pio run -e udp
+	cd client && pio run -e udp
 
 flash-sensor-485: build-sensor-485
 ifndef SENSOR_ADDR
@@ -62,7 +62,7 @@ check-server: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m "not integration"
 
 check-sensor:
-	if command -v pio >/dev/null 2>&1; then cd sensor && pio test -e native; \
+	if command -v pio >/dev/null 2>&1; then cd client && pio test -e native; \
 	else echo "pio not found, skipping sensor tests"; fi
 
 check-integration: $(SERVER_STAMP)
@@ -101,10 +101,10 @@ BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
 
 firmware: build-sensor-485 build-sensor-udp
 	mkdir -p firmware
-	cp sensor/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
-	cp sensor/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
-	cp sensor/.pio/build/uart/bootloader.bin firmware/bootloader.bin
-	cp sensor/.pio/build/uart/partitions.bin firmware/partitions.bin
+	cp client/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
+	cp client/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
+	cp client/.pio/build/uart/bootloader.bin firmware/bootloader.bin
+	cp client/.pio/build/uart/partitions.bin firmware/partitions.bin
 ifdef BOOT_APP0
 	cp $(BOOT_APP0) firmware/boot_app0.bin
 else
@@ -124,4 +124,4 @@ TAGS:
 
 clean: demo-static-clean
 	rm -rf firmware server/.venv panel/.venv panel/tmon_mock.db
-	if command -v pio >/dev/null 2>&1; then cd sensor && pio run -t clean; fi
+	if command -v pio >/dev/null 2>&1; then cd client && pio run -t clean; fi
