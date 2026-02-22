@@ -1092,53 +1092,18 @@ Renamed throughout in branch claude/074-sensor-client-rename:
 - TOML: sensors = [...] -> clients = [...]
 - Panel code and tests
 - All documentation (protocol.org, storage.org, wiring.org, PLAN.org)
-* TODO one toml to rule them all
+* DONE one toml to rule them all
 I hate that we have config-485.toml and config-udp.toml.  These should
 be merged so we have a config.toml (that has udp and 485 settigs).  it's confusing having two.  though I don't know how the make system will be able to distinguish between the 2.
 
 however, we should have a wifi.toml.example separately.
 
-** Plan
-*** Unified file layout
-One file: =server/tmon.toml=.  Top-level keys for the database and client
-list; transport-specific settings in their own sections:
-
-#+begin_example
-db = "tmon.db"
-clients = ["living-room", "bedroom"]
-
-[rs485]
-port = "/dev/ttyUSB0"
-baud = 115200
-
-[udp]
-bind = "0.0.0.0"
-port = 1234
-#+end_example
-
-*** Transport selection
-Both daemons (RS-485 and UDP) run simultaneously from the same file.
-Each daemon selects its section via a =--transport= CLI flag
-(e.g. =tmon-server --transport rs485=).  The flag is NOT stored in the
-TOML -- it belongs in the systemd unit or the Makefile invocation.
-
-*** wifi.toml stays separate
-=wifi.toml= holds Wi-Fi SSID/password (secrets).  It is gitignored and
-only read by =tmon-flash=.  No change here.
-
-*** No backward compatibility
-Single-user home project.  Old =config-485.toml= and =config-udp.toml=
-are deleted outright; no migration or fallback logic.
-
-*** Files to change
-- =server/config.py= -- load unified file, accept transport parameter
-- =server/daemon.py= -- pass =--transport= to config loader
-- =server/test_config.py= -- update fixtures to unified format
-- =tmon-flash= -- point at =server/tmon.toml= for client list
-- =install.sh= -- install one config file, update systemd units
-- systemd units -- add =--transport rs485= / =--transport udp=
-- =Makefile= -- single config path for both daemons
-- =docs/= -- update any config references
+** Notes
+Merged config-485.toml and config-udp.toml into a single tmon.toml with
+[rs485] and [udp] sections.  Transport is selected via --transport CLI
+flag (not stored in the TOML).  Updated config loader, daemon CLI, all
+tests, deploy scripts (tmon-flash, install.sh, systemd units), Makefile,
+and docs (README.org, storage.org, PLAN.org).
 * TODO flesh out Configuration section in README
 The config file descriptions list the files but don't guide the user
 on what to actually change (e.g. adding client addresses, picking the

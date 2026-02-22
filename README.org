@@ -59,9 +59,10 @@ The installer copies default config files to ~/etc/tmon/~, pre-built firmware bi
 
 Config files live in ~/etc/tmon/~:
 
-- ~config-485.toml~ -- RS-485 transport: serial port, baud rate, client list, polling interval.
-- ~config-udp.toml~ -- UDP transport: listen port, push interval.
+- ~tmon.toml~ -- Main configuration: database path, ~[rs485]~ section (serial port, baud rate, client list, polling interval), ~[udp]~ section (listen port, push interval).
 - ~wifi.toml~ -- WiFi credentials for UDP clients (copy from ~wifi.toml.example~ and fill in).
+
+The ~--transport~ flag on the daemon CLI selects which transport to use (rs485 or udp).  The transport is not stored in the config file.
 
 * Running
 
@@ -139,8 +140,8 @@ make check            # run all test suites (no hardware needed)
 To run the servers on the development environment without installing first:
 
 #+begin_example
-make run-server-485   # RS-485 (uses server/config-485.toml)
-make run-server-udp   # UDP push (uses server/config-udp.toml)
+make run-server-485   # RS-485 (uses server/tmon.toml --transport rs485)
+make run-server-udp   # UDP push (uses server/tmon.toml --transport udp)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example
 
