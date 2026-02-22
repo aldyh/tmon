@@ -62,7 +62,7 @@ class TestRunPoller:
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = CountingBus(reply, 2, shutdown)
         storage = Storage(":memory:")
-        cfg = {"sensors": [3], "interval": 0}
+        cfg = {"clients": [3], "interval": 0}
 
         cycles = run_poller(cfg, bus, storage, shutdown)
 
@@ -80,7 +80,7 @@ class TestRunPoller:
                             PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         bus = FakeBus([reply])
         storage = Storage(":memory:")
-        cfg = {"sensors": [1], "interval": 0}
+        cfg = {"clients": [1], "interval": 0}
 
         cycles = run_poller(cfg, bus, storage, shutdown)
 
@@ -93,8 +93,8 @@ class TestRunPoller:
         _on_signal(2, None)
         assert daemon_mod._shutdown.is_set()
 
-    def test_multiple_sensors(self):
-        """run_poller() polls all configured sensors each cycle."""
+    def test_multiple_clients(self):
+        """run_poller() polls all configured clients each cycle."""
         shutdown = threading.Event()
         reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
@@ -131,7 +131,7 @@ class TestRunPoller:
 
         bus = MultiBus([reply1, reply2], 4, shutdown)
         storage = Storage(":memory:")
-        cfg = {"sensors": [1, 2], "interval": 0}
+        cfg = {"clients": [1, 2], "interval": 0}
 
         cycles = run_poller(cfg, bus, storage, shutdown)
 

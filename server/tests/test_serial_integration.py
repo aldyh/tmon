@@ -28,7 +28,7 @@ from tmon.storage import Storage
 pytestmark = pytest.mark.integration
 
 SERVER_PTY = "/tmp/tmon-test-server"
-SENSOR_PTY = "/tmp/tmon-test-sensor"
+CLIENT_PTY = "/tmp/tmon-test-client"
 SIM_ADDR = 3
 TOOLS_DIR = os.path.join(os.path.dirname(__file__), "..", "tools")
 
@@ -56,7 +56,7 @@ def pty_pair():
         [
             "socat", "-d", "-d",
             "PTY,raw,echo=0,link={}".format(SERVER_PTY),
-            "PTY,raw,echo=0,link={}".format(SENSOR_PTY),
+            "PTY,raw,echo=0,link={}".format(CLIENT_PTY),
         ],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
@@ -64,13 +64,13 @@ def pty_pair():
 
     # Wait for PTYs to appear
     for _ in range(40):
-        if os.path.exists(SERVER_PTY) and os.path.exists(SENSOR_PTY):
+        if os.path.exists(SERVER_PTY) and os.path.exists(CLIENT_PTY):
             break
         time.sleep(0.05)
 
     sim = subprocess.Popen(
         [sys.executable, os.path.join(TOOLS_DIR, "serial_simulator.py"),
-         SENSOR_PTY, "9600"],
+         CLIENT_PTY, "9600"],
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
     )
@@ -84,7 +84,7 @@ def pty_pair():
     sim.wait()
     socat.terminate()
     socat.wait()
-    for p in (SERVER_PTY, SENSOR_PTY):
+    for p in (SERVER_PTY, CLIENT_PTY):
         if os.path.exists(p):
             os.unlink(p)
 
@@ -155,7 +155,7 @@ class TestIntegration:
         with open(config_path, "w") as f:
             f.write('port = "%s"\n' % pty_pair)
             f.write("baudrate = 9600\n")
-            f.write("sensors = [%d]\n" % SIM_ADDR)
+            f.write("clients = [%d]\n" % SIM_ADDR)
             f.write('db = "%s"\n' % db_path)
             f.write("interval = 1\n")
 

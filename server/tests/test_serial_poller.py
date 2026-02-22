@@ -7,7 +7,7 @@ from tmon.storage import Storage
 from tmon.protocol import PROTO_TEMP_INVALID
 
 
-class TestPollSensor:
+class TestPollClient:
     """Tests for Poller.poll."""
 
     def test_success(self):
@@ -114,8 +114,8 @@ class TestPollSensor:
 class TestRunOnce:
     """Tests for Poller.poll_all."""
 
-    def test_polls_all_sensors(self):
-        """poll_all polls each sensor and returns readings."""
+    def test_polls_all_clients(self):
+        """poll_all polls each client and returns readings."""
         reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
         reply2 = make_reply(2, 200, PROTO_TEMP_INVALID,
@@ -136,10 +136,10 @@ class TestRunOnce:
         storage.close()
 
     def test_partial_failure(self):
-        """poll_all skips failed sensors and stores successful ones."""
+        """poll_all skips failed clients and stores successful ones."""
         reply1 = make_reply(1, 100, PROTO_TEMP_INVALID,
                              PROTO_TEMP_INVALID, PROTO_TEMP_INVALID)
-        # Sensor 2 times out
+        # Client 2 times out
         bus = FakeBus([reply1, b""])
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [1, 2])
@@ -154,7 +154,7 @@ class TestRunOnce:
         storage.close()
 
     def test_all_timeout(self):
-        """poll_all returns empty list when all sensors time out."""
+        """poll_all returns empty list when all clients time out."""
         bus = FakeBus([b"", b""])
         storage = Storage(":memory:")
         poller = Poller(bus, storage, [1, 2])

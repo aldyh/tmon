@@ -23,7 +23,7 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1, 2, 3]\n'
+            'clients = [1, 2, 3]\n'
             'db = "data/readings.db"\n'
             'interval = 30\n'
         ))
@@ -31,7 +31,7 @@ class TestLoadConfig:
         assert cfg["transport"] == "rs485"
         assert cfg["port"] == "/dev/ttyUSB0"
         assert cfg["baudrate"] == 9600
-        assert cfg["sensors"] == [1, 2, 3]
+        assert cfg["clients"] == [1, 2, 3]
         assert cfg["db"] == "data/readings.db"
         assert cfg["interval"] == 30
 
@@ -39,7 +39,7 @@ class TestLoadConfig:
         """Missing 'port' key raises ValueError."""
         path = _write_toml(tmp_path, (
             'baudrate = 9600\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
@@ -50,22 +50,22 @@ class TestLoadConfig:
         """Missing 'baudrate' key raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
         with pytest.raises(ValueError, match="baudrate"):
             load_config(path)
 
-    def test_missing_sensors(self, tmp_path):
-        """Missing 'sensors' key raises ValueError."""
+    def test_missing_clients(self, tmp_path):
+        """Missing 'clients' key raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
-        with pytest.raises(ValueError, match="sensors"):
+        with pytest.raises(ValueError, match="clients"):
             load_config(path)
 
     def test_missing_db(self, tmp_path):
@@ -73,7 +73,7 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'interval = 10\n'
         ))
         with pytest.raises(ValueError, match="db"):
@@ -84,7 +84,7 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
         ))
         with pytest.raises(ValueError, match="interval"):
@@ -95,7 +95,7 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = 123\n'
             'baudrate = 9600\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
@@ -107,71 +107,71 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = "fast"\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
         with pytest.raises(ValueError, match="baudrate"):
             load_config(path)
 
-    def test_sensors_wrong_type(self, tmp_path):
-        """Non-list 'sensors' raises ValueError."""
+    def test_clients_wrong_type(self, tmp_path):
+        """Non-list 'clients' raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = "not a list"\n'
+            'clients = "not a list"\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
-        with pytest.raises(ValueError, match="sensors"):
+        with pytest.raises(ValueError, match="clients"):
             load_config(path)
 
-    def test_sensors_element_wrong_type(self, tmp_path):
-        """Non-int element in 'sensors' raises ValueError."""
+    def test_clients_element_wrong_type(self, tmp_path):
+        """Non-int element in 'clients' raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1, "two"]\n'
+            'clients = [1, "two"]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
-        with pytest.raises(ValueError, match="sensors"):
+        with pytest.raises(ValueError, match="clients"):
             load_config(path)
 
-    def test_sensors_addr_zero(self, tmp_path):
-        """Address 0 in sensors raises ValueError."""
+    def test_clients_addr_zero(self, tmp_path):
+        """Address 0 in clients raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [0]\n'
+            'clients = [0]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
-        with pytest.raises(ValueError, match="sensors.*1-247"):
+        with pytest.raises(ValueError, match="clients.*1-247"):
             load_config(path)
 
-    def test_sensors_addr_too_high(self, tmp_path):
-        """Address 248 in sensors raises ValueError."""
+    def test_clients_addr_too_high(self, tmp_path):
+        """Address 248 in clients raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1, 248]\n'
+            'clients = [1, 248]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
-        with pytest.raises(ValueError, match="sensors.*1-247"):
+        with pytest.raises(ValueError, match="clients.*1-247"):
             load_config(path)
 
-    def test_sensors_empty(self, tmp_path):
-        """Empty 'sensors' list raises ValueError."""
+    def test_clients_empty(self, tmp_path):
+        """Empty 'clients' list raises ValueError."""
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = []\n'
+            'clients = []\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
-        with pytest.raises(ValueError, match="sensors"):
+        with pytest.raises(ValueError, match="clients"):
             load_config(path)
 
     def test_interval_wrong_type(self, tmp_path):
@@ -179,7 +179,7 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = "fast"\n'
         ))
@@ -191,7 +191,7 @@ class TestLoadConfig:
         path = _write_toml(tmp_path, (
             'port = "/dev/ttyUSB0"\n'
             'baudrate = 9600\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
             'extra = "ignored"\n'
@@ -203,7 +203,7 @@ class TestLoadConfig:
         """Invalid transport value raises ValueError."""
         path = _write_toml(tmp_path, (
             'transport = "bluetooth"\n'
-            'sensors = [1]\n'
+            'clients = [1]\n'
             'db = "test.db"\n'
             'interval = 10\n'
         ))
@@ -223,7 +223,7 @@ class TestLoadConfig:
         assert cfg["transport"] == "udp"
         assert cfg["udp_port"] == 5555
         assert cfg["db"] == "data/readings.db"
-        assert "sensors" not in cfg
+        assert "clients" not in cfg
         assert "interval" not in cfg
 
     def test_udp_missing_section(self, tmp_path):
