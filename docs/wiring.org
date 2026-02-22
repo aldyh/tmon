@@ -66,29 +66,6 @@ resistance drops).
 *Optional:* a 100 nF ceramic capacitor from the ADC input to GND
 can reduce noise on the reading.
 
-*** Status LED
-
-The ESP32-S3-DevKitC-1 has a built-in RGB LED.  Both firmware versions
-use it for the identify function; the UDP firmware also uses it for
-WiFi status.
-
-| Color            | Meaning                            |
-|------------------+------------------------------------|
-| Off              | Normal operation                   |
-| Blinking red     | WiFi disconnected (UDP only)       |
-| Blinking green   | Sent reading (both firmwares)       |
-| Blinking yellow  | Identify: blinks N times (N=ADDR)  |
-
-The UDP firmware blinks red on boot until WiFi connects, and again
-if the connection drops mid-operation.  Retries every 10 seconds.
-
-*** Boot button
-
-Pressing the boot button (GPIO 0) triggers the identify sequence:
-the LED blinks yellow N times, where N is the sensor address.  This
-lets an installer verify which address a device has after flashing.
-Both firmware versions support this.
-
 ** Transport: RS-485 (default)
 
 *** Pin assignments

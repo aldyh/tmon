@@ -2,74 +2,70 @@
 
 * tmon: A temperature monitoring system
 
-A small, home-use *Raspberry Pi + ESP32* setup for monitoring temperatures over *RS-485*.
+** Overview
 
-** What it is
+A small, home-use *Raspberry Pi + ESP32* setup for monitoring
+temperatures over *RS-485* or *WiFi*.
 
-- *Server (Raspberry Pi):* Python daemon that collects readings from ESP32 sensors and stores them in SQLite.
-- *Transport:* RS-485 (USB adapter, server polls) or UDP over WiFi (sensors push).
-- *Sensors (ESP32):* Each reads up to *4 NTC thermistors*.
+- *Server (Raspberry Pi):* Python daemon that collects readings from ESP32 clients and stores them in an SQLite database.
+- *Transport:* RS-485 (USB adapter, server polls) or UDP over WiFi (clients push).
+- *Clients (ESP32):* Each reads up to *4 NTC thermistors*.  Only the
+  S3-DevKitC-1 version has been tested; pre-built firmware targets
+  this model.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
-- *Scale:* 1-4 sensors; designed to stay small and stable.
 
-** Directory layout
+Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[*Flashing client firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
 
-- ~server/~ -- Python 3.11+ polling daemon
-  - ~src/tmon/~ -- protocol, bus, poller, storage, config
-  - ~tests/~ -- pytest unit tests (no hardware)
-  - ~tools/~ -- x86 serial simulator + ~socat~ harness (integration tests)
-- ~sensor/~ -- ESP32 firmware
-- ~panel/~ -- demo dashboard (Flask + Chart.js)
-- ~deploy/~ -- install/uninstall scripts, systemd units, ~tmon-flash~ tool
-- ~docs/~ -- documentation (see links below)
+** Architecture
 
-** Prerequisites
+#+begin_example
+                Raspberry Pi
+  .-------------------------------------------.
+  |  RS-485 server     (tmond-serial)         |
+  |  WiFi server       (tmond-udp)            |
+  |  web panel         (tmon-panel)           |
+  |  database           (tmon.db)             |
+  '-+---------------------------------------+-'
+    |                                       |
+    |  RS-485 bus                    WiFi (UDP)
+    |                                       |
+    +--+-------+-------+          +---------+---------+
+       |       |       |          |                   |
+     +---+   +---+   +---+      +---+               +---+
+     | 1 |   | 4 |   | 5 |      | 2 |               | 3 |
+     +---+   +---+   +---+      +---+               +---+
 
-- Python 3.11+
-- [[https://platformio.org/][PlatformIO]] (only needed to build firmware from source) -- install via
-  [[https://pipx.pypa.io/][pipx]] (~apt~ package is outdated on recent Ubuntu):
+  [N] = ESP32 client at address N (up to 4 NTC thermistors each)
+#+end_example
 
-  #+begin_example
-  sudo apt install pipx
-  pipx install platformio
-  pipx ensurepath          # if ~/.local/bin is not already on PATH
-  #+end_example
+See the [[file:docs/wiring.org][Wiring Reference]] for how to connect the ESP32 clients, thermistors, and RS-485 bus.
 
 ** Installation
 
-Firmware must be built on the *dev machine* (x86, with PlatformIO) and
-copied to the Pi before installing:
+Installation is meant to be done on the Raspberry Pi, since that is
+where you will likely deploy.  You can do so with:
 
 #+begin_example
-# On the dev machine:
-make firmware         # build ESP32 binaries into firmware/
-scp -r firmware/ pi:~/tmon/
-
 # On the Pi:
-make                  # create server venv + deps
-sudo make install     # install daemon, panel, config, systemd units
+git clone https://github.com/aldyh/tmon.git
+cd tmon
+make
+sudo make install
 #+end_example
 
-The installer creates a ~tmon~ system user, installs the daemon and panel
-into ~/var/lib/tmon/venv/~, copies config files to ~/etc/tmon/~, and loads
-systemd units.  Services are installed but *not* enabled -- see [[*Running][Running]].
-
-The installer also copies pre-built firmware to ~/var/lib/tmon/firmware/~
-for use by ~tmon-flash~.
+The installer copies default config files to ~/etc/tmon/~, pre-built firmware binaries to ~/var/lib/tmon/firmware/~, and supporting files to ~/var/lib/tmon/~.  The servers are meant to be run from systemd and are installed but *not* enabled -- see [[*Running][Running]].
 
 ** Configuration
 
 Config files live in ~/etc/tmon/~:
 
-- ~config-485.toml~ -- RS-485 transport: serial port, baud rate, sensor list, polling interval.
+- ~config-485.toml~ -- RS-485 transport: serial port, baud rate, client list, polling interval.
 - ~config-udp.toml~ -- UDP transport: listen port, push interval.
-- ~wifi.toml~ -- WiFi credentials for UDP sensors (copy from ~wifi.toml.example~ and fill in).
-
-The database is auto-created at ~/var/lib/tmon/tmon.db~ on first run.
+- ~wifi.toml~ -- WiFi credentials for UDP clients (copy from ~wifi.toml.example~ and fill in).
 
 ** Running
 
-Enable one daemon transport:
+Enable the two daemons (one for UDP and one for serial):
 
 #+begin_example
 sudo systemctl enable --now tmond-serial   # RS-485 transport
@@ -91,32 +87,47 @@ journalctl -u tmond-serial -f
 journalctl -u tmond-udp -f
 #+end_example
 
-** Flashing sensors
+** Flashing client firmware
 
-Use the ~tmon-flash~ tool to flash pre-built firmware onto ESP32 sensors:
+Connect an ESP32 to the Pi via USB, then use ~tmon-flash~ to flash it.  Each client must have a unique address:
 
 #+begin_example
-tmon-flash --mode=serial --addr=1          # RS-485 sensor at address 1
-tmon-flash --mode=udp --addr=5             # UDP sensor at address 5
+tmon-flash --mode=serial --addr=1          # RS-485 client at address 1
+tmon-flash --mode=udp --addr=5             # UDP client at address 5
 #+end_example
 
-The tool auto-detects the serial port; use ~--port=/dev/ttyACM0~ to
-override.  Use ~--dry-run~ to preview the esptool command without flashing.
+The tool auto-detects the serial port, but you can use ~--port=/dev/ttyACM0~ to
+override.
 
-Firmware binaries are looked up from ~firmware/~ (local dev build) or
-~/var/lib/tmon/firmware/~ (system-wide install).
+The built-in LED on each ESP32 signals operational status:
+
+| Color           | Meaning                           |
+|-----------------+-----------------------------------|
+| Off             | Normal operation                  |
+| Blinking red    | WiFi disconnected (UDP only)      |
+| Blinking green  | Sending readings to server        |
+| Blinking yellow | Identify: blinks N times (N=addr) |
+
+Pressing the boot button triggers the identify sequence: the LED
+blinks yellow N times, where N is the client address.  This lets you
+verify which address a device has after flashing.
 
 ** Uninstalling
 
+To uninstall:
+
 #+begin_example
-sudo make uninstall              # keeps /etc/tmon/ and /var/lib/tmon/
-sudo deploy/uninstall.sh --purge # removes everything
+# Keep /etc/tmon, /var/lib/tmon and other configury
+sudo make uninstall
+
+# Remove everything.
+sudo deploy/uninstall.sh --purge
 #+end_example
 
 ** Development
 
-For contributors and local hacking -- these targets use local venvs and
-do not require a system-wide install.
+For local hacking -- these targets use local venvs and do not require
+a system-wide install.
 
 *** Build and test
 
@@ -125,9 +136,9 @@ make                  # create venvs + deps
 make check            # run all test suites (no hardware needed)
 #+end_example
 
-Individual test targets: ~check-server~, ~check-sensor~, ~check-integration~, ~check-demo~.
-
 *** Run locally
+
+To run the servers on the development environment without installing first:
 
 #+begin_example
 make run-server-485   # RS-485 (uses server/config-485.toml)
@@ -135,15 +146,17 @@ make run-server-udp   # UDP push (uses server/config-udp.toml)
 make demo-server      # panel with mock data at http://localhost:5000
 #+end_example
 
-*** Flashing sensors
+*** Building firmware from source
 
-An alternative to ~tmon-flash~ for development -- flashes one sensor at a time
-without needing pre-built firmware:
+The pre-built firmware is included in the repository, but if you need to rebuild it (requires [[https://platformio.org/][PlatformIO]] on an x86 machine):
 
 #+begin_example
-make flash-sensor-485 SENSOR_ADDR=1    # RS-485 transport
-make flash-sensor-udp SENSOR_ADDR=1    # UDP transport
+# On the dev machine:
+make firmware         # build ESP32 binaries into firmware/
+scp -r firmware/ pi:~/tmon/
 #+end_example
+
+Then re-run ~sudo make install~ on the Pi to update the installed firmware.
 
 ** Documentation
 
