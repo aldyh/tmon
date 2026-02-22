@@ -1,8 +1,8 @@
-.PHONY: all build-server build-sensor-485 build-sensor-udp \
-       flash-sensor-485 flash-sensor-udp \
+.PHONY: all build-server build-client-485 build-client-udp \
+       flash-client-485 flash-client-udp \
        run-server-485 run-server-udp \
        demo-setup \
-       check check-server check-sensor check-integration check-demo \
+       check check-server check-client check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-upload demo-static-clean \
        firmware \
@@ -23,23 +23,23 @@ $(SERVER_STAMP): server/.venv server/pyproject.toml
 	. server/.venv/bin/activate && pip install -e "server/.[test]"
 	touch $(SERVER_STAMP)
 
-build-sensor-485:
+build-client-485:
 	cd client && pio run -e uart
 
-build-sensor-udp:
+build-client-udp:
 	cd client && pio run -e udp
 
-flash-sensor-485: build-sensor-485
-ifndef SENSOR_ADDR
-	$(error SENSOR_ADDR required, e.g. make flash-sensor-485 SENSOR_ADDR=1)
+flash-client-485: build-client-485
+ifndef CLIENT_ADDR
+	$(error CLIENT_ADDR required, e.g. make flash-client-485 CLIENT_ADDR=1)
 endif
-	deploy/tmon-flash --mode=serial --addr=$(SENSOR_ADDR)
+	deploy/tmon-flash --mode=serial --addr=$(CLIENT_ADDR)
 
-flash-sensor-udp: build-sensor-udp
-ifndef SENSOR_ADDR
-	$(error SENSOR_ADDR required, e.g. make flash-sensor-udp SENSOR_ADDR=1)
+flash-client-udp: build-client-udp
+ifndef CLIENT_ADDR
+	$(error CLIENT_ADDR required, e.g. make flash-client-udp CLIENT_ADDR=1)
 endif
-	deploy/tmon-flash --mode=udp --addr=$(SENSOR_ADDR)
+	deploy/tmon-flash --mode=udp --addr=$(CLIENT_ADDR)
 
 run-server-485: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && tmon config-485.toml
@@ -56,14 +56,14 @@ $(PANEL_STAMP): panel/.venv panel/pyproject.toml server/pyproject.toml
 	. panel/.venv/bin/activate && pip install -e server -e "panel/.[test]"
 	touch $(PANEL_STAMP)
 
-check: check-server check-sensor check-integration check-demo
+check: check-server check-client check-integration check-demo
 
 check-server: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m "not integration"
 
-check-sensor:
+check-client:
 	if command -v pio >/dev/null 2>&1; then cd client && pio test -e native; \
-	else echo "pio not found, skipping sensor tests"; fi
+	else echo "pio not found, skipping client tests"; fi
 
 check-integration: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m integration -v
@@ -99,7 +99,7 @@ demo-static-clean:
 BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
                -name boot_app0.bin 2>/dev/null | head -1)
 
-firmware: build-sensor-485 build-sensor-udp
+firmware: build-client-485 build-client-udp
 	mkdir -p firmware
 	cp client/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
 	cp client/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
