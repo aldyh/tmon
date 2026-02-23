@@ -10,7 +10,7 @@ thermistors.  Two transport options connect clients to the server:
 
 | Transport  | Use case             | Server connection |
 |------------+----------------------+-------------------|
-| RS-485     | Production (default) | USB-RS485 adapter |
+| RS-485     | Production           | USB-RS485 adapter |
 | WiFi (UDP) | Wireless alternative | UDP over network  |
 
 Both use the same binary protocol.  Choose based on your setup.
@@ -61,7 +61,7 @@ resistance drops).
 *Optional:* a 100 nF ceramic capacitor from the ADC input to GND
 can reduce noise on the reading.
 
-* Transport: RS-485 (default)
+* Transport: RS-485
 
 ** Pin assignments
 
@@ -157,7 +157,7 @@ an external termination resistor at the other end.
 
 The adapter typically appears as ~/dev/ttyUSB0~.
 
-** Testing without the MAX485 module
+** Testing without the MAX485 module (optional)
 
 You can test the full RS-485 firmware path without any transceiver
 hardware.  Wire the ESP32 UART pins (GPIO 17 TX, GPIO 16 RX) directly
@@ -184,7 +184,7 @@ UART) and the serial console:
 3. Reboot.  ~/dev/serial0~ is now available on GPIO 14 / pin 8 (TX)
    and GPIO 15 / pin 10 (RX).
 
-* Transport: WiFi (UDP push)
+* Transport: WiFi
 
 WiFi clients need only the common wiring (thermistors + power) -- no
 MAX485 module, no UART wiring, no bus cable.  The ESP32 connects to
