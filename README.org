@@ -14,7 +14,7 @@ temperatures over *RS-485* or *WiFi*.
   this model.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
 
-Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[*Flashing client firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
+Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[#flashing-client-firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
 
 * Architecture
 
@@ -53,7 +53,7 @@ make
 sudo make install
 #+end_example
 
-The installer copies default config files to ~/etc/tmon/~, pre-built firmware binaries to ~/var/lib/tmon/firmware/~, and supporting files to ~/var/lib/tmon/~.  The servers are meant to be run from systemd and are installed but *not* enabled -- see [[*Running][Running]].
+The installer copies default config files to ~/etc/tmon/~, pre-built firmware binaries to ~/var/lib/tmon/firmware/~, and supporting files to ~/var/lib/tmon/~.  The servers are meant to be run from systemd and are installed but *not* enabled -- see [[#running][Running]].
 
 * Uninstalling
 
@@ -98,6 +98,9 @@ server_host = "192.168.1.100"    # IP of your Raspberry Pi
 #+end_example
 
 * Running
+:PROPERTIES:
+:CUSTOM_ID: running
+:END:
 
 Enable the two daemons (one for UDP and one for serial):
 
@@ -122,6 +125,9 @@ journalctl -u tmond-udp -f
 #+end_example
 
 * Flashing client firmware
+:PROPERTIES:
+:CUSTOM_ID: flashing-client-firmware
+:END:
 
 Connect an ESP32 to the Pi via USB, then use ~tmon-flash~ to flash it.  Each client must have a unique address:
 
