@@ -116,10 +116,8 @@ sudo systemctl enable --now tmon-panel     # accesible en http://IP_DE_RASPBERRY
 Verifique el estado y los logs:
 
 #+begin_example
-systemctl status tmond-serial
-systemctl status tmond-udp
-journalctl -u tmond-serial -f
-journalctl -u tmond-udp -f
+journalctl -u tmond-serial -f    # View RS-485 temp readings as they arrive.
+journalctl -u tmond-udp -f       # View UDP temp readings as they arrive.
 #+end_example
 
 * Flashear firmware del cliente
@@ -131,7 +129,7 @@ Conecte un ESP32 a la Pi vía USB, luego use ~tmon-flash~ para flashearlo.  Cada
 
 #+begin_example
 tmon-flash --mode=serial --addr=1          # cliente RS-485 en la dirección 1
-tmon-flash --mode=udp --addr=5             # cliente UDP en la dirección 5
+tmon-flash --mode=udp    --addr=5          # cliente UDP en la dirección 5
 #+end_example
 
 La herramienta detecta automáticamente el puerto serial, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.

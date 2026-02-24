@@ -27,7 +27,7 @@ compartir una tierra común.
 
 ** Entradas de termistores NTC
 
-Canales 0 a 3 en GPIO 1 a 4:
+Canales 1 a 4 en GPIO 1 a 4:
 
 *¿Menos de 4 termistores?*  Conecte cualquier GPIO no utilizado
 directamente a GND.  El firmware lo detecta y reporta el canal como
@@ -85,8 +85,8 @@ GPIO 16 (RX) <------ RO
 GPIO  5      ------> DE + RE (unidos)
                       A  ------------->  A
                       B  ------------->  B
-             GND ---- GND ------------>  GND
-             3.3V --- VCC
+GND  ---------------> GND ------------>  GND
+5.0V ---------------> VCC
 #+end_example
 
 *Señal DE/RE:* HIGH = transmitir, LOW = recibir.
