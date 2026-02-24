@@ -1,8 +1,8 @@
-.PHONY: all build-server \
+.PHONY: all server \
        run-server-485 run-server-udp \
-       panel-setup \
+       panel \
        check check-server check-firmware check-integration check-panel \
-       panel-generate panel-server \
+       generate-panel-mock-data run-panel \
        firmware firmware-485 firmware-udp \
        install uninstall clean \
        TAGS
@@ -10,9 +10,9 @@
 SERVER_STAMP := server/.venv/.installed
 PANEL_STAMP  := panel/.venv/.installed
 
-all: build-server
+all: server panel
 
-build-server: $(SERVER_STAMP)
+server: $(SERVER_STAMP)
 
 server/.venv:
 	python3 -m venv server/.venv
@@ -27,7 +27,7 @@ run-server-485: $(SERVER_STAMP)
 run-server-udp: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && tmon tmon.toml --transport udp
 
-panel-setup: $(PANEL_STAMP)
+panel: $(PANEL_STAMP)
 
 panel/.venv:
 	python3 -m venv panel/.venv
@@ -51,10 +51,10 @@ check-integration: $(SERVER_STAMP)
 check-panel: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && pytest
 
-panel-generate: $(PANEL_STAMP)
+generate-panel-mock-data: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && python generate_data.py
 
-panel-server: panel-generate
+run-panel: generate-panel-mock-data
 	@echo "Starting panel at http://localhost:5000"
 	cd panel && . .venv/bin/activate && TMON_DB=tmon_mock.db flask --app app run
 
