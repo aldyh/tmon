@@ -1,0 +1,192 @@
+#+STARTUP: showall
+#+OPTIONS: num:1
+#+TITLE: tmon: Un sistema de monitoreo de temperatura
+
+* Resumen
+
+Un sistema compacto *Raspberry Pi + ESP32* para monitorear
+temperaturas a través de *RS-485* o *WiFi*.
+
+- *Servidor (Raspberry Pi):* Daemon en Python que recopila lecturas de los clientes ESP32 y las almacena en una base de datos SQLite.
+- *Transporte:* RS-485 (adaptador USB, el servidor consulta) o UDP sobre WiFi (los clientes envían).
+- *Clientes (ESP32):* Cada uno lee hasta *4 termistores NTC*.  Solo la versión S3-DevKitC-1 ha sido probada; el firmware precompilado apunta a este modelo.
+- *Protocolo:* Tramas binarias simples con *CRC-16/MODBUS*.
+
+Tres servicios se ejecutan en la Pi: un daemon serial que consulta clientes RS-485, un daemon UDP que recibe datos de clientes WiFi, y un panel web.  Se pueden combinar modos de transporte, pero cada cliente debe tener una dirección única (ver [[#flashing-client-firmware][Flashear firmware del cliente]]).  Las lecturas se almacenan en una base de datos SQLite (ver [[file:storage.org][Especificación de almacenamiento]]) y se visualizan desde el panel web.
+
+* Arquitectura
+
+#+begin_example
+                Raspberry Pi
+  .-------------------------------------------.
+  |  Servidor RS-485     (tmond-serial)        |
+  |  Servidor WiFi       (tmond-udp)           |
+  |  Panel web           (tmon-panel)          |
+  |  Base de datos        (tmon.db)            |
+  '-+---------------------------------------+-'
+    |                                       |
+    |  Bus RS-485                    WiFi (UDP)
+    |                                       |
+    +--+-------+-------+          +---------+---------+
+       |       |       |          |                   |
+     +---+   +---+   +---+      +---+               +---+
+     | 1 |   | 4 |   | 5 |      | 2 |               | 3 |
+     +---+   +---+   +---+      +---+               +---+
+
+  [N] = Cliente ESP32 en la dirección N (hasta 4 termistores NTC cada uno)
+#+end_example
+
+Consulte la [[file:wiring.org][Referencia de cableado]] para saber cómo conectar los clientes ESP32, los termistores y el bus RS-485.
+
+* Instalación
+
+La instalación está pensada para realizarse en la Raspberry Pi, ya que
+es donde probablemente se desplegará.  Se puede hacer con:
+
+#+begin_example
+# En la Pi:
+git clone https://github.com/aldyh/tmon.git
+cd tmon
+make
+sudo make install
+#+end_example
+
+El instalador copia los archivos de configuración predeterminados a ~/etc/tmon/~, los binarios de firmware precompilados a ~/var/lib/tmon/firmware/~, y archivos de soporte a ~/var/lib/tmon/~.  Los servidores están pensados para ejecutarse desde systemd y se instalan pero *no* se habilitan -- ver [[#running][Ejecución]].
+
+* Desinstalación
+
+Para desinstalar:
+
+#+begin_example
+# Conservar /etc/tmon, /var/lib/tmon y otra configuración
+sudo make uninstall
+
+# Eliminar todo
+sudo deploy/uninstall.sh --purge
+#+end_example
+
+* Configuración
+
+Edite ~/etc/tmon/tmon.toml~ para que coincida con su instalación:
+
+#+begin_example
+db = "tmon.db"
+
+[rs485]
+clients = [1, 4, 5]       # direcciones a consultar -- deben coincidir con lo flasheado
+interval = 5              # segundos entre ciclos de consulta
+port = "/dev/ttyUSB0"     # adaptador USB-RS485 (intente: ls /dev/ttyUSB*)
+baudrate = 9600
+
+[udp]
+port = 5555               # puerto de escucha UDP
+push_interval = 5         # frecuencia con que los clientes envían lecturas (segundos)
+#+end_example
+
+Para clientes WiFi/UDP, también se necesita ~/etc/tmon/wifi.toml~ con las credenciales de red:
+
+#+begin_example
+cp /etc/tmon/wifi.toml.example /etc/tmon/wifi.toml
+#+end_example
+
+#+begin_example
+ssid = "tu_ssid_wifi"
+password = "tu_contraseña_wifi"
+server_host = "192.168.1.100"    # IP de tu Raspberry Pi
+#+end_example
+
+* Ejecución
+:PROPERTIES:
+:CUSTOM_ID: running
+:END:
+
+Habilite los dos daemons (uno para UDP y otro para serial):
+
+#+begin_example
+sudo systemctl enable --now tmond-serial   # servidor RS-485
+sudo systemctl enable --now tmond-udp      # servidor UDP push
+#+end_example
+
+Habilite el panel web:
+
+#+begin_example
+sudo systemctl enable --now tmon-panel     # accesible en http://IP_DE_RASPBERRY_PI:5000
+#+end_example
+
+Verifique el estado y los logs:
+
+#+begin_example
+systemctl status tmond-serial
+systemctl status tmond-udp
+journalctl -u tmond-serial -f
+journalctl -u tmond-udp -f
+#+end_example
+
+* Flashear firmware del cliente
+:PROPERTIES:
+:CUSTOM_ID: flashing-client-firmware
+:END:
+
+Conecte un ESP32 a la Pi vía USB, luego use ~tmon-flash~ para flashearlo.  Cada cliente debe tener una dirección única:
+
+#+begin_example
+tmon-flash --mode=serial --addr=1          # cliente RS-485 en la dirección 1
+tmon-flash --mode=udp --addr=5             # cliente UDP en la dirección 5
+#+end_example
+
+La herramienta detecta automáticamente el puerto serial, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.
+
+El LED integrado en cada ESP32 indica el estado operativo:
+
+| Color                | Significado                                   |
+|----------------------+-----------------------------------------------|
+| Apagado              | Operación normal                              |
+| Rojo parpadeante     | WiFi desconectado (solo UDP)                  |
+| Verde parpadeante    | Enviando lecturas al servidor                 |
+| Amarillo parpadeante | Identificar: parpadea N veces (N=dirección)   |
+
+Presionar el botón boot activa la secuencia de identificación: el LED
+parpadea en amarillo N veces, donde N es la dirección del cliente.
+Esto permite verificar qué dirección tiene un dispositivo después de
+flashearlo.
+
+* Desarrollo
+
+Para colaboradores o cualquiera que haga modificaciones locales.
+
+** Compilación y pruebas
+
+Estos targets usan venvs locales y no requieren una instalación a nivel de sistema.
+
+#+begin_example
+make                  # crear venvs + dependencias
+make check            # ejecutar suite de pruebas completa (no se necesita hardware)
+#+end_example
+
+** Ejecutar localmente
+
+Para ejecutar los servidores en el entorno de desarrollo sin instalar primero:
+
+#+begin_example
+make run-server-485   # RS-485 (usa server/tmon.toml --transport rs485)
+make run-server-udp   # UDP push (usa server/tmon.toml --transport udp)
+make demo-server      # panel con datos simulados en http://localhost:5000
+#+end_example
+
+** Compilar firmware desde el código fuente
+
+El firmware precompilado está incluido en el repositorio, pero si necesita recompilarlo (requiere [[https://platformio.org/][PlatformIO]] en una máquina x86):
+
+#+begin_example
+# En la máquina de desarrollo:
+make firmware         # compilar binarios ESP32 en firmware/
+scp -r firmware/ pi:~/tmon/
+#+end_example
+
+Luego ejecute ~sudo make install~ nuevamente en la Pi para actualizar el firmware instalado.
+
+* Documentación
+
+- [[file:protocol.org][Especificación del protocolo]]
+- [[file:wiring.org][Referencia de cableado]]
+- [[file:storage.org][Especificación de almacenamiento]]

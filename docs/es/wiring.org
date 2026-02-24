@@ -1,0 +1,233 @@
+#+STARTUP: showall
+#+OPTIONS: num:1
+#+TITLE: Referencia de cableado
+
+Este sistema monitorea temperaturas en múltiples pisos usando clientes
+ESP32 conectados a un servidor Raspberry Pi.
+
+Este documento describe cómo cablear clientes ESP32-S3 con termistores
+NTC.  Dos opciones de transporte conectan los clientes al servidor:
+
+| Transporte | Caso de uso             | Conexión al servidor  |
+|------------+-------------------------+-----------------------|
+| RS-485     | Producción              | Adaptador USB-RS485   |
+| WiFi (UDP) | Alternativa inalámbrica | UDP sobre la red      |
+
+Ambos usan el mismo protocolo binario.  Elija según su instalación.
+Lea el [[file:README.org][README]] primero para una vista general del sistema.
+
+* Cableado común (todos los transportes)
+
+*Placa:* esp32-s3-devkitc-1
+
+Cada ESP32 lee hasta 4 termistores NTC a través de un divisor de
+voltaje alimentado desde el pin de 3.3V de la placa.  Si conecta
+múltiples nodos ESP32 a un bus RS-485 compartido, todos deben
+compartir una tierra común.
+
+** Entradas de termistores NTC
+
+Canales 0 a 3 en GPIO 1 a 4:
+
+*¿Menos de 4 termistores?*  Conecte cualquier GPIO no utilizado
+directamente a GND.  El firmware lo detecta y reporta el canal como
+no disponible.
+
+** Divisor de voltaje NTC
+
+Cada termistor NTC se lee a través de un divisor de voltaje contra una
+resistencia de referencia fija de 10k ohm.
+
+#+begin_example
+3.3V
+ |
+[Resistencia fija de 10k]
+ |
+ +-------> GPIO 1/2/3/4 (entrada ADC)
+ |
+[Termistor NTC]
+ |
+GND
+#+end_example
+
+Con esta disposición (resistencia fija en el lado alto, NTC en el lado
+bajo), el voltaje del ADC disminuye a medida que la temperatura sube
+(la resistencia del NTC baja).
+
+*Valores de componentes:*
+
+- Termistor NTC: 10k ohm a 25 C (tipo estándar B=3950).
+- Resistencia de referencia: 10k ohm, tolerancia del 1%.
+
+*Opcional:* un capacitor cerámico de 100 nF desde la entrada ADC a GND
+puede reducir el ruido en la lectura.
+
+* Transporte: RS-485
+
+** Asignación de pines
+
+| Pin del ESP32    | Se conecta a            |
+|------------------+-------------------------|
+| GPIO 17 (TX)     | MAX485 DI               |
+| GPIO 16 (RX)     | MAX485 RO               |
+| GPIO 5  (DE/RE)  | MAX485 DE + RE (unidos) |
+
+** Cableado del MAX485
+
+El MAX485 es un transceptor RS-485 half-duplex.  DE y RE están unidos
+para que un solo GPIO controle la dirección del bus.
+
+#+begin_example
+ESP32                MAX485               Bus RS-485
+-----                ------               ----------
+GPIO 17 (TX) ------> DI
+GPIO 16 (RX) <------ RO
+GPIO  5      ------> DE + RE (unidos)
+                      A  ------------->  A
+                      B  ------------->  B
+             GND ---- GND ------------>  GND
+             3.3V --- VCC
+#+end_example
+
+*Señal DE/RE:* HIGH = transmitir, LOW = recibir.
+
+** Topología del bus
+
+Todos los nodos (adaptador USB del servidor + clientes ESP32)
+comparten un solo par trenzado más tierra.
+
+#+begin_example
+Pi (USB-RS485)       Cliente 1       Cliente 2       Cliente N
+   A ----+-----------+- A --+---------+- A --+-- ... --+- A
+   B ----+-----------+- B --+---------+- B --+-- ... --+- B
+  GND ---+-----------+- GND-+---------+- GND-+-- ... --+- GND
+         |                                              |
+      [120R]                                         [120R]
+      (term.)                                        (term.)
+#+end_example
+
+- Use cable de par trenzado para A/B.  Tienda un cable de tierra separado.
+- Resistencias de terminación de 120 ohm en ambos extremos físicos del bus.
+- Mantenga el bus por debajo de 30 metros para una instalación doméstica; esto está bien dentro de los límites de RS-485.
+- A 9600 baudios hay margen generoso para longitud de cable y ruido.
+
+** Resistencias de polarización (opcional -- omitir en la mayoría de instalaciones domésticas)
+
+Para un bus doméstico corto puede omitir esta sección por completo.  El
+protocolo usa verificación CRC y el ciclo de consulta reintenta
+automáticamente, por lo que el ruido ocasional en el bus es inofensivo.
+Solo agregue resistencias de polarización si ve errores CRC frecuentes
+en el log del servidor.
+
+*¿Qué hacen?*  Cuando ningún dispositivo está transmitiendo, las líneas
+A/B flotan y el ruido eléctrico puede producir bytes basura.  Dos
+resistencias de 560 ohm en el extremo del servidor mantienen el bus en
+un estado conocido de reposo: una tira A hacia VCC, la otra tira B
+hacia GND.
+
+Se muestra para el MAX485 (A es la línea alta en reposo):
+
+#+begin_example
+         VCC (3.3V o 5V)
+          |
+        [560R]  pull-up
+          |
+  A --+---+---+-- el bus continúa ...
+      |       |
+   [120R]     |
+   (term.)    |
+      |       |
+  B --+---+---+-- el bus continúa ...
+          |
+        [560R]  pull-down
+          |
+         GND
+#+end_example
+
+Consulte la hoja de datos de su transceptor si no está usando un
+MAX485 -- la nomenclatura de A/B varía entre fabricantes.
+
+** Lado del servidor
+
+El servidor usa un adaptador USB-to-RS-485.  No se necesita cableado
+adicional en la Pi más allá de conectar el adaptador y conectar A, B,
+GND al bus.
+
+La mayoría de los adaptadores USB-RS485 tienen una resistencia de
+terminación de 120 ohm integrada.  Si usa uno de estos adaptadores en
+un extremo del bus, solo necesita agregar una resistencia de
+terminación externa en el otro extremo.
+
+El adaptador típicamente aparece como ~/dev/ttyUSB0~.
+
+** Pruebas sin el módulo MAX485 (opcional)
+
+Se puede probar la ruta completa del firmware RS-485 sin hardware
+transceptor.  Conecte los pines UART del ESP32 (GPIO 17 TX, GPIO 16
+RX) directamente al UART GPIO de la Pi, cruzando TX/RX como es habitual:
+
+- ESP32 GPIO 17 (TX) --> Pi GPIO 15 / pin 10 (RX)
+- ESP32 GPIO 16 (RX) <-- Pi GPIO 14 / pin 8  (TX)
+
+Deje GPIO 5 (DE/RE) desconectado -- el firmware lo conmuta pero nada
+lo lee sin un transceptor en el otro extremo.
+
+Para habilitar el UART GPIO de la Pi, deshabilite Bluetooth (que
+comparte el UART) y la consola serial:
+
+1. Edite ~/boot/firmware/config.txt~:
+   #+begin_example
+   enable_uart=1
+   dtoverlay=disable-bt
+   #+end_example
+
+2. Edite ~/boot/firmware/cmdline.txt~: elimine ~console=serial0,115200~
+   si está presente.
+
+3. Reinicie.  ~/dev/serial0~ ahora está disponible en GPIO 14 / pin 8
+   (TX) y GPIO 15 / pin 10 (RX).
+
+* Transporte: WiFi
+
+Los clientes WiFi solo necesitan el cableado común (termistores +
+alimentación) -- sin módulo MAX485, sin cableado UART, sin cable de
+bus.  El ESP32 se conecta a su red WiFi y envía lecturas al servidor
+por UDP.
+
+Las credenciales WiFi se configuran en ~/etc/tmon/wifi.toml~ (copie
+desde ~wifi.toml.example~ y complete su SSID y contraseña).  Consulte
+el [[file:README.org][README]] para detalles de configuración.
+
+* Lista de partes (instalación de referencia)
+
+Esta lista de materiales cubre la instalación de referencia: 3 pisos
+con 4 termistores por piso, usando transporte RS-485.
+
+** Nodos cliente (3 en total, uno por piso)
+
+| Cant | Parte                     | Notas                            |
+|------+---------------------------+----------------------------------|
+|    3 | ESP32-S3-DevKitC-1        | Debe ser variante S3 (ver abajo) |
+|    3 | Módulo MAX485             | 1 por ESP32 (solo RS-485)        |
+|   12 | Resistencia 10k ohm 1%    | 4 por piso (divisores de voltaje) |
+|   12 | Termistor NTC 10k         | 4 por piso (tipo B=3950)         |
+|   12 | Capacitor cerámico 100nF  | 4 por piso (opcional, ruido)     |
+
+*¿Por qué ESP32-S3?*  El firmware precompilado y la herramienta
+~tmon-flash~ apuntan específicamente al S3.  Otras variantes de ESP32
+(original, C3, S2) no son compatibles sin recompilar desde el código
+fuente.
+
+** Servidor (Raspberry Pi)
+
+| Cant | Parte                  | Notas                                          |
+|------+------------------------+------------------------------------------------|
+|    1 | Adaptador USB-to-RS485 | La mayoría tiene terminación de 120 ohm integrada |
+
+** Bus RS-485
+
+| Cant | Parte                 | Notas                                              |
+|------+-----------------------+----------------------------------------------------|
+|    1 | Resistencia 120 ohm   | Terminación del extremo lejano (el adaptador tiene una) |
+|    - | Cable de par trenzado | Líneas A/B, longitud según necesidad               |
+|    - | Cable de tierra       | Tendido junto al par trenzado                      |

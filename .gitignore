@@ -21,6 +21,7 @@ tmon-demo.tar.gz
 
 # Generated docs
 README.html
+docs/**/*.html
 
 # Tags
 TAGS

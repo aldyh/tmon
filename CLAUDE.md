@@ -33,6 +33,7 @@ Commit checklist:
 - [ ] Code is simple/readable; no unnecessary abstractions
 - [ ] No default arguments introduced in methods/functions
 - [ ] Docs updated if behavior/interfaces changed (PLAN.org, docs/*).
+- [ ] Any change to README.org or docs/* should have an equivalent translation in docs/es/.  Do not force the translation.  If any technical terminology is used in English, leave the term as is.
 - [ ] Generated/build artifacts added to `.gitignore`.
 
 ## Coding guidelines
@@ -78,7 +79,7 @@ Commit checklist:
 - The authoritative docs are in docs/ (protocol, wiring, etc).
 - This system is expected to remain small (a few devices) and run on a home network.
 - The system should be testable from x86 Linux, without requiring the ESP32 hardware side to be up.
-- ASCII character throughout please, no extended characters.
+- Extended characters are allowed (accents, etc.).
 - New org files should start with `#+STARTUP: showall`. Do not change existing STARTUP lines.
 - Branch numbers are sequential; check existing branches with `git branch` before creating a new one.
 - Any new subsystem or testable work must be added to the Makefile (`make check` and build targets), following the existing style.
