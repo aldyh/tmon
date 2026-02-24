@@ -1,15 +1,13 @@
 #+STARTUP: showall
 
-* Demo visualization panel
+* Visualization panel
 
-A self-contained demo of the tmon web dashboard (Flask + Chart.js).
-Generates a year of synthetic temperature data and serves an
-interactive browser UI with current readings and historical charts.
+A web dashboard for tmon (Flask + Chart.js).
 
 ** Quick start
 
 #+begin_example
-make demo-server            # generate data + start server
+make panel-server           # generate mock data + start server
 #+end_example
 
 Then open http://localhost:5000 in your browser.
@@ -17,7 +15,7 @@ Then open http://localhost:5000 in your browser.
 ** Running tests
 
 #+begin_example
-make check-demo             # run panel pytest suite
+make check-panel            # run panel pytest suite
 #+end_example
 
 ** API reference

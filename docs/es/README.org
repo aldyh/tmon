@@ -168,7 +168,7 @@ Para ejecutar los servidores en el entorno de desarrollo sin instalar primero:
 #+begin_example
 make run-server-485   # RS-485 (usa server/tmon.toml --transport rs485)
 make run-server-udp   # UDP push (usa server/tmon.toml --transport udp)
-make demo-server      # panel con datos simulados en http://localhost:5000
+make panel-server     # panel con datos simulados en http://localhost:5000
 #+end_example
 
 ** Compilar firmware desde el código fuente

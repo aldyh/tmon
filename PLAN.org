@@ -111,7 +111,7 @@ so something simple.
 - [X] Clean shutdown on SIGINT/SIGTERM
 - [X] Integration test: daemon starts, polls simulator, stores readings, shuts down cleanly
 
-*** Demo visualization panel
+*** Visualization panel
 
 - [X] Directory structure, pyproject.toml, Makefile targets
 - [X] Vendor Chart.js

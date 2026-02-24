@@ -1,4 +1,4 @@
-"""Flask application for the tmon demo dashboard.
+"""Flask application for the tmon web dashboard.
 
 Serves a single-page dashboard and a JSON API for temperature data.
 Time windows are computed relative to the newest row in the database,

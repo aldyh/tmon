@@ -170,7 +170,7 @@ To run the servers on the development environment without installing first:
 #+begin_example
 make run-server-485   # RS-485 (uses server/tmon.toml --transport rs485)
 make run-server-udp   # UDP push (uses server/tmon.toml --transport udp)
-make demo-server      # panel with mock data at http://localhost:5000
+make panel-server     # panel with mock data at http://localhost:5000
 #+end_example
 
 ** Building firmware from source
