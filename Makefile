@@ -1,8 +1,8 @@
 .PHONY: all build-server \
        run-server-485 run-server-udp \
-       demo-setup \
-       check check-server check-firmware check-integration check-demo \
-       demo-generate demo-server \
+       panel-setup \
+       check check-server check-firmware check-integration check-panel \
+       panel-generate panel-server \
        firmware firmware-485 firmware-udp \
        install uninstall clean \
        TAGS
@@ -27,7 +27,7 @@ run-server-485: $(SERVER_STAMP)
 run-server-udp: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && tmon tmon.toml --transport udp
 
-demo-setup: $(PANEL_STAMP)
+panel-setup: $(PANEL_STAMP)
 
 panel/.venv:
 	python3 -m venv panel/.venv
@@ -36,7 +36,7 @@ $(PANEL_STAMP): panel/.venv panel/pyproject.toml server/pyproject.toml
 	. panel/.venv/bin/activate && pip install -e server -e "panel/.[test]"
 	touch $(PANEL_STAMP)
 
-check: check-server check-firmware check-integration check-demo
+check: check-server check-firmware check-integration check-panel
 
 check-server: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m "not integration"
@@ -48,13 +48,13 @@ check-firmware:
 check-integration: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m integration -v
 
-check-demo: $(PANEL_STAMP)
+check-panel: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && pytest
 
-demo-generate: $(PANEL_STAMP)
+panel-generate: $(PANEL_STAMP)
 	cd panel && . .venv/bin/activate && python generate_data.py
 
-demo-server: demo-generate
+panel-server: panel-generate
 	@echo "Starting panel at http://localhost:5000"
 	cd panel && . .venv/bin/activate && TMON_DB=tmon_mock.db flask --app app run
 
