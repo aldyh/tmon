@@ -13,8 +13,6 @@ data/
 panel/tmon_mock.db
 
 # Build artifacts
-panel/demo/
-tmon-demo.tar.gz
 
 # PlatformIO
 .pio/

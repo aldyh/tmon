@@ -3,7 +3,6 @@
        demo-setup \
        check check-server check-firmware check-integration check-demo \
        demo-generate demo-server \
-       demo-static demo-static-tar demo-static-clean \
        firmware firmware-485 firmware-udp \
        install uninstall clean \
        TAGS
@@ -59,15 +58,6 @@ demo-server: demo-generate
 	@echo "Starting panel at http://localhost:5000"
 	cd panel && . .venv/bin/activate && TMON_DB=tmon_mock.db flask --app app run
 
-demo-static: demo-generate
-	cd panel && . .venv/bin/activate && python build_demo.py --db tmon_mock.db --output demo
-
-demo-static-tar: demo-static
-	tar czf tmon-demo.tar.gz --transform='s,^panel/demo,tmon-demo,' panel/demo
-
-demo-static-clean:
-	rm -rf panel/demo tmon-demo.tar.gz
-
 # ---- Firmware ----
 # Build generic firmware binaries (one per transport mode) and collect
 # in firmware/.  Config is patched into the binary at flash time by
@@ -105,6 +95,6 @@ uninstall:
 TAGS:
 	find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.py' | etags -
 
-clean: demo-static-clean
+clean:
 	rm -rf firmware server/.venv panel/.venv panel/tmon_mock.db
 	if command -v pio >/dev/null 2>&1; then cd client && pio run -t clean; fi
