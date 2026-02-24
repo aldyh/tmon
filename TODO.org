@@ -99,7 +99,7 @@ i want to see how stuff would actually look and work.
 Implemented as Option B (Flask + Chart.js) in panel/ directory.
 Self-contained: own venv, own pyproject.toml, no imports from master/.
 
-- ~make panel-server~ generates data and starts the server in one step.
+- ~make run-panel~ generates data and starts the server in one step.
 - ~make check-panel~ runs the panel test suite.
 - generate_data.py creates ~3M rows (3 slaves, 30s intervals, 365 days).
 - Temperature profiles: sinusoidal daily/seasonal cycles + Gaussian noise.

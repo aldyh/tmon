@@ -7,7 +7,7 @@ A web dashboard for tmon (Flask + Chart.js).
 ** Quick start
 
 #+begin_example
-make panel-server           # generate mock data + start server
+make run-panel              # generate mock data + start server
 #+end_example
 
 Then open http://localhost:5000 in your browser.
