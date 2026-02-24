@@ -1,5 +1,4 @@
 .PHONY: all build-server build-client-485 build-client-udp \
-       flash-client-485 flash-client-udp \
        run-server-485 run-server-udp \
        demo-setup \
        check check-server check-client check-integration check-demo \
@@ -28,18 +27,6 @@ build-client-485:
 
 build-client-udp:
 	cd client && pio run -e udp
-
-flash-client-485: build-client-485
-ifndef CLIENT_ADDR
-	$(error CLIENT_ADDR required, e.g. make flash-client-485 CLIENT_ADDR=1)
-endif
-	deploy/tmon-flash --mode=serial --addr=$(CLIENT_ADDR)
-
-flash-client-udp: build-client-udp
-ifndef CLIENT_ADDR
-	$(error CLIENT_ADDR required, e.g. make flash-client-udp CLIENT_ADDR=1)
-endif
-	deploy/tmon-flash --mode=udp --addr=$(CLIENT_ADDR)
 
 run-server-485: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && tmon tmon.toml --transport rs485
