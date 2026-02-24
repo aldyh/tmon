@@ -1,10 +1,10 @@
-.PHONY: all build-server build-client-485 build-client-udp \
+.PHONY: all build-server \
        run-server-485 run-server-udp \
        demo-setup \
-       check check-server check-client check-integration check-demo \
+       check check-server check-firmware check-integration check-demo \
        demo-generate demo-server \
        demo-static demo-static-tar demo-static-clean \
-       firmware \
+       firmware firmware-485 firmware-udp \
        install uninstall clean \
        TAGS
 
@@ -22,12 +22,6 @@ $(SERVER_STAMP): server/.venv server/pyproject.toml
 	. server/.venv/bin/activate && pip install -e "server/.[test]"
 	touch $(SERVER_STAMP)
 
-build-client-485:
-	cd client && pio run -e uart
-
-build-client-udp:
-	cd client && pio run -e udp
-
 run-server-485: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && tmon tmon.toml --transport rs485
 
@@ -43,14 +37,14 @@ $(PANEL_STAMP): panel/.venv panel/pyproject.toml server/pyproject.toml
 	. panel/.venv/bin/activate && pip install -e server -e "panel/.[test]"
 	touch $(PANEL_STAMP)
 
-check: check-server check-client check-integration check-demo
+check: check-server check-firmware check-integration check-demo
 
 check-server: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m "not integration"
 
-check-client:
+check-firmware:
 	if command -v pio >/dev/null 2>&1; then cd client && pio test -e native; \
-	else echo "pio not found, skipping client tests"; fi
+	else echo "pio not found, skipping firmware tests"; fi
 
 check-integration: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && pytest -m integration -v
@@ -74,7 +68,7 @@ demo-static-tar: demo-static
 demo-static-clean:
 	rm -rf panel/demo tmon-demo.tar.gz
 
-# ---- Firmware collection ----
+# ---- Firmware ----
 # Build generic firmware binaries (one per transport mode) and collect
 # in firmware/.  Config is patched into the binary at flash time by
 # tmon-patch, so no per-address builds are needed.
@@ -82,7 +76,13 @@ demo-static-clean:
 BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
                -name boot_app0.bin 2>/dev/null | head -1)
 
-firmware: build-client-485 build-client-udp
+firmware-485:
+	cd client && pio run -e uart
+
+firmware-udp:
+	cd client && pio run -e udp
+
+firmware: firmware-485 firmware-udp
 	mkdir -p firmware
 	cp client/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
 	cp client/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
