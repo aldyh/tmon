@@ -121,10 +121,10 @@ fi
 # Locate config directory (for UDP WiFi config)
 # ------------------------------------------------------------------
 
-if [ -d server ]; then
-  CFG_DIR="server"
-elif [ -d /etc/tmon ]; then
+if [ -d /etc/tmon ]; then
   CFG_DIR="/etc/tmon"
+elif [ -d server ]; then
+  CFG_DIR="server"
 else
   CFG_DIR=""
 fi
