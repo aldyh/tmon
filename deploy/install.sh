@@ -112,9 +112,8 @@ chown -R tmon:tmon "${VAR_DIR}"
 # ------------------------------------------------------------------
 
 echo "Installing tmon-flash and tmon-patch to /usr/local/bin/..."
-cp deploy/tmon-flash /usr/local/bin/tmon-flash
-cp deploy/tmon-patch /usr/local/bin/tmon-patch
-chmod +x /usr/local/bin/tmon-flash /usr/local/bin/tmon-patch
+install -m 755 deploy/tmon-flash /usr/local/bin/tmon-flash
+install -m 755 deploy/tmon-patch /usr/local/bin/tmon-patch
 
 # ------------------------------------------------------------------
 # systemd units
