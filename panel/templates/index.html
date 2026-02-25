@@ -116,14 +116,25 @@
     return (val / 10).toFixed(1);
   }
 
+  function pad2(n) { return n < 10 ? "0" + n : "" + n; }
+
+  function localTime(d) {
+    return pad2(d.getHours()) + ":" + pad2(d.getMinutes()) + ":" + pad2(d.getSeconds());
+  }
+
+  function localDateTime(d) {
+    return pad2(d.getMonth() + 1) + "-" + pad2(d.getDate()) + " " +
+           pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+  }
+
   function formatTs(iso) {
     // Show just time for short ranges, date+time for longer
     var d = new Date(iso);
     var hours = parseFloat(rangeSelect.value);
     if (hours <= 24) {
-      return d.toISOString().slice(11, 19);
+      return localTime(d);
     }
-    return d.toISOString().slice(5, 16).replace("T", " ");
+    return localDateTime(d);
   }
 
   // -- fetch current readings --
@@ -148,7 +159,7 @@
               html += '<td class="temp-value">' + formatTemp(val) + '</td>';
             }
           }
-          html += "<td>" + row.ts.slice(11, 19) + "</td>";
+          html += "<td>" + localTime(new Date(row.ts)) + "</td>";
           html += "</tr>";
         });
         currentBody.innerHTML = html;
