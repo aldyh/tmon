@@ -12,14 +12,14 @@ temperaturas a través de *RS-485* o *WiFi*.
 - *Clientes (ESP32):* Cada uno lee hasta *4 termistores NTC*.  Solo la versión S3-DevKitC-1 ha sido probada; el firmware precompilado apunta a este modelo.
 - *Protocolo:* Tramas binarias simples con *CRC-16/MODBUS*.
 
-Tres servicios se ejecutan en la Pi: un daemon serial que consulta clientes RS-485, un daemon WiFi que recibe datos de clientes WiFi, y un panel web.  Se pueden combinar modos de transporte, pero cada cliente debe tener una dirección única (ver [[#flashing-client-firmware][Flashear firmware del cliente]]).  Las lecturas se almacenan en una base de datos SQLite (ver [[file:storage.org][Especificación de almacenamiento]]) y se visualizan desde el panel web.
+Tres servicios se ejecutan en la Pi: un daemon RS-485 que consulta clientes RS-485, un daemon WiFi que recibe datos de clientes WiFi, y un panel web.  Se pueden combinar modos de transporte, pero cada cliente debe tener una dirección única (ver [[#flashing-client-firmware][Flashear firmware del cliente]]).  Las lecturas se almacenan en una base de datos SQLite (ver [[file:storage.org][Especificación de almacenamiento]]) y se visualizan desde el panel web.
 
 * Arquitectura
 
 #+begin_example
                 Raspberry Pi
   .-------------------------------------------.
-  |  Servidor RS-485     (tmond-serial)        |
+  |  Servidor RS-485     (tmond-485)           |
   |  Servidor WiFi       (tmond-wifi)          |
   |  Panel web           (tmon-panel)          |
   |  Base de datos        (tmon.db)            |
@@ -54,7 +54,7 @@ make
 sudo make install
 #+end_example
 
-El instalador solicita el puerto serial, las direcciones de clientes,
+El instalador solicita el puerto RS-485, las direcciones de clientes,
 el intervalo de consulta y (opcionalmente) la configuración WiFi.
 Escribe los archivos de configuración, instala todo e inicia los
 servicios -- no se necesita edición manual.
@@ -76,20 +76,20 @@ sudo make purge
 
 Para usuarios avanzados que deseen editar la configuración directamente:
 
-- ~/etc/tmon/tmon.toml~ -- puerto serial, direcciones de clientes, intervalo de consulta, puerto WiFi
+- ~/etc/tmon/tmon.toml~ -- puerto RS-485, direcciones de clientes, intervalo de consulta, puerto WiFi
 - ~/etc/tmon/wifi.toml~ -- credenciales WiFi (SSID, contraseña, IP del servidor)
 
 Después de editar, reinicie el servicio correspondiente:
 
 #+begin_example
-sudo systemctl restart tmond-serial       # después de cambiar configuración [rs485]
+sudo systemctl restart tmond-485          # después de cambiar configuración [rs485]
 sudo systemctl restart tmond-wifi         # después de cambiar [wifi] o wifi.toml
 #+end_example
 
 ** Logs
 
 #+begin_example
-journalctl -u tmond-serial -f    # Ver lecturas RS-485 a medida que llegan.
+journalctl -u tmond-485 -f       # Ver lecturas RS-485 a medida que llegan.
 journalctl -u tmond-wifi -f      # Ver lecturas WiFi a medida que llegan.
 #+end_example
 
@@ -101,11 +101,11 @@ journalctl -u tmond-wifi -f      # Ver lecturas WiFi a medida que llegan.
 Conecte un ESP32 a la Pi vía USB, luego use ~tmon-flash~ para flashearlo.  Cada cliente debe tener una dirección única:
 
 #+begin_example
-tmon-flash --mode=serial --addr=1          # cliente RS-485 en la dirección 1
+tmon-flash --mode=485 --addr=1             # cliente RS-485 en la dirección 1
 tmon-flash --mode=wifi   --addr=5          # cliente WiFi en la dirección 5
 #+end_example
 
-La herramienta detecta automáticamente el puerto serial, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.
+La herramienta detecta automáticamente el puerto, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.
 
 El LED integrado en cada ESP32 indica el estado operativo:
 

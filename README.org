@@ -14,14 +14,14 @@ temperatures over *RS-485* or *WiFi*.
   this model.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
 
-Three services run on the Pi: a serial daemon that polls RS-485 clients, a WiFi daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[#flashing-client-firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
+Three services run on the Pi: an RS-485 daemon that polls RS-485 clients, a WiFi daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[#flashing-client-firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
 
 * Architecture
 
 #+begin_example
                 Raspberry Pi
   .-------------------------------------------.
-  |  RS-485 server     (tmond-serial)         |
+  |  RS-485 server     (tmond-485)            |
   |  WiFi server       (tmond-wifi)           |
   |  web panel         (tmon-panel)           |
   |  database           (tmon.db)             |
@@ -56,7 +56,7 @@ make
 sudo make install
 #+end_example
 
-The installer prompts for your serial port, client addresses, poll
+The installer prompts for your RS-485 port, client addresses, poll
 interval, and (optionally) WiFi settings.  It writes the config files,
 installs everything, and starts the services -- no manual editing
 needed.
@@ -77,20 +77,20 @@ sudo make purge
 
 For power users who want to edit config directly:
 
-- ~/etc/tmon/tmon.toml~ -- serial port, client addresses, poll interval, WiFi listen port
+- ~/etc/tmon/tmon.toml~ -- RS-485 port, client addresses, poll interval, WiFi listen port
 - ~/etc/tmon/wifi.toml~ -- WiFi credentials (SSID, password, server IP)
 
 After editing, restart the relevant service:
 
 #+begin_example
-sudo systemctl restart tmond-serial       # after changing [rs485] settings
+sudo systemctl restart tmond-485          # after changing [rs485] settings
 sudo systemctl restart tmond-wifi         # after changing [wifi] or wifi.toml
 #+end_example
 
 ** Logs
 
 #+begin_example
-journalctl -u tmond-serial -f    # View RS-485 temp readings as they arrive.
+journalctl -u tmond-485 -f       # View RS-485 temp readings as they arrive.
 journalctl -u tmond-wifi -f      # View WiFi temp readings as they arrive.
 #+end_example
 
@@ -102,7 +102,7 @@ journalctl -u tmond-wifi -f      # View WiFi temp readings as they arrive.
 Connect an ESP32 to the Pi via USB, then use ~tmon-flash~ to flash it.  Each client must have a unique address:
 
 #+begin_example
-tmon-flash --mode=serial --addr=1          # RS-485 client at address 1
+tmon-flash --mode=485 --addr=1             # RS-485 client at address 1
 tmon-flash --mode=wifi   --addr=5          #  WiFi client at address 5
 #+end_example
 

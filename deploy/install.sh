@@ -226,13 +226,13 @@ install -m 755 deploy/tmon-patch /usr/local/bin/tmon-patch
 # ------------------------------------------------------------------
 
 echo "Installing systemd services..."
-cp deploy/tmond-serial.service "${SYSTEMD_DIR}/"
+cp deploy/tmond-485.service "${SYSTEMD_DIR}/"
 cp deploy/tmond-wifi.service "${SYSTEMD_DIR}/"
 cp deploy/tmon-panel.service "${SYSTEMD_DIR}/"
 systemctl daemon-reload
 
 echo "Enabling and starting services..."
-systemctl enable --now tmond-serial
+systemctl enable --now tmond-485
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
   systemctl enable --now tmond-wifi
 fi
@@ -254,20 +254,20 @@ fi
 echo "  Dashboard:   http://${PANEL_IP}:5000"
 echo ""
 echo "  Services running:"
-echo "    tmond-serial   ✓"
+echo "    tmond-485      ✓"
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
 echo "    tmond-wifi     ✓"
 fi
 echo "    tmon-panel     ✓"
 echo ""
 echo "  Logs:"
-echo "    journalctl -u tmond-serial -f"
+echo "    journalctl -u tmond-485 -f"
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
 echo "    journalctl -u tmond-wifi -f"
 fi
 echo ""
 echo "  Reconfigure:"
-echo "    edit ${ETC_DIR}/tmon.toml, then: sudo systemctl restart tmond-serial"
+echo "    edit ${ETC_DIR}/tmon.toml, then: sudo systemctl restart tmond-485"
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
 echo "    edit ${ETC_DIR}/wifi.toml, then: sudo systemctl restart tmond-wifi"
 fi

@@ -74,7 +74,7 @@ firmware-wifi:
 
 firmware: firmware-485 firmware-wifi
 	mkdir -p firmware
-	cp client/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
+	cp client/.pio/build/uart/firmware.bin firmware/firmware-485.bin
 	cp client/.pio/build/wifi/firmware.bin firmware/firmware-wifi.bin
 	cp client/.pio/build/uart/bootloader.bin firmware/bootloader.bin
 	cp client/.pio/build/uart/partitions.bin firmware/partitions.bin

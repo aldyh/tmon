@@ -161,7 +161,7 @@ Full automation: ~make install~ runs ~install.sh~ which handles everything.
 - [X] ~install.sh~: create ~tmon~ user, create ~/etc/tmon/~ and ~/var/lib/tmon/~
 - [X] ~install.sh~: pip install server package, copy config files
 - [X] ~install.sh~: install firmware binaries to ~/var/lib/tmon/firmware/~
-- [X] systemd service files: ~tmond-serial.service~, ~tmond-udp.service~
+- [X] systemd service files: ~tmond-485.service~, ~tmond-udp.service~
 - [X] systemd service file: ~tmon-panel.service~ (gunicorn serving Flask app)
 - [X] ~install.sh~: enable and start selected services
 - [X] ~uninstall.sh~ and ~make uninstall~ target
@@ -171,7 +171,7 @@ Full automation: ~make install~ runs ~install.sh~ which handles everything.
 
 Convenience script for flashing ESP32s from the Pi.
 
-- [X] ~tmon-flash~ script: ~--mode={serial,udp} --addr=N~
+- [X] ~tmon-flash~ script: ~--mode={485,wifi} --addr=N~
 - [X] Invokes esptool with correct firmware from ~/var/lib/tmon/firmware/~
 - [X] Installed by ~install.sh~
 - [X] ~make firmware~ target to build all variants

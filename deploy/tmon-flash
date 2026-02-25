@@ -1,7 +1,7 @@
 #!/bin/bash
 # tmon-flash -- flash ESP32-S3 with pre-built tmon firmware
 #
-# Usage: tmon-flash --mode={serial,wifi} --addr=N [--port=DEVICE] [--dry-run]
+# Usage: tmon-flash --mode={485,wifi} --addr=N [--port=DEVICE] [--dry-run]
 #
 # Firmware is read from firmware/ (local dev build) or
 # /var/lib/tmon/firmware/ (system-wide fallback).
@@ -22,10 +22,10 @@ DRY_RUN=0
 # ------------------------------------------------------------------
 
 usage () {
-  echo "Usage: tmon-flash --mode={serial,wifi} --addr=N [--port=DEVICE] [--dry-run]"
+  echo "Usage: tmon-flash --mode={485,wifi} --addr=N [--port=DEVICE] [--dry-run]"
   echo ""
   echo "Options:"
-  echo "  --mode=MODE   Transport mode: serial or wifi"
+  echo "  --mode=MODE   Transport mode: 485 or wifi"
   echo "  --addr=N      Client address (1-247)"
   echo "  --port=DEV    Serial port (auto-detected if omitted)"
   echo "  --dry-run     Print esptool command without executing"
@@ -50,8 +50,8 @@ fi
 # Validate arguments
 # ------------------------------------------------------------------
 
-if [ "${MODE}" != "serial" ] && [ "${MODE}" != "wifi" ]; then
-  echo "error: --mode must be 'serial' or 'wifi' (got '${MODE}')" >&2
+if [ "${MODE}" != "485" ] && [ "${MODE}" != "wifi" ]; then
+  echo "error: --mode must be '485' or 'wifi' (got '${MODE}')" >&2
   exit 1
 fi
 
