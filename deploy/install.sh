@@ -59,10 +59,8 @@ prompt_yn () {
 
 detect_serial_port () {
   local ports=()
-  for pattern in /dev/ttyUSB* /dev/ttyACM*; do
-    for p in ${pattern}; do
-      [ -e "${p}" ] && ports+=("${p}")
-    done
+  for p in /dev/ttyUSB*; do
+    [ -e "${p}" ] && ports+=("${p}")
   done
   if [ ${#ports[@]} -gt 0 ]; then
     echo "${ports[0]}"
