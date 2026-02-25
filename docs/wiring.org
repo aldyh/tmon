@@ -25,6 +25,36 @@ powered from the board's 3.3V pin.  If you are connecting multiple
 ESP32 nodes to a shared RS-485 bus, they must all share a common
 ground.
 
+** USB-C ports
+
+The ESP32-S3-DevKitC-1 has two USB-C connectors.  They serve different
+purposes and appear as different device types on the host:
+
+#+begin_example
+  .------.  .------.
+  | UART |  | USB  |
+  '------'  '------'
+  ttyUSB*   ttyACM*
+               ^
+          use this one
+
+  [  ESP32-S3-DevKitC-1  ]
+#+end_example
+
+| Port  | Device         | Used for                              |
+|-------+----------------+---------------------------------------|
+| Right | ~/dev/ttyACM*~ | Flashing firmware (~tmon-flash~)      |
+| Left  | ~/dev/ttyUSB*~ | UART bridge (not used in this project) |
+
+*Use the right USB port for flashing.*  The ~tmon-flash~ tool
+auto-detects ~/dev/ttyACM*~ devices for this reason.
+
+*Avoid confusion with the USB→485 adapter:* The RS-485 adapter plugged
+into the Raspberry Pi also appears as ~/dev/ttyUSB*~.  If the ESP32's
+left UART port is connected at the same time, there will be two
+~/dev/ttyUSB~ devices and it becomes unclear which is which.  Stick to
+the right port on the ESP32 and this ambiguity goes away.
+
 ** NTC thermistor inputs
 
 Channels 1 through 4 on GPIO 1 through 4:
