@@ -54,10 +54,10 @@ make
 sudo make install
 #+end_example
 
-El instalador solicita el puerto RS-485, las direcciones de clientes,
-el intervalo de consulta y (opcionalmente) la configuración WiFi.
-Escribe los archivos de configuración, instala todo e inicia los
-servicios -- no se necesita edición manual.
+El instalador pregunta si desea habilitar clientes RS-485 y/o WiFi,
+luego solicita la configuración correspondiente (puerto, direcciones,
+intervalos).  Escribe los archivos de configuración, instala todo e
+inicia los servicios -- no se necesita edición manual.
 
 Al ejecutar ~sudo make install~ nuevamente se sobreescribe la
 configuración anterior.
@@ -97,11 +97,16 @@ journalctl -u tmond-wifi -f      # Ver lecturas WiFi a medida que llegan.
 Conecte un ESP32 a la Pi vía USB, luego use ~tmon-flash~ para flashearlo.  Cada cliente debe tener una dirección única:
 
 #+begin_example
-tmon-flash --mode=485 --addr=1             # cliente RS-485 en la dirección 1
-tmon-flash --mode=wifi   --addr=5          # cliente WiFi en la dirección 5
+sudo tmon-flash --mode=485 --addr=1       # cliente RS-485 en la dirección 1
+sudo tmon-flash --mode=wifi --addr=5      # cliente WiFi en la dirección 5
 #+end_example
 
 La herramienta detecta automáticamente el puerto, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.
+
+*Puerto USB:* El ESP32-S3 DevKitC-1 tiene dos puertos USB-C.  Conecte
+al *derecho* (USB-OTG/JTAG) -- aparece como ~/dev/ttyACM*~.  El puerto
+UART izquierdo aparece como ~/dev/ttyUSB*~ y puede entrar en conflicto
+con el adaptador USB→485.  Vea la [[file:wiring.org][Referencia de cableado]] para un diagrama.
 
 ** Primera vez (placa nueva)
 

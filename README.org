@@ -56,10 +56,10 @@ make
 sudo make install
 #+end_example
 
-The installer prompts for your RS-485 port, client addresses, poll
-interval, and (optionally) WiFi settings.  It writes the config files,
-installs everything, and starts the services -- no manual editing
-needed.
+The installer asks whether to enable RS-485 and/or WiFi clients, then
+prompts for the relevant settings (serial port, addresses, intervals).
+It writes the config files, installs everything, and starts the
+services -- no manual editing needed.
 
 Re-running ~sudo make install~ overwrites the previous config.
 
@@ -98,12 +98,17 @@ journalctl -u tmond-wifi -f      # View WiFi temp readings as they arrive.
 Connect an ESP32 to the Pi via USB, then use ~tmon-flash~ to flash it.  Each client must have a unique address:
 
 #+begin_example
-tmon-flash --mode=485 --addr=1             # RS-485 client at address 1
-tmon-flash --mode=wifi   --addr=5          #  WiFi client at address 5
+sudo tmon-flash --mode=485 --addr=1       # RS-485 client at address 1
+sudo tmon-flash --mode=wifi --addr=5      # WiFi client at address 5
 #+end_example
 
 The tool auto-detects the serial port, but you can use ~--port=/dev/ttyACM0~ to
 override.
+
+*USB port:* The ESP32-S3 DevKitC-1 has two USB-C ports.  Connect to the
+*right* one (USB-OTG/JTAG) -- it appears as ~/dev/ttyACM*~.  The left
+UART port appears as ~/dev/ttyUSB*~ and may conflict with the USB→485
+adapter.  See the [[file:docs/wiring.org][Wiring Reference]] for a diagram.
 
 ** First-time flash (new board)
 
