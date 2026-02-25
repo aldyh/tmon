@@ -2,19 +2,13 @@
 # uninstall.sh -- remove tmon from a target machine
 #
 # Run as root:
-#   sudo deploy/uninstall.sh          # keeps config and data
-#   sudo deploy/uninstall.sh --purge  # removes everything
+#   sudo deploy/uninstall.sh
 
 set -euo pipefail
 
 ETC_DIR="/etc/tmon"
 VAR_DIR="/var/lib/tmon"
 SYSTEMD_DIR="/etc/systemd/system"
-
-PURGE=0
-if [ "${1:-}" = "--purge" ]; then
-  PURGE=1
-fi
 
 if [ "$(id -u)" -ne 0 ]; then
   echo "error: must run as root" >&2
@@ -72,20 +66,12 @@ if id tmon >/dev/null 2>&1; then
 fi
 
 # ------------------------------------------------------------------
-# Purge (optional)
+# Remove config and data
 # ------------------------------------------------------------------
 
-if [ "${PURGE}" -eq 1 ]; then
-  echo "Purging ${ETC_DIR}/ and ${VAR_DIR}/..."
-  rm -rf "${ETC_DIR}"
-  rm -rf "${VAR_DIR}"
-else
-  echo ""
-  echo "Config and data preserved:"
-  echo "  ${ETC_DIR}/"
-  echo "  ${VAR_DIR}/"
-  echo "Use --purge to remove everything."
-fi
+echo "Removing ${ETC_DIR}/ and ${VAR_DIR}/..."
+rm -rf "${ETC_DIR}"
+rm -rf "${VAR_DIR}"
 
 echo ""
 echo "tmon uninstalled."

@@ -65,11 +65,7 @@ configuración anterior.
 ** Desinstalación
 
 #+begin_example
-# Conservar /etc/tmon, /var/lib/tmon y otra configuración
 sudo make uninstall
-
-# Eliminar todo incluyendo configuración y datos
-sudo make purge
 #+end_example
 
 ** Configuración manual

@@ -66,11 +66,7 @@ Re-running ~sudo make install~ overwrites the previous config.
 ** Uninstalling
 
 #+begin_example
-# Keep /etc/tmon, /var/lib/tmon and other configury
 sudo make uninstall
-
-# Remove everything including config and data
-sudo make purge
 #+end_example
 
 ** Manual configuration

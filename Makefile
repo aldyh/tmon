@@ -4,7 +4,7 @@
        check check-server check-firmware check-integration check-panel \
        generate-panel-mock-data run-panel \
        firmware firmware-485 firmware-wifi \
-       install uninstall purge clean \
+       install uninstall clean \
        TAGS
 
 SERVER_STAMP := server/.venv/.installed
@@ -91,9 +91,6 @@ install:
 
 uninstall:
 	deploy/uninstall.sh
-
-purge:
-	deploy/uninstall.sh --purge
 
 TAGS:
 	find . -name '*.c' -o -name '*.cpp' -o -name '*.h' -o -name '*.py' | etags -
