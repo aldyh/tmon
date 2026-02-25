@@ -41,9 +41,12 @@ Three services run on the Pi: a serial daemon that polls RS-485 clients, a WiFi 
 See the [[file:docs/wiring.org][Wiring Reference]] for how to connect the ESP32 clients, thermistors, and RS-485 bus.
 
 * Installation
+:PROPERTIES:
+:CUSTOM_ID: installation
+:END:
 
-Installation is meant to be done on the Raspberry Pi, since that is
-where you will likely deploy.  You can do so with:
+Installation is meant to be done on the Raspberry Pi.  The installer
+walks you through configuration and starts the services:
 
 #+begin_example
 # On the Pi:
@@ -53,11 +56,14 @@ make
 sudo make install
 #+end_example
 
-The installer copies default config files to ~/etc/tmon/~, pre-built firmware binaries to ~/var/lib/tmon/firmware/~, and supporting files to ~/var/lib/tmon/~.  The servers are meant to be run from systemd and are installed but *not* enabled -- see [[#running][Running]].
+The installer prompts for your serial port, client addresses, poll
+interval, and (optionally) WiFi settings.  It writes the config files,
+installs everything, and starts the services -- no manual editing
+needed.
 
-* Uninstalling
+Re-running ~sudo make install~ overwrites the previous config.
 
-To uninstall:
+** Uninstalling
 
 #+begin_example
 # Keep /etc/tmon, /var/lib/tmon and other configury
@@ -67,55 +73,21 @@ sudo make uninstall
 sudo make purge
 #+end_example
 
-* Configuration
+** Manual configuration
 
-Edit ~/etc/tmon/tmon.toml~ to match your setup:
+For power users who want to edit config directly:
 
-#+begin_example
-db = "tmon.db"
+- ~/etc/tmon/tmon.toml~ -- serial port, client addresses, poll interval, WiFi listen port
+- ~/etc/tmon/wifi.toml~ -- WiFi credentials (SSID, password, server IP)
 
-[rs485]
-clients = [1, 4, 5]       # addresses to poll -- must match what you flashed
-interval = 5              # seconds between poll cycles
-port = "/dev/ttyUSB0"     # USB-RS485 adapter (try: ls /dev/ttyUSB*)
-baudrate = 9600
-
-[wifi]
-port = 5555               # listen port for WiFi clients
-push_interval = 5         # how often clients push readings (seconds)
-#+end_example
-
-For WiFi clients, you also need ~/etc/tmon/wifi.toml~ with your network credentials:
+After editing, restart the relevant service:
 
 #+begin_example
-cp /etc/tmon/wifi.toml.example /etc/tmon/wifi.toml
+sudo systemctl restart tmond-serial       # after changing [rs485] settings
+sudo systemctl restart tmond-wifi         # after changing [wifi] or wifi.toml
 #+end_example
 
-#+begin_example
-ssid = "your_wifi_ssid"
-password = "your_wifi_password"
-server_host = "192.168.1.100"    # IP of your Raspberry Pi
-#+end_example
-
-* Running
-:PROPERTIES:
-:CUSTOM_ID: running
-:END:
-
-Enable the two daemons (one for WiFi and one for serial):
-
-#+begin_example
-sudo systemctl enable --now tmond-serial   # RS-485 server
-sudo systemctl enable --now tmond-wifi     # WiFi push server
-#+end_example
-
-Enable the web dashboard:
-
-#+begin_example
-sudo systemctl enable --now tmon-panel     # accessible at http://IP_OF_RASPBERRY_PI:5000
-#+end_example
-
-Check status and logs:
+** Logs
 
 #+begin_example
 journalctl -u tmond-serial -f    # View RS-485 temp readings as they arrive.
