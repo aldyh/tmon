@@ -187,18 +187,16 @@ fi
 
 if [ -z "${PORT}" ]; then
   ports=()
-  for pattern in /dev/ttyACM* /dev/ttyUSB*; do
-    for p in ${pattern}; do
-      [ -e "${p}" ] && ports+=("${p}")
-    done
+  for p in /dev/ttyACM*; do
+    [ -e "${p}" ] && ports+=("${p}")
   done
 
   if [ ${#ports[@]} -eq 0 ]; then
-    echo "error: no serial port detected" >&2
-    echo "  Connect an ESP32 or use --port=DEVICE" >&2
+    echo "error: no /dev/ttyACM* device detected" >&2
+    echo "  Connect the ESP32 right USB port, or use --port=DEVICE" >&2
     exit 1
   elif [ ${#ports[@]} -gt 1 ]; then
-    echo "error: multiple serial ports detected: ${ports[*]}" >&2
+    echo "error: multiple /dev/ttyACM* devices detected: ${ports[*]}" >&2
     echo "  Specify one with --port=DEVICE" >&2
     exit 1
   fi
