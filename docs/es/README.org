@@ -61,8 +61,8 @@ Para desinstalar:
 # Conservar /etc/tmon, /var/lib/tmon y otra configuración
 sudo make uninstall
 
-# Eliminar todo
-sudo deploy/uninstall.sh --purge
+# Eliminar todo incluyendo configuración y datos
+sudo make purge
 #+end_example
 
 * Configuración
