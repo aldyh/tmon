@@ -113,7 +113,11 @@ while true; do
       break
     fi
   done
-  [ "${valid}" -eq 1 ] && break
+  if [ "${valid}" -eq 1 ]; then
+    # Normalize to "1, 2, 3" (no extra whitespace)
+    CLIENTS=$(IFS=','; echo "${addrs[*]}" | sed 's/ *//g; s/,/, /g')
+    break
+  fi
 done
 
 POLL_INTERVAL=$(prompt "Poll interval (seconds)" "5")
