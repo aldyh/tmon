@@ -177,8 +177,12 @@ mkdir -p "${ETC_DIR}" "${VAR_DIR}" "${FW_DIR}" "${PANEL_DIR}"
 # Python virtual environment
 # ------------------------------------------------------------------
 
-echo "Creating virtual environment at ${VENV_DIR}..."
-python3 -m venv "${VENV_DIR}"
+if [ ! -d "${VENV_DIR}" ]; then
+  echo "Creating virtual environment at ${VENV_DIR}..."
+  python3 -m venv "${VENV_DIR}"
+else
+  echo "Virtual environment already exists at ${VENV_DIR}, reusing."
+fi
 
 echo "Installing server daemon..."
 "${VENV_DIR}/bin/pip" install --quiet server/
