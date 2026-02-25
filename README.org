@@ -106,9 +106,10 @@ The tool auto-detects the serial port, but you can use ~--port=/dev/ttyACM0~ to
 override.
 
 *USB port:* The ESP32-S3 DevKitC-1 has two USB-C ports.  Connect to the
-*right* one (USB-OTG/JTAG) -- it appears as ~/dev/ttyACM*~.  The left
-UART port appears as ~/dev/ttyUSB*~ and may conflict with the USB→485
-adapter.  See the [[file:docs/wiring.org][Wiring Reference]] for a diagram.
+*left* one (labeled USB on the PCB) -- it appears as ~/dev/ttyACM*~.
+The right UART port (labeled COM) appears as ~/dev/ttyUSB*~ and may
+conflict with the USB→485 adapter.  See the [[file:docs/wiring.org][Wiring Reference]] for a
+diagram.
 
 ** First-time flash (new board)
 

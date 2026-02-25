@@ -104,9 +104,10 @@ sudo tmon-flash --mode=wifi --addr=5      # cliente WiFi en la dirección 5
 La herramienta detecta automáticamente el puerto, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.
 
 *Puerto USB:* El ESP32-S3 DevKitC-1 tiene dos puertos USB-C.  Conecte
-al *derecho* (USB-OTG/JTAG) -- aparece como ~/dev/ttyACM*~.  El puerto
-UART izquierdo aparece como ~/dev/ttyUSB*~ y puede entrar en conflicto
-con el adaptador USB→485.  Vea la [[file:wiring.org][Referencia de cableado]] para un diagrama.
+al *izquierdo* (marcado USB en la PCB) -- aparece como ~/dev/ttyACM*~.
+El puerto UART derecho (marcado COM) aparece como ~/dev/ttyUSB*~ y
+puede entrar en conflicto con el adaptador USB→485.  Vea la
+[[file:wiring.org][Referencia de cableado]] para un diagrama.
 
 ** Primera vez (placa nueva)
 

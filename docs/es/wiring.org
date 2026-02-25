@@ -33,28 +33,28 @@ el host:
 
 #+begin_example
   .------.  .------.
-  | UART |  | USB  |
+  | USB  |  | UART |
   '------'  '------'
-  ttyUSB*   ttyACM*
-               ^
-          use este
+  ttyACM*   ttyUSB*
+     ^
+  use este
 
   [  ESP32-S3-DevKitC-1  ]
 #+end_example
 
-| Puerto   | Dispositivo    | Uso                                     |
-|----------+----------------+-----------------------------------------|
-| Derecho  | ~/dev/ttyACM*~ | Flashear firmware (~tmon-flash~)        |
-| Izquierdo | ~/dev/ttyUSB*~ | Bridge UART (no se usa en este proyecto) |
+| Puerto    | Etiqueta | Dispositivo    | Uso                                     |
+|-----------+----------+----------------+-----------------------------------------|
+| Izquierdo | USB      | ~/dev/ttyACM*~ | Flashear firmware (~tmon-flash~)        |
+| Derecho   | COM      | ~/dev/ttyUSB*~ | Bridge UART (no se usa en este proyecto) |
 
-*Use el puerto USB derecho para flashear.*  La herramienta ~tmon-flash~
+*Use el puerto USB izquierdo para flashear.*  La herramienta ~tmon-flash~
 auto-detecta dispositivos ~/dev/ttyACM*~ por esta razón.
 
 *Evite confusión con el adaptador USB→485:* El adaptador RS-485
 conectado a la Raspberry Pi también aparece como ~/dev/ttyUSB*~.  Si el
-puerto UART izquierdo del ESP32 está conectado al mismo tiempo, habrá
+puerto UART derecho del ESP32 está conectado al mismo tiempo, habrá
 dos dispositivos ~/dev/ttyUSB~ y no será claro cuál es cuál.  Use el
-puerto derecho del ESP32 y esta ambigüedad desaparece.
+puerto izquierdo del ESP32 y esta ambigüedad desaparece.
 
 ** Entradas de termistores NTC
 
