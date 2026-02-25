@@ -159,8 +159,11 @@ if ! id tmon >/dev/null 2>&1; then
 fi
 
 # Serial access (RS-485 adapter)
-if getent group dialout >/dev/null 2>&1; then
-  usermod -aG dialout tmon
+if [ "${ENABLE_RS485}" -eq 1 ] && [ -e "${SERIAL_PORT}" ]; then
+  serial_group=$(stat -c '%G' "${SERIAL_PORT}")
+  if [ -n "${serial_group}" ] && [ "${serial_group}" != "root" ]; then
+    usermod -aG "${serial_group}" tmon
+  fi
 fi
 
 # ------------------------------------------------------------------
