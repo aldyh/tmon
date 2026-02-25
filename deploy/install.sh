@@ -99,7 +99,23 @@ echo "==============="
 echo ""
 
 SERIAL_PORT=$(prompt "Serial port" "$(detect_serial_port)")
-CLIENTS=$(prompt "Client addresses" "1")
+
+while true; do
+  CLIENTS=$(prompt "Client addresses, comma-separated, 1-247" "1")
+  # Validate: must be comma-separated integers in 1-247
+  valid=1
+  IFS=',' read -ra addrs <<< "${CLIENTS}"
+  for raw in "${addrs[@]}"; do
+    a=$(echo "${raw}" | tr -d ' ')
+    if [ -z "${a}" ] || [[ ! "${a}" =~ ^[0-9]+$ ]] || [ "${a}" -lt 1 ] || [ "${a}" -gt 247 ]; then
+      echo "  Invalid address '${raw}' -- each must be an integer 1-247." >&2
+      valid=0
+      break
+    fi
+  done
+  [ "${valid}" -eq 1 ] && break
+done
+
 POLL_INTERVAL=$(prompt "Poll interval (seconds)" "5")
 
 echo ""
