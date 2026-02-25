@@ -103,6 +103,23 @@ tmon-flash --mode=wifi   --addr=5          # cliente WiFi en la dirección 5
 
 La herramienta detecta automáticamente el puerto, pero se puede usar ~--port=/dev/ttyACM0~ para especificarlo manualmente.
 
+** Primera vez (placa nueva)
+
+El ESP32-S3 usa su interfaz USB-Serial/JTAG integrada, que puede
+perder la conexión durante escrituras grandes.  Para una placa nueva,
+mantenga presionado el botón BOOT durante todo el flasheo:
+
+1. Mantenga presionado BOOT.
+2. Presione y suelte RST (siga presionando BOOT).
+3. Ejecute ~tmon-flash~.
+4. Suelte BOOT solo cuando el flasheo termine.
+
+Los re-flasheos posteriores generalmente funcionan sin esto.
+Si el flasheo falla, reintente -- la conexión es intermitente.
+
+** Estado del LED
+
+
 El LED integrado en cada ESP32 indica el estado operativo:
 
 | Color                | Significado                                   |

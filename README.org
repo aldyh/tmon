@@ -105,6 +105,23 @@ tmon-flash --mode=wifi   --addr=5          #  WiFi client at address 5
 The tool auto-detects the serial port, but you can use ~--port=/dev/ttyACM0~ to
 override.
 
+** First-time flash (new board)
+
+The ESP32-S3 uses its built-in USB-Serial/JTAG interface, which can
+drop the connection during large writes.  For a brand-new board, hold
+the BOOT button for the entire flash:
+
+1. Hold BOOT.
+2. Press and release RST (keep holding BOOT).
+3. Run ~tmon-flash~.
+4. Release BOOT only after the flash finishes.
+
+Subsequent re-flashes of the same board usually work without this.
+If the flash still fails, retry -- the connection is intermittent.
+
+** LED status
+
+
 The built-in LED on each ESP32 signals operational status:
 
 | Color           | Meaning                           |
