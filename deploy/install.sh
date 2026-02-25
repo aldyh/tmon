@@ -98,29 +98,43 @@ echo "tmon installer"
 echo "==============="
 echo ""
 
-SERIAL_PORT=$(prompt "Serial port" "$(detect_serial_port)")
+ENABLE_RS485=0
+if prompt_yn "Enable RS-485 clients?" "y"; then
+  ENABLE_RS485=1
 
-while true; do
-  CLIENTS=$(prompt "Client addresses, comma-separated, 1-247" "1")
-  # Validate: must be comma-separated integers in 1-247
-  valid=1
-  IFS=',' read -ra addrs <<< "${CLIENTS}"
-  for raw in "${addrs[@]}"; do
-    a=$(echo "${raw}" | tr -d ' ')
-    if [ -z "${a}" ] || [[ ! "${a}" =~ ^[0-9]+$ ]] || [ "${a}" -lt 1 ] || [ "${a}" -gt 247 ]; then
-      echo "  Invalid address '${raw}' -- each must be an integer 1-247." >&2
-      valid=0
+  while true; do
+    SERIAL_PORT=$(prompt "RS-485 serial port (USB→485 adapter)" "$(detect_serial_port)")
+    if [ -e "${SERIAL_PORT}" ]; then
+      break
+    fi
+    echo "  Warning: ${SERIAL_PORT} does not exist."
+    if ! prompt_yn "Re-enter serial port?" "y"; then
       break
     fi
   done
-  if [ "${valid}" -eq 1 ]; then
-    # Normalize to "1, 2, 3" (no extra whitespace)
-    CLIENTS=$(IFS=','; echo "${addrs[*]}" | sed 's/ *//g; s/,/, /g')
-    break
-  fi
-done
 
-POLL_INTERVAL=$(prompt "Poll interval (seconds)" "5")
+  while true; do
+    CLIENTS=$(prompt "Client addresses, comma-separated, 1-247" "1")
+    # Validate: must be comma-separated integers in 1-247
+    valid=1
+    IFS=',' read -ra addrs <<< "${CLIENTS}"
+    for raw in "${addrs[@]}"; do
+      a=$(echo "${raw}" | tr -d ' ')
+      if [ -z "${a}" ] || [[ ! "${a}" =~ ^[0-9]+$ ]] || [ "${a}" -lt 1 ] || [ "${a}" -gt 247 ]; then
+        echo "  Invalid address '${raw}' -- each must be an integer 1-247." >&2
+        valid=0
+        break
+      fi
+    done
+    if [ "${valid}" -eq 1 ]; then
+      # Normalize to "1, 2, 3" (no extra whitespace)
+      CLIENTS=$(IFS=','; echo "${addrs[*]}" | sed 's/ *//g; s/,/, /g')
+      break
+    fi
+  done
+
+  POLL_INTERVAL=$(prompt "RS-485 poll interval (seconds)" "5")
+fi
 
 echo ""
 ENABLE_WIFI=0
@@ -130,7 +144,7 @@ if prompt_yn "Enable WiFi clients?" "n"; then
   WIFI_PASS=$(prompt_secret "WiFi password")
   SERVER_IP=$(prompt "Server IP" "$(detect_ip)")
   LISTEN_PORT=$(prompt "Listen port" "5555")
-  PUSH_INTERVAL=$(prompt "Push interval (seconds)" "5")
+  PUSH_INTERVAL=$(prompt "WiFi push interval (seconds)" "5")
 fi
 
 echo ""
@@ -178,17 +192,24 @@ echo "Installing esptool..."
 
 echo "Writing ${ETC_DIR}/tmon.toml..."
 
-# Build clients array: "1" → "[1]", "1, 2, 3" → "[1, 2, 3]"
-CLIENTS_ARRAY="[${CLIENTS}]"
-
 cat > "${ETC_DIR}/tmon.toml" <<TOML
 db = "tmon.db"
+TOML
+
+if [ "${ENABLE_RS485}" -eq 1 ]; then
+  # Build clients array: "1" → "[1]", "1, 2, 3" → "[1, 2, 3]"
+  CLIENTS_ARRAY="[${CLIENTS}]"
+  cat >> "${ETC_DIR}/tmon.toml" <<TOML
 
 [rs485]
 clients = ${CLIENTS_ARRAY}
 interval = ${POLL_INTERVAL}
 port = "${SERIAL_PORT}"
 baudrate = 9600
+TOML
+fi
+
+cat >> "${ETC_DIR}/tmon.toml" <<TOML
 
 [wifi]
 port = ${LISTEN_PORT:-5555}
@@ -252,7 +273,9 @@ cp deploy/tmon-panel.service "${SYSTEMD_DIR}/"
 systemctl daemon-reload
 
 echo "Enabling and starting services..."
-systemctl enable --now tmond-485
+if [ "${ENABLE_RS485}" -eq 1 ]; then
+  systemctl enable --now tmond-485
+fi
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
   systemctl enable --now tmond-wifi
 fi
@@ -274,20 +297,26 @@ fi
 echo "  Dashboard:   http://${PANEL_IP}:5000"
 echo ""
 echo "  Services running:"
+if [ "${ENABLE_RS485}" -eq 1 ]; then
 echo "    tmond-485      ✓"
+fi
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
 echo "    tmond-wifi     ✓"
 fi
 echo "    tmon-panel     ✓"
 echo ""
 echo "  Logs:"
+if [ "${ENABLE_RS485}" -eq 1 ]; then
 echo "    journalctl -u tmond-485 -f"
+fi
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
 echo "    journalctl -u tmond-wifi -f"
 fi
 echo ""
 echo "  Reconfigure:"
+if [ "${ENABLE_RS485}" -eq 1 ]; then
 echo "    edit ${ETC_DIR}/tmon.toml, then: sudo systemctl restart tmond-485"
+fi
 if [ "${ENABLE_WIFI}" -eq 1 ]; then
 echo "    edit ${ETC_DIR}/wifi.toml, then: sudo systemctl restart tmond-wifi"
 fi
