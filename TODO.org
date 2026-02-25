@@ -1115,3 +1115,19 @@ wifi.toml setup instructions (cp from example, fill in SSID/password/
 server IP), and clarifying notes on which fields matter where (e.g.
 push_interval only affects firmware at flash time).  Also fixed stale
 "sensor" -> "client" in wifi.toml.example.
+* TODO Speed up install.sh pip installs on Raspberry Pi
+The venv is already reused across reinstalls, but the three ~pip install~
+calls are still slow on the Pi because ~server/~ and ~panel/~ are local
+directories — pip rebuilds the sdist every time even if nothing changed.
+~esptool~ is fast (already satisfied) but the local packages are not.
+
+Simplest fix: add a ~--quick~ flag that skips the pip installs entirely.
+Use it when redeploying config, services, or firmware without Python
+code changes.  Default path stays unchanged.
+
+Fancier alternatives considered and rejected (not worth the complexity):
+- Stamp files with checksums of pyproject.toml or full source trees.
+- ~--no-build-isolation~ or ~--no-deps~ tricks (marginal gains).
+
+This is what most projects do: just eat the cost, or provide a fast path
+flag for the common "nothing changed in Python" case.
