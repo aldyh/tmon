@@ -1,5 +1,5 @@
 [Unit]
-Description=tmon temperature monitoring daemon (UDP push)
+Description=tmon temperature monitoring daemon (WiFi push)
 After=network.target
 
 [Service]
@@ -7,7 +7,7 @@ Type=simple
 User=tmon
 Group=tmon
 WorkingDirectory=/etc/tmon
-ExecStart=/var/lib/tmon/venv/bin/tmon tmon.toml --transport udp
+ExecStart=/var/lib/tmon/venv/bin/tmon tmon.toml --transport wifi
 Restart=on-failure
 RestartSec=5
 

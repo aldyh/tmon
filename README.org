@@ -8,13 +8,13 @@ A small, home-use *Raspberry Pi + ESP32* setup for monitoring
 temperatures over *RS-485* or *WiFi*.
 
 - *Server (Raspberry Pi):* Python daemon that collects readings from ESP32 clients and stores them in an SQLite database.
-- *Transport:* RS-485 (USB adapter, server polls) or UDP over WiFi (clients push).
+- *Transport:* RS-485 (USB adapter, server polls) or WiFi (clients push over UDP).
 - *Clients (ESP32):* Each reads up to *4 NTC thermistors*.  Only the
   S3-DevKitC-1 version has been tested; pre-built firmware targets
   this model.
 - *Protocol:* Simple custom binary frames with *CRC-16/MODBUS*.
 
-Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[#flashing-client-firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
+Three services run on the Pi: a serial daemon that polls RS-485 clients, a WiFi daemon that receives pushes from WiFi clients, and a web dashboard.  You can mix and match transport modes, but each client must have a unique address (see [[#flashing-client-firmware][Flashing client firmware]]).  Readings are stored in an SQLite database (see [[file:docs/storage.org][Storage Specification]]) and viewable from the web dashboard.
 
 * Architecture
 
@@ -22,7 +22,7 @@ Three services run on the Pi: a serial daemon that polls RS-485 clients, a UDP d
                 Raspberry Pi
   .-------------------------------------------.
   |  RS-485 server     (tmond-serial)         |
-  |  WiFi server       (tmond-udp)            |
+  |  WiFi server       (tmond-wifi)           |
   |  web panel         (tmon-panel)           |
   |  database           (tmon.db)             |
   '-+---------------------------------------+-'
@@ -80,12 +80,12 @@ interval = 5              # seconds between poll cycles
 port = "/dev/ttyUSB0"     # USB-RS485 adapter (try: ls /dev/ttyUSB*)
 baudrate = 9600
 
-[udp]
-port = 5555               # UDP listen port
+[wifi]
+port = 5555               # listen port for WiFi clients
 push_interval = 5         # how often clients push readings (seconds)
 #+end_example
 
-For WiFi/UDP clients, you also need ~/etc/tmon/wifi.toml~ with your network credentials:
+For WiFi clients, you also need ~/etc/tmon/wifi.toml~ with your network credentials:
 
 #+begin_example
 cp /etc/tmon/wifi.toml.example /etc/tmon/wifi.toml
@@ -102,11 +102,11 @@ server_host = "192.168.1.100"    # IP of your Raspberry Pi
 :CUSTOM_ID: running
 :END:
 
-Enable the two daemons (one for UDP and one for serial):
+Enable the two daemons (one for WiFi and one for serial):
 
 #+begin_example
 sudo systemctl enable --now tmond-serial   # RS-485 server
-sudo systemctl enable --now tmond-udp      # UDP push server
+sudo systemctl enable --now tmond-wifi     # WiFi push server
 #+end_example
 
 Enable the web dashboard:
@@ -119,7 +119,7 @@ Check status and logs:
 
 #+begin_example
 journalctl -u tmond-serial -f    # View RS-485 temp readings as they arrive.
-journalctl -u tmond-udp -f       # View UDP temp readings as they arrive.
+journalctl -u tmond-wifi -f      # View WiFi temp readings as they arrive.
 #+end_example
 
 * Flashing client firmware
@@ -131,7 +131,7 @@ Connect an ESP32 to the Pi via USB, then use ~tmon-flash~ to flash it.  Each cli
 
 #+begin_example
 tmon-flash --mode=serial --addr=1          # RS-485 client at address 1
-tmon-flash --mode=udp    --addr=5          #    UDP client at address 5
+tmon-flash --mode=wifi   --addr=5          #  WiFi client at address 5
 #+end_example
 
 The tool auto-detects the serial port, but you can use ~--port=/dev/ttyACM0~ to
@@ -142,7 +142,7 @@ The built-in LED on each ESP32 signals operational status:
 | Color           | Meaning                           |
 |-----------------+-----------------------------------|
 | Off             | Normal operation                  |
-| Blinking red    | WiFi disconnected (UDP only)      |
+| Blinking red    | WiFi disconnected (WiFi only)     |
 | Blinking green  | Sending readings to server        |
 | Blinking yellow | Identify: blinks N times (N=addr) |
 
@@ -169,7 +169,7 @@ To run the servers on the development environment without installing first:
 
 #+begin_example
 make run-server-485   # RS-485 (uses server/tmon.toml --transport rs485)
-make run-server-udp   # UDP push (uses server/tmon.toml --transport udp)
+make run-server-wifi  # WiFi push (uses server/tmon.toml --transport wifi)
 make run-panel        # panel with mock data at http://localhost:5000
 #+end_example
 

@@ -26,7 +26,7 @@ fi
 # ------------------------------------------------------------------
 
 echo "Stopping services..."
-for svc in tmond-serial tmond-udp tmon-panel; do
+for svc in tmond-serial tmond-wifi tmon-panel; do
   systemctl stop "${svc}" 2>/dev/null || true
   systemctl disable "${svc}" 2>/dev/null || true
 done
@@ -37,7 +37,7 @@ done
 
 echo "Removing systemd units..."
 rm -f "${SYSTEMD_DIR}/tmond-serial.service"
-rm -f "${SYSTEMD_DIR}/tmond-udp.service"
+rm -f "${SYSTEMD_DIR}/tmond-wifi.service"
 rm -f "${SYSTEMD_DIR}/tmon-panel.service"
 systemctl daemon-reload
 

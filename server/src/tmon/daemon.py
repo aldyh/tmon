@@ -2,7 +2,7 @@
 
 Supports two modes:
 - Poll mode (RS-485): actively polls clients on a schedule
-- Push mode (UDP): passively receives readings pushed by clients
+- Push mode (WiFi): passively receives readings pushed by clients
 
 Foreground loop driven by a TOML config file.  Shuts down cleanly
 on SIGINT or SIGTERM.
@@ -81,7 +81,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="tmon temperature monitor")
     parser.add_argument("config", help="path to TOML config file")
     parser.add_argument(
-        "--transport", required=True, choices=("rs485", "udp"),
+        "--transport", required=True, choices=("rs485", "wifi"),
         help="transport mode",
     )
     parser.add_argument(
@@ -105,12 +105,12 @@ def main() -> None:
     signal.signal(signal.SIGINT, _on_signal)
     signal.signal(signal.SIGTERM, _on_signal)
 
-    if transport == "udp":
+    if transport == "wifi":
         log.info(
-            "starting: transport=udp port=%d db=%s",
-            cfg["udp_port"], cfg["db"],
+            "starting: transport=wifi port=%d db=%s",
+            cfg["wifi_port"], cfg["db"],
         )
-        receiver = UDPReceiver(cfg["udp_port"])
+        receiver = UDPReceiver(cfg["wifi_port"])
         try:
             run_listener(receiver, storage, _shutdown)
         finally:

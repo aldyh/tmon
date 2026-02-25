@@ -1,9 +1,9 @@
 .PHONY: all server \
-       run-server-485 run-server-udp \
+       run-server-485 run-server-wifi \
        panel \
        check check-server check-firmware check-integration check-panel \
        generate-panel-mock-data run-panel \
-       firmware firmware-485 firmware-udp \
+       firmware firmware-485 firmware-wifi \
        install uninstall purge clean \
        TAGS
 
@@ -24,8 +24,8 @@ $(SERVER_STAMP): server/.venv server/pyproject.toml
 run-server-485: $(SERVER_STAMP)
 	cd server && . .venv/bin/activate && tmon tmon.toml --transport rs485
 
-run-server-udp: $(SERVER_STAMP)
-	cd server && . .venv/bin/activate && tmon tmon.toml --transport udp
+run-server-wifi: $(SERVER_STAMP)
+	cd server && . .venv/bin/activate && tmon tmon.toml --transport wifi
 
 panel: $(PANEL_STAMP)
 
@@ -69,13 +69,13 @@ BOOT_APP0 := $(shell find ~/.platformio/packages/framework-arduinoespressif32 \
 firmware-485:
 	cd client && pio run -e uart
 
-firmware-udp:
-	cd client && pio run -e udp
+firmware-wifi:
+	cd client && pio run -e wifi
 
-firmware: firmware-485 firmware-udp
+firmware: firmware-485 firmware-wifi
 	mkdir -p firmware
 	cp client/.pio/build/uart/firmware.bin firmware/firmware-serial.bin
-	cp client/.pio/build/udp/firmware.bin firmware/firmware-udp.bin
+	cp client/.pio/build/wifi/firmware.bin firmware/firmware-wifi.bin
 	cp client/.pio/build/uart/bootloader.bin firmware/bootloader.bin
 	cp client/.pio/build/uart/partitions.bin firmware/partitions.bin
 ifdef BOOT_APP0

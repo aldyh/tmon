@@ -1,7 +1,7 @@
 #!/bin/bash
 # tmon-flash -- flash ESP32-S3 with pre-built tmon firmware
 #
-# Usage: tmon-flash --mode={serial,udp} --addr=N [--port=DEVICE] [--dry-run]
+# Usage: tmon-flash --mode={serial,wifi} --addr=N [--port=DEVICE] [--dry-run]
 #
 # Firmware is read from firmware/ (local dev build) or
 # /var/lib/tmon/firmware/ (system-wide fallback).
@@ -22,10 +22,10 @@ DRY_RUN=0
 # ------------------------------------------------------------------
 
 usage () {
-  echo "Usage: tmon-flash --mode={serial,udp} --addr=N [--port=DEVICE] [--dry-run]"
+  echo "Usage: tmon-flash --mode={serial,wifi} --addr=N [--port=DEVICE] [--dry-run]"
   echo ""
   echo "Options:"
-  echo "  --mode=MODE   Transport mode: serial or udp"
+  echo "  --mode=MODE   Transport mode: serial or wifi"
   echo "  --addr=N      Client address (1-247)"
   echo "  --port=DEV    Serial port (auto-detected if omitted)"
   echo "  --dry-run     Print esptool command without executing"
@@ -50,8 +50,8 @@ fi
 # Validate arguments
 # ------------------------------------------------------------------
 
-if [ "${MODE}" != "serial" ] && [ "${MODE}" != "udp" ]; then
-  echo "error: --mode must be 'serial' or 'udp' (got '${MODE}')" >&2
+if [ "${MODE}" != "serial" ] && [ "${MODE}" != "wifi" ]; then
+  echo "error: --mode must be 'serial' or 'wifi' (got '${MODE}')" >&2
   exit 1
 fi
 
@@ -118,7 +118,7 @@ if [ "${missing}" -eq 1 ]; then
 fi
 
 # ------------------------------------------------------------------
-# Locate config directory (for UDP WiFi config)
+# Locate config directory (for WiFi config)
 # ------------------------------------------------------------------
 
 if [ -d /etc/tmon ]; then
@@ -138,8 +138,8 @@ trap 'rm -f "${PATCHED}"' EXIT
 
 PATCH_ARGS=(--addr="${ADDR}")
 
-# For UDP mode, read WiFi credentials and UDP settings from TOML
-if [ "${MODE}" = "udp" ]; then
+# For WiFi mode, read WiFi credentials and server settings from TOML
+if [ "${MODE}" = "wifi" ]; then
   if [ -z "${CFG_DIR}" ]; then
     echo "error: config directory not found (need wifi.toml)" >&2
     echo "  Expected server/ or /etc/tmon/" >&2
@@ -147,9 +147,9 @@ if [ "${MODE}" = "udp" ]; then
   fi
 
   WIFI_TOML="${CFG_DIR}/wifi.toml"
-  UDP_TOML="${CFG_DIR}/tmon.toml"
+  SERVER_TOML="${CFG_DIR}/tmon.toml"
 
-  for f in "${WIFI_TOML}" "${UDP_TOML}"; do
+  for f in "${WIFI_TOML}" "${SERVER_TOML}"; do
     if [ ! -f "${f}" ]; then
       echo "error: ${f} not found" >&2
       exit 1
@@ -161,13 +161,13 @@ if [ "${MODE}" = "udp" ]; then
 import tomllib, shlex
 with open('${WIFI_TOML}', 'rb') as f:
     w = tomllib.load(f)
-with open('${UDP_TOML}', 'rb') as f:
+with open('${SERVER_TOML}', 'rb') as f:
     c = tomllib.load(f)
 print('WIFI_SSID=' + shlex.quote(w['ssid']))
 print('WIFI_PASS=' + shlex.quote(w['password']))
 print('SERVER_HOST=' + shlex.quote(w['server_host']))
-print('SERVER_PORT=' + str(c['udp']['port']))
-print('PUSH_INTERVAL=' + str(c['udp']['push_interval']))
+print('SERVER_PORT=' + str(c['wifi']['port']))
+print('PUSH_INTERVAL=' + str(c['wifi']['push_interval']))
 ")"
 
   PATCH_ARGS+=(

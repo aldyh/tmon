@@ -7,7 +7,7 @@
 # Installs the daemon, panel, config files, and systemd services.
 # Services are installed but NOT enabled -- choose which to enable:
 #   sudo systemctl enable --now tmond-serial
-#   sudo systemctl enable --now tmond-udp
+#   sudo systemctl enable --now tmond-wifi
 #   sudo systemctl enable --now tmon-panel
 
 set -euo pipefail
@@ -121,7 +121,7 @@ install -m 755 deploy/tmon-patch /usr/local/bin/tmon-patch
 
 echo "Installing systemd services..."
 cp deploy/tmond-serial.service "${SYSTEMD_DIR}/"
-cp deploy/tmond-udp.service "${SYSTEMD_DIR}/"
+cp deploy/tmond-wifi.service "${SYSTEMD_DIR}/"
 cp deploy/tmon-panel.service "${SYSTEMD_DIR}/"
 systemctl daemon-reload
 
@@ -143,7 +143,7 @@ echo "Next steps:"
 echo "  1. Edit ${ETC_DIR}/tmon.toml for your setup"
 echo "  2. Enable a daemon transport:"
 echo "       sudo systemctl enable --now tmond-serial"
-echo "       sudo systemctl enable --now tmond-udp"
+echo "       sudo systemctl enable --now tmond-wifi"
 echo "  3. Enable the panel:"
 echo "       sudo systemctl enable --now tmon-panel"
 echo "  4. View the panel at http://$(hostname):5000"

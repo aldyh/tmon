@@ -14,19 +14,19 @@ def load_config(path: str, transport: str) -> dict:
     """Read a TOML config file and validate required keys.
 
     The *transport* selects which section to validate: ``[rs485]`` or
-    ``[udp]``.  The transport is not read from the TOML file itself.
+    ``[wifi]``.  The transport is not read from the TOML file itself.
 
     Common keys: ``db`` (str).
 
     For rs485: ``[rs485]`` section with ``clients`` (list[int]),
     ``interval`` (int), ``port`` (str), ``baudrate`` (int).
-    For udp: ``[udp]`` section with ``port`` (int).
+    For wifi: ``[wifi]`` section with ``port`` (int).
 
     Raises:
         ValueError: If any required key is missing or has the wrong type.
     """
-    if transport not in ("rs485", "udp"):
-        raise ValueError("transport must be 'rs485' or 'udp', got '%s'" % transport)
+    if transport not in ("rs485", "wifi"):
+        raise ValueError("transport must be 'rs485' or 'wifi', got '%s'" % transport)
 
     with open(path, "rb") as f:
         raw = tomllib.load(f)
@@ -38,9 +38,9 @@ def load_config(path: str, transport: str) -> dict:
         "db": raw["db"],
     }
 
-    if transport == "udp":
-        _require_udp_section(raw)
-        result["udp_port"] = raw["udp"]["port"]
+    if transport == "wifi":
+        _require_wifi_section(raw)
+        result["wifi_port"] = raw["wifi"]["port"]
     else:
         section = raw.get("rs485")
         if not isinstance(section, dict):
@@ -72,17 +72,17 @@ def _require_clients(raw: dict[str, object]) -> None:
         raise ValueError("clients must not be empty")
 
 
-def _require_udp_section(raw: dict[str, object]) -> None:
-    """Validate [udp] section has port (int)."""
-    if "udp" not in raw:
-        raise ValueError("udp transport requires [udp] section")
-    udp = raw["udp"]
-    if not isinstance(udp, dict):
-        raise ValueError("[udp] must be a table")
-    if "port" not in udp:
-        raise ValueError("missing required key: udp.port")
-    if not isinstance(udp["port"], int):
-        raise ValueError("udp.port must be int, got %s" % type(udp["port"]).__name__)
+def _require_wifi_section(raw: dict[str, object]) -> None:
+    """Validate [wifi] section has port (int)."""
+    if "wifi" not in raw:
+        raise ValueError("wifi transport requires [wifi] section")
+    wifi = raw["wifi"]
+    if not isinstance(wifi, dict):
+        raise ValueError("[wifi] must be a table")
+    if "port" not in wifi:
+        raise ValueError("missing required key: wifi.port")
+    if not isinstance(wifi["port"], int):
+        raise ValueError("wifi.port must be int, got %s" % type(wifi["port"]).__name__)
 
 
 def _require_str(raw: dict[str, object], key: str) -> None:

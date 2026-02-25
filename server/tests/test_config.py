@@ -244,46 +244,46 @@ class TestLoadConfig:
         with pytest.raises(ValueError, match="transport"):
             load_config(path, "bluetooth")
 
-    def test_valid_udp_config(self, tmp_path):
-        """UDP config with [udp] section returns expected dict."""
+    def test_valid_wifi_config(self, tmp_path):
+        """WiFi config with [wifi] section returns expected dict."""
         path = _write_toml(tmp_path, (
             'db = "data/readings.db"\n'
             '\n'
-            '[udp]\n'
+            '[wifi]\n'
             'port = 5555\n'
         ))
-        cfg = load_config(path, "udp")
-        assert cfg["transport"] == "udp"
-        assert cfg["udp_port"] == 5555
+        cfg = load_config(path, "wifi")
+        assert cfg["transport"] == "wifi"
+        assert cfg["wifi_port"] == 5555
         assert cfg["db"] == "data/readings.db"
         assert "clients" not in cfg
         assert "interval" not in cfg
 
-    def test_udp_missing_section(self, tmp_path):
-        """UDP transport without [udp] section raises ValueError."""
+    def test_wifi_missing_section(self, tmp_path):
+        """WiFi transport without [wifi] section raises ValueError."""
         path = _write_toml(tmp_path, (
             'db = "test.db"\n'
         ))
-        with pytest.raises(ValueError, match="udp.*section"):
-            load_config(path, "udp")
+        with pytest.raises(ValueError, match="wifi.*section"):
+            load_config(path, "wifi")
 
-    def test_udp_missing_port(self, tmp_path):
-        """UDP section without port raises ValueError."""
+    def test_wifi_missing_port(self, tmp_path):
+        """WiFi section without port raises ValueError."""
         path = _write_toml(tmp_path, (
             'db = "test.db"\n'
             '\n'
-            '[udp]\n'
+            '[wifi]\n'
         ))
-        with pytest.raises(ValueError, match="udp.port"):
-            load_config(path, "udp")
+        with pytest.raises(ValueError, match="wifi.port"):
+            load_config(path, "wifi")
 
-    def test_udp_port_wrong_type(self, tmp_path):
-        """UDP port as string raises ValueError."""
+    def test_wifi_port_wrong_type(self, tmp_path):
+        """WiFi port as string raises ValueError."""
         path = _write_toml(tmp_path, (
             'db = "test.db"\n'
             '\n'
-            '[udp]\n'
+            '[wifi]\n'
             'port = "5555"\n'
         ))
-        with pytest.raises(ValueError, match="udp.port.*int"):
-            load_config(path, "udp")
+        with pytest.raises(ValueError, match="wifi.port.*int"):
+            load_config(path, "wifi")
