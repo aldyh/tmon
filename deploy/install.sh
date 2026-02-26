@@ -3,12 +3,22 @@
 #
 # Run as root from the project root directory:
 #   sudo deploy/install.sh
+#   sudo deploy/install.sh --quick   (skip Python venv + pip installs)
 #
 # Interactive installer: prompts for configuration, writes config files,
 # installs packages, and enables systemd services in one pass.
 # Re-running clobbers previous config (KISS).
+#
+# --quick  Skip Python virtual-environment creation and pip installs.
+#          Useful when redeploying config, services, or firmware without
+#          Python code changes.  Requires a prior full install.
 
 set -euo pipefail
+
+QUICK=0
+if [ "${1:-}" = "--quick" ]; then
+  QUICK=1
+fi
 
 ETC_DIR="/etc/tmon"
 VAR_DIR="/var/lib/tmon"
@@ -175,21 +185,26 @@ mkdir -p "${ETC_DIR}" "${VAR_DIR}" "${FW_DIR}" "${PANEL_DIR}"
 # Python virtual environment
 # ------------------------------------------------------------------
 
-if [ ! -d "${VENV_DIR}" ]; then
+if [ "${QUICK}" -eq 1 ]; then
+  if [ ! -d "${VENV_DIR}" ]; then
+    echo "error: --quick requires an existing venv at ${VENV_DIR}" >&2
+    echo "       run a full install first" >&2
+    exit 1
+  fi
+  echo "Quick mode: skipping Python venv and pip installs."
+else
   echo "Creating virtual environment at ${VENV_DIR}..."
   python3 -m venv "${VENV_DIR}"
-else
-  echo "Virtual environment already exists at ${VENV_DIR}, reusing."
+
+  echo "Installing server daemon..."
+  "${VENV_DIR}/bin/pip" install --quiet server/
+
+  echo "Installing panel dependencies..."
+  "${VENV_DIR}/bin/pip" install --quiet panel/
+
+  echo "Installing esptool..."
+  "${VENV_DIR}/bin/pip" install --quiet esptool
 fi
-
-echo "Installing server daemon..."
-"${VENV_DIR}/bin/pip" install --quiet server/
-
-echo "Installing panel dependencies..."
-"${VENV_DIR}/bin/pip" install --quiet panel/
-
-echo "Installing esptool..."
-"${VENV_DIR}/bin/pip" install --quiet esptool
 
 # ------------------------------------------------------------------
 # Write config files
