@@ -1137,9 +1137,16 @@ flag for the common "nothing changed in Python" case.
 Normal mode always creates a fresh venv — the old "reuse if exists"
 behavior was removed so a full install is a guaranteed clean slate.
 ~--quick~ errors out if no venv exists from a prior full install.
-* TODO Restart running services on reinstall
+* CANCELLED Restart running services on reinstall
 ~install.sh~ uses ~systemctl enable --now~ which only starts a stopped
 service.  If daemons are already running, they keep the old code/config
 until manually restarted.  The installer should restart (or stop-then-start)
 any already-running services so the new config and panel files take effect
 immediately.
+
+** Notes
+Not worth the complexity for a single-operator home project.  The
+installer would need to detect which services are actually running
+(RS-485, WiFi, or both) and selectively restart them.  Since the
+operator already knows what changed, a manual ~systemctl restart~ is
+simpler and more predictable.
