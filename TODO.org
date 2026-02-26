@@ -1115,7 +1115,7 @@ wifi.toml setup instructions (cp from example, fill in SSID/password/
 server IP), and clarifying notes on which fields matter where (e.g.
 push_interval only affects firmware at flash time).  Also fixed stale
 "sensor" -> "client" in wifi.toml.example.
-* DONE Speed up install.sh pip installs on Raspberry Pi
+* CANCELLED Speed up install.sh pip installs on Raspberry Pi
 The venv is already reused across reinstalls, but the three ~pip install~
 calls are still slow on the Pi because ~server/~ and ~panel/~ are local
 directories — pip rebuilds the sdist every time even if nothing changed.
@@ -1133,20 +1133,9 @@ This is what most projects do: just eat the cost, or provide a fast path
 flag for the common "nothing changed in Python" case.
 
 ** Notes
-~--quick~ skips the entire Python section (venv creation + pip installs).
-Normal mode always creates a fresh venv — the old "reuse if exists"
-behavior was removed so a full install is a guaranteed clean slate.
-~--quick~ errors out if no venv exists from a prior full install.
-* CANCELLED Restart running services on reinstall
-~install.sh~ uses ~systemctl enable --now~ which only starts a stopped
-service.  If daemons are already running, they keep the old code/config
-until manually restarted.  The installer should restart (or stop-then-start)
-any already-running services so the new config and panel files take effect
-immediately.
-
-** Notes
-Not worth the complexity for a single-operator home project.  The
-installer would need to detect which services are actually running
-(RS-485, WiFi, or both) and selectively restart them.  Since the
-operator already knows what changed, a manual ~systemctl restart~ is
-simpler and more predictable.
+A ~--quick~ flag was prototyped and reverted.  The only reason to re-run
+~install.sh~ is a full reinstall where you want pip.  For config tweaks,
+just edit the TOML files and restart the relevant daemon — no installer
+needed.  Also removed the venv-reuse ~-d~ check: unconditionally
+creating the venv is simpler and the cost is negligible (pip is the slow
+part, not venv creation).
