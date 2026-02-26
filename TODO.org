@@ -1137,3 +1137,9 @@ flag for the common "nothing changed in Python" case.
 Normal mode always creates a fresh venv — the old "reuse if exists"
 behavior was removed so a full install is a guaranteed clean slate.
 ~--quick~ errors out if no venv exists from a prior full install.
+* TODO Restart running services on reinstall
+~install.sh~ uses ~systemctl enable --now~ which only starts a stopped
+service.  If daemons are already running, they keep the old code/config
+until manually restarted.  The installer should restart (or stop-then-start)
+any already-running services so the new config and panel files take effect
+immediately.
